@@ -1,0 +1,72 @@
+.container {
+  display: flex;
+  padding: 20px;
+  gap: 30px;
+}
+
+.video-section {
+  width: 60%;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+.play, .stop {
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+.slider {
+  width: 100%;
+  margin: 10px 0;
+  accent-color: deeppink;
+}
+
+.video-select {
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.video-select button {
+  padding: 5px 10px;
+}
+
+.drop-zone {
+  border: 2px dashed gray;
+  padding: 30px;
+  text-align: center;
+  margin-top: 10px;
+  background-color: #f0f0f0;
+}
+
+.options-section {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.compress-btn {
+  background-color: #28d07e;
+  color: white;
+  font-weight: bold;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
