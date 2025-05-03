@@ -5,3 +5,8 @@ __pycache__/
 
 venv/
 .venv/
+
+*.sqlite3
+*.http
+*.avi
+*.mp4
