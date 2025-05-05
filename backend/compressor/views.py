@@ -7,12 +7,14 @@ from django.conf import settings
 import os
 import subprocess
 import uuid
+import json
 
 from . import serializers
 
 class VideoView(APIView):
     def get(self, request, file_name):
         video_file = finders.find(os.path.join("videos", file_name))
+        print(video_file)
         if not video_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -35,6 +37,7 @@ import ffmpeg
 class CompressionView(APIView):
     def post(self, request):
         filename = request.data.get('fileName')
+        print(filename)
         if not filename:
             return Response({"message": "Video file name not provided"}, status=status.HTTP_400_BAD_REQUEST)
         video_url = finders.find(os.path.join("videos", filename))
@@ -60,3 +63,52 @@ class CompressionView(APIView):
             output
         ])
         return Response({"compressedUrl": f"http://localhost:8000/video/{output_filename}/"}, status=status.HTTP_200_OK)
+
+class CompressionFramesView(APIView):
+    def get(self, request, file_name):
+        video_file = finders.find(os.path.join("../static/videos", file_name))
+        if not video_file:
+            return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        frames = self.get_frames_with_images(video_file, os.path.join(settings.BASE_DIR, "static", "frames"))
+
+        return Response(frames, status=status.HTTP_200_OK)
+
+
+    def get_frame_info(self, video_path):
+        result = subprocess.run([
+            "ffprobe", "-show_frames", "-select_streams", "v", "-print_format", "json", video_path
+        ], capture_output=True, text=True)
+
+        data = json.loads(result.stdout)
+        print(json.dumps(data["frames"][0], indent=2))
+        frames = []
+        i = 0
+        for frame in data.get("frames", []):
+            pict_type = frame.get("pict_type")
+            if pict_type in ["I", "P", "B"]:
+                frames.append({
+                    "frame_number": i,
+                    "type": pict_type,
+                    "pts_time": frame.get("pts_time")
+                })
+                i += 1
+
+        return frames
+
+
+    def extract_frames(self, video_path, dir):
+        os.makedirs(dir, exist_ok=True)
+        subprocess.run([
+            "ffmpeg", "-i", video_path, "-vsync", "0", "-frame_pts", "true", f"{dir}/frame_%d.png"
+        ])
+
+    def get_frames_with_images(self, video_file, dir):
+        info = self.get_frame_info(video_file)
+        self.extract_frames(video_file, dir)
+
+        for frame in info:
+            frame_number = frame["frame_number"]
+            frame["image_url"] = f"/static/frames/frame_{frame_number}.png"
+
+        return info
