@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import { useLocation } from 'react-router-dom';
+import {useSettings} from "../context/SettingsContext";
 import './../styles/FrameDistribution.css';
 
 const FramesDistribution = () => {
     const frameSequence = ['I', 'B', 'B', 'P', 'B', 'B', 'P', 'B', 'I', 'B', 'B', 'P', 'B', 'I', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B'];
-    const { state } = useLocation();
-    const { video, bandwidth, resolution, pattern } = state || {};
+    const { videoFile, bandwidth, resolution, pattern } = useSettings() || {};
     const [selectedIdx, setSelectedIdx] = useState(0);
     const [imageUrl, setImageUrl] = useState(null);
     const [macroBlock, setMacroBlock] = useState(null);

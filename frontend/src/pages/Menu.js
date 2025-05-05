@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './../styles/App.css';
+import {useSettings} from "../context/SettingsContext";
 
 function Menu() {
     const videoRef = useRef(null);
@@ -20,16 +21,16 @@ function Menu() {
     const [bandwidth, setBandwidth] = useState("1");
     const [resolution, setResolution] = useState("1");
     const [pattern, setPattern] = useState("1");
+    const { setParameters } = useSettings();
 
     const handleCompress = () => {
-        navigate('/compress', {
-            state: {
-                video: videoFile,
-                bandwidth,
-                resolution,
-                pattern,
-            },
+        setParameters({
+            video: videoFile,
+            bandwidth: bandwidth,
+            resolution: resolution,
+            pattern: pattern,
         });
+        navigate('/compress');
     };
 
     const handleFileChange = (file) => {

@@ -4,6 +4,7 @@ import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
+import { SettingsProvider } from './context/SettingsContext';
 
 function Layout() {
   const location = useLocation();
@@ -11,13 +12,15 @@ function Layout() {
 
   return (
       <>
-        {!hideNavbar && <NavigationTabs />}
-        <Routes>
-          <Route path="/" element={<Menu />} />
-            <Route path="/compress" element={<FramesDistribution />} />
-            <Route path="/comparison" element={<Comparison />} />
-            <Route path="/quiz" element={<Quiz />} />
-        </Routes>
+          <SettingsProvider>
+              {!hideNavbar && <NavigationTabs />}
+              <Routes>
+                  <Route path="/" element={<Menu />} />
+                  <Route path="/compress" element={<FramesDistribution />} />
+                  <Route path="/comparison" element={<Comparison />} />
+                  <Route path="/quiz" element={<Quiz />} />
+              </Routes>
+          </SettingsProvider>
       </>
   );
 }
