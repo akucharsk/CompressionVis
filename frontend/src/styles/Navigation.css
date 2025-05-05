@@ -1,0 +1,21 @@
+.nav-container {
+    display: flex;
+}
+
+.nav-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+    background-color: #ffbb97;
+}
+
+.nav-tab:hover {
+    background-color: #fd996d;
+}
+
+.nav-tab.active {
+    background-color: #ff773e;
+}

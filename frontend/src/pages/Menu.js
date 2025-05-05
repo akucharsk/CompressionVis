@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './../styles/App.css';
 
 function Menu() {
@@ -15,9 +16,21 @@ function Menu() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
+    const navigate = useNavigate();
+    const [bandwidth, setBandwidth] = useState("1");
+    const [resolution, setResolution] = useState("1");
+    const [pattern, setPattern] = useState("1");
 
-
-
+    const handleCompress = () => {
+        navigate('/compress', {
+            state: {
+                video: videoFile,
+                bandwidth,
+                resolution,
+                pattern,
+            },
+        });
+    };
 
     const handleFileChange = (file) => {
         setVideoFile(URL.createObjectURL(file));
@@ -86,10 +99,7 @@ function Menu() {
 
                 <div className="video-select">
                     {videoSources.map((video, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setVideoFile(video.url)}
-                        >
+                        <button key={index} onClick={() => setVideoFile(video.url)}>
                             {video.label}
                         </button>
                     ))}
@@ -122,37 +132,29 @@ function Menu() {
             <div className="options-section">
                 <div className="dropdown">
                     <label>Bandwidth</label>
-                    <select>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
+                    <select value={bandwidth} onChange={(e) => setBandwidth(e.target.value)}>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
                     </select>
                 </div>
                 <div className="dropdown">
                     <label>Resolution</label>
-                    <select>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
+                    <select value={resolution} onChange={(e) => setResolution(e.target.value)}>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
                     </select>
                 </div>
                 <div className="dropdown">
                     <label>I,P,B frame pattern</label>
-                    <select>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
+                    <select value={pattern} onChange={(e) => setPattern(e.target.value)}>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
                     </select>
                 </div>
-                <div className="dropdown">
-                <label>Other</label>
-                    <select>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                    </select>
-                </div>
-                <button className="compress-btn">COMPRESS</button>
+                <button className="compress-btn" onClick={handleCompress}>COMPRESS</button>
             </div>
         </div>
     );

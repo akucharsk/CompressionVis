@@ -6,17 +6,17 @@ import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 
 function Layout() {
-  // const location = useLocation();
-  // const hideNavbar = location.pathname === "/";
+  const location = useLocation();
+  const hideNavbar = location.pathname === "/";
 
   return (
       <>
-        {/*{!hideNavbar && <NavigationTabs />}*/}
+        {!hideNavbar && <NavigationTabs />}
         <Routes>
           <Route path="/" element={<Menu />} />
-          {/*<Route path="/frames" element={<FramesDistribution />} />*/}
-          {/*<Route path="/comparison" element={<Comparison />} />*/}
-          {/*<Route path="/quiz" element={<Quiz />} />*/}
+            <Route path="/compress" element={<FramesDistribution />} />
+            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/quiz" element={<Quiz />} />
         </Routes>
       </>
   );
