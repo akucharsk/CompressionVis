@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useSettings} from "../context/SettingsContext";
-import './../styles/FrameDistribution.css';
+import './../styles/pages/FrameDistribution.css';
+import FrameBox from '../components/FrameBox';
 
 const FramesDistribution = () => {
     const frameSequence = ['I', 'B', 'B', 'P', 'B', 'B', 'P', 'B', 'I', 'B', 'B', 'P', 'B', 'I', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B'];
@@ -35,17 +36,11 @@ const FramesDistribution = () => {
                     ))}
                 </div>
 
-                <div className="frameBox">
-                    {frameSequence.map((type, idx) => (
-                        <div
-                            key={idx}
-                            className={`frame ${type} ${selectedIdx === idx ? 'selected' : ''}`}
-                            onClick={() => setSelectedIdx(idx)}
-                        >
-                            {type}
-                        </div>
-                    ))}
-                </div>
+                <FrameBox 
+                    frameSequence={frameSequence}
+                    selectedIdx={selectedIdx}
+                    setSelectedIdx={setSelectedIdx}
+                />
             </div>
 
             <div className="main-frame-container">
