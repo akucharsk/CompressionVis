@@ -3,6 +3,7 @@ import { useState } from "react";
 import ImageBlockConst from "../components/ImageBlockConst";
 import ImageBlockSelect from "../components/ImageBlockSelect";
 import ImageDetails from "../components/ImageDetails";
+import './../styles/pages/Comparison.css';
 
 // temporary imports, hardcoded
 import { frameSequence } from "./data/FrameSequences";
@@ -33,18 +34,21 @@ const Comparison = () => {
                     setSelectedType={setSelectedType}
                 />
             </div>
-            <div className="comparision-details">
-                <ImageDetails
-                    type={"H.264"}
-                    details={metricsImageInfo["H.264"]}
-                />
-                {/* validation for values not assigned in metricsImageInfo. later to delete */}
-                {metricsImageInfo[selectedType] && (
+            <div className="description">
+                <h1>Metrics</h1>
+                <div className="comparision-details">
                     <ImageDetails
-                        type={selectedType}
-                        details={metricsImageInfo[selectedType]}
+                        type={"H.264"}
+                        details={metricsImageInfo["H.264"]}
                     />
-                )}
+                    {/* validation for values not assigned in metricsImageInfo. later to delete */}
+                    {metricsImageInfo[selectedType] && (
+                        <ImageDetails
+                            type={selectedType}
+                            details={metricsImageInfo[selectedType]}
+                        />
+                    )}
+                </div>
             </div>
         </>
     );
