@@ -3,6 +3,7 @@ import { questions } from "./data/Questions";
 import QuizMenu from "../components/quiz/QuizMenu";
 import QuizQuestion from "../components/quiz/QuizQuestion";
 import QuizEnded from "../components/quiz/QuizEnded";
+import "../styles/pages/Quiz.css";
 
 const Quiz = () => {
     const [step, setStep] = useState("menu"); 

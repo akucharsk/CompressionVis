@@ -11,11 +11,13 @@ const QuizQuestion = ({ number, total, question, answers, onAnswer }) => {
                         <li key={key}>{key}. {value}</li>
                     ))}
                 </ul>
-                {Object.entries(answers).map(([key, value]) => (
-                    <button key={key} onClick={() => onAnswer(key)}>
-                        {key}
-                    </button>
-                ))}
+                <div className="answer-buttons">
+                    {Object.entries(answers).map(([key]) => (
+                        <button key={key} onClick={() => onAnswer(key)}>
+                            {key}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );
