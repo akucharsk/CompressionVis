@@ -6,7 +6,8 @@ export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider = ({ children }) => {
     const [parameters, setParameters] = useState({
-        video: null,
+        videoLink: null,
+        videoName: null,
         bandwidth: null,
         resolution: null,
         pattern: null,

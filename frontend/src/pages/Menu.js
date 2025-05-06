@@ -1,18 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './../styles/App.css';
-import {useSettings} from "../context/SettingsContext";
+import { useSettings } from "../context/SettingsContext";
 
 function Menu() {
     const videoRef = useRef(null);
     const [videoFile, setVideoFile] = useState(null);
-
-    const videoSources = [
-        { label: "Video 1", url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-        { label: "Video 2", url: "https://example.com/videos/video2.mp4" },
-        { label: "Video 3", url: "https://example.com/videos/video3.mp4" },
-        { label: "Video 4", url: "https://example.com/videos/video4.mp4" },
-    ];
+    const [videoSources, setVideoSources] = useState([]);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -21,30 +15,59 @@ function Menu() {
     const [bandwidth, setBandwidth] = useState("1");
     const [resolution, setResolution] = useState("1");
     const [pattern, setPattern] = useState("1");
-    const { setParameters } = useSettings();
+    const [videoName, setVideoName] = useState("");
+    const { parameters, setParameters } = useSettings();
+
+    useEffect(() => {
+        fetch("http://127.0.0.1:8000/video/example")
+            .then((res) => res.json())
+            .then((data) => {
+                const formatted = data.map((item) => ({
+                    name: item.name,
+                    thumbnail: `http://127.0.0.1:8000/video/thumbnail/${item.thumbnail}`,
+                    url: `http://127.0.0.1:8000/video/${item.name}`
+                }));
+                setVideoSources(formatted);
+            })
+            .catch((error) => console.error("Failed to fetch video sources:", error));
+    }, []);
+
+    useEffect(() => {
+        if (parameters.videoLink) {
+            navigate('/compress');
+        }
+    }, [parameters, navigate]);
 
     const handleCompress = () => {
-        setParameters({
-            video: videoFile,
-            bandwidth: bandwidth,
-            resolution: resolution,
-            pattern: pattern,
-        });
-        navigate('/compress');
+        if (!videoFile) {
+            alert("Please select a video first");
+            return;
+        }
+        setParameters({ videoLink: videoFile, videoName: videoName, bandwidth, resolution, pattern });
     };
 
     const handleFileChange = (file) => {
-        setVideoFile(URL.createObjectURL(file));
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith("video/")) {
+            setVideoFile(url);
+        } else {
+            alert("Unsupported file format");
+        }
     };
 
     const handlePlay = () => {
         if (videoRef.current) {
+            const videoElement = videoRef.current;
             if (isPlaying) {
-                videoRef.current.pause();
+                videoElement.pause();
                 setIsPlaying(false);
             } else {
-                videoRef.current.play();
-                setIsPlaying(true);
+                videoElement.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((error) => {
+                        console.error("Playback failed:", error);
+                        alert("Error playing video. Please check the video file.");
+                    });
             }
         }
     };
@@ -62,6 +85,13 @@ function Menu() {
         if (e.dataTransfer.files.length > 0) {
             handleFileChange(e.dataTransfer.files[0]);
         }
+    };
+
+    const selectVideo = (url) => {
+        setVideoFile(url);
+        setVideoName(url.split('/').pop());
+        setIsPlaying(false);
+        setCurrentTime(0);
     };
 
     return (
@@ -100,9 +130,19 @@ function Menu() {
 
                 <div className="video-select">
                     {videoSources.map((video, index) => (
-                        <button key={index} onClick={() => setVideoFile(video.url)}>
-                            {video.label}
-                        </button>
+                        <div
+                            key={index}
+                            className="video-thumbnail"
+                            onClick={() => selectVideo(video.url)}
+                        >
+                            <img
+                                src={video.thumbnail}
+                                alt={video.name}
+                                width={120}
+                                height={70}
+                            />
+                            <span>{video.name}</span>
+                        </div>
                     ))}
                 </div>
 
@@ -155,7 +195,13 @@ function Menu() {
                         <option value="3">3</option>
                     </select>
                 </div>
-                <button className="compress-btn" onClick={handleCompress}>COMPRESS</button>
+                <button
+                    className="compress-btn"
+                    onClick={handleCompress}
+                    disabled={!videoFile}
+                >
+                    COMPRESS
+                </button>
             </div>
         </div>
     );
