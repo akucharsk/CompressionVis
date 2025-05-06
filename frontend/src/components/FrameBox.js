@@ -4,10 +4,10 @@ const FrameBox = ({selectedIdx, frameSequence, setSelectedIdx}) => {
     return ( 
         <>
             <div className="time-labels">
-                        {Array.from({length: 21}, (_, i) => (
-                            <div key={i} className="time-label">{(i * 0.1).toFixed(1)}</div>
-                        ))}
-                    </div>
+                {Array.from({length: 21}, (_, i) => (
+                    <div key={i} className="time-label">{(i * 0.1).toFixed(1)}</div>
+                ))}
+            </div>
             <div className="frameBox">
                 {frameSequence.map((type, idx) => (
                     <div
