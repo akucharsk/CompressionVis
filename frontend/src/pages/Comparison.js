@@ -1,8 +1,8 @@
 import FrameBox from "../components/FrameBox";
 import { useState } from "react";
-import ImageBlockConst from "../components/ImageBlockConst";
-import ImageBlockSelect from "../components/ImageBlockSelect";
-import ImageDetails from "../components/ImageDetails";
+import ImageBlockConst from "../components/comparison/ImageBlockConst";
+import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
+import ImageDetails from "../components/comparison/ImageDetails";
 import './../styles/pages/Comparison.css';
 
 // temporary imports, hardcoded
