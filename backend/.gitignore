@@ -8,5 +8,8 @@ venv/
 
 *.sqlite3
 *.http
-*.avi
 *.mp4
+*.avi
+static/compressed_videos/
+static/frames/
+static/thumbnails/*.png

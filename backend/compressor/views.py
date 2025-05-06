@@ -127,6 +127,7 @@ class CompressionFramesView(APIView):
 
 class ExampleVideosView(APIView):
     def get(self, request):
+        print(request.GET)
         videos_dir = os.path.join(settings.BASE_DIR, "static", "videos")
         thumbs_dir = os.path.join(settings.BASE_DIR, "static", "thumbnails")
         os.makedirs(thumbs_dir, exist_ok=True)
@@ -137,11 +138,10 @@ class ExampleVideosView(APIView):
         ]
 
         response_data = []
-
         for filename in video_files:
             video_path = os.path.join(videos_dir, filename)
             thumbnail_path = os.path.join(thumbs_dir, f"{os.path.splitext(filename)[0]}.png")
-            thumbnail_url = f"/static/thumbnails/{os.path.splitext(filename)[0]}.png"
+            thumbnail_url = f"{os.path.splitext(filename)[0]}.png"
 
             if not os.path.exists(thumbnail_path):
                 subprocess.run([
@@ -154,8 +154,15 @@ class ExampleVideosView(APIView):
 
             response_data.append({
                 "name": filename,
-                "url": f"/static/videos/{filename}",
                 "thumbnail": thumbnail_url
             })
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+class ThumbnailView(APIView):
+    def get(self, request, file_name):
+        file_path = finders.find(os.path.join('thumbnails', file_name))
+        if not file_path:
+            return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(open(file_path, 'rb'), content_type="image/png", status=status.HTTP_200_OK)
