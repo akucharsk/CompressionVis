@@ -1,3 +1,7 @@
+html {
+  min-height: 720px;
+}
+
 .container {
   display: flex;
   padding: 20px;
