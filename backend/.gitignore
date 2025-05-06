@@ -5,3 +5,11 @@ __pycache__/
 
 venv/
 .venv/
+
+*.sqlite3
+*.http
+*.mp4
+*.avi
+static/compressed_videos/
+static/frames/
+static/thumbnails/*.png
