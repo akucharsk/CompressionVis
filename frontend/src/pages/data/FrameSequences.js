@@ -1,0 +1,1 @@
+export const frameSequence = ['I', 'B', 'B', 'P', 'B', 'B', 'P', 'B', 'I', 'B', 'B', 'P', 'B', 'I', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B'];

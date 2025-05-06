@@ -1,6 +1,15 @@
+import FrameBox from "../components/FrameBox";
+import { useState } from "react";
+import { frameSequence } from "./data/FrameSequences";
+
 const Comparison = () => {
+    const [selectedIdx, setSelectedIdx]  = useState(0);
     return (
-        <div>Comparison</div>
+        <FrameBox
+            frameSequence={frameSequence}
+            selectedIdx={selectedIdx}
+            setSelectedIdx={setSelectedIdx}
+        />
     );
 };
 

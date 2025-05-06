@@ -2,9 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {useSettings} from "../context/SettingsContext";
 import './../styles/pages/FrameDistribution.css';
 import FrameBox from '../components/FrameBox';
+import { frameSequence } from './data/FrameSequences';
 
 const FramesDistribution = () => {
-    const frameSequence = ['I', 'B', 'B', 'P', 'B', 'B', 'P', 'B', 'I', 'B', 'B', 'P', 'B', 'I', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B','I', 'B', 'B', 'P', 'B', 'B', 'P', 'B'];
     const { videoFile, bandwidth, resolution, pattern } = useSettings() || {};
     const [selectedIdx, setSelectedIdx] = useState(0);
     const [imageUrl, setImageUrl] = useState(null);
@@ -30,13 +30,8 @@ const FramesDistribution = () => {
     return (
         <div className="distribution-container">
             <div className="timeline-container">
-                <div className="time-labels">
-                    {Array.from({length: 21}, (_, i) => (
-                        <div key={i} className="time-label">{(i * 0.1).toFixed(1)}</div>
-                    ))}
-                </div>
-
                 <FrameBox 
+                    // Right now temporary frameSequence
                     frameSequence={frameSequence}
                     selectedIdx={selectedIdx}
                     setSelectedIdx={setSelectedIdx}
