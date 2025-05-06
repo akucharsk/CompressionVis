@@ -1,6 +1,10 @@
 import React from "react";
 
-const ImageBlockSelect = ({ url, types }) => {
+const ImageBlockSelect = ({ url, types, selectedType, setSelectedType }) => {
+    const handleChange = (e) => {
+        setSelectedType(e.target.value);
+    };
+    
     return (
         <>
             <div className="comparision-block">
@@ -12,9 +16,9 @@ const ImageBlockSelect = ({ url, types }) => {
                     </img>
                 </div>
                 <div className="compression-type">
-                    <select>
+                    <select value={selectedType} onChange={handleChange}>
                         {types.map((type, idx) => (
-                            <option key={idx} value="type">{type}</option>
+                            <option key={idx} value={type}>{type}</option>
                         ))}
                     </select>
                 </div>

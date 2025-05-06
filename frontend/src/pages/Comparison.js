@@ -1,11 +1,19 @@
 import FrameBox from "../components/FrameBox";
 import { useState } from "react";
-import { frameSequence } from "./data/FrameSequences";
 import ImageBlockConst from "../components/ImageBlockConst";
 import ImageBlockSelect from "../components/ImageBlockSelect";
+import ImageDetails from "../components/ImageDetails";
+
+// temporary imports, hardcoded
+import { frameSequence } from "./data/FrameSequences";
+import { metricsImageInfo } from "./data/Metrics";
 
 const Comparison = () => {
     const [selectedIdx, setSelectedIdx]  = useState(0);
+    const url = 'https://www.w3schools.com/w3css/img_lights.jpg';
+
+    const [selectedType, setSelectedType] = useState("H.265");
+
     return (
         <>
             <FrameBox
@@ -15,15 +23,29 @@ const Comparison = () => {
             />
             <div className="comparison-container">
                 <ImageBlockConst 
-                    url="/images/h264.jpg" 
+                    url={url} 
                     type="H.264"
                 />
                 <ImageBlockSelect 
-                    url="/images/mpeg1.jpg" 
+                    url={url} 
                     types={["MPEG-1", "H.265", "VP9"]}
+                    selectedType={selectedType}
+                    setSelectedType={setSelectedType}
                 />
             </div>
-
+            <div className="comparision-details">
+                <ImageDetails
+                    type={"H.264"}
+                    details={metricsImageInfo["H.264"]}
+                />
+                {/* validation for values not assigned in metricsImageInfo. later to delete */}
+                {metricsImageInfo[selectedType] && (
+                    <ImageDetails
+                        type={selectedType}
+                        details={metricsImageInfo[selectedType]}
+                    />
+                )}
+            </div>
         </>
     );
 };
