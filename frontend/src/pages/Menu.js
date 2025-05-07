@@ -15,6 +15,7 @@ function Menu() {
     const [bandwidth, setBandwidth] = useState("1");
     const [resolution, setResolution] = useState("1");
     const [pattern, setPattern] = useState("1");
+    const [crf, setCrf] = useState("20");
     const [videoName, setVideoName] = useState("");
     const { parameters, setParameters } = useSettings();
 
@@ -34,6 +35,7 @@ function Menu() {
 
     useEffect(() => {
         if (parameters.videoLink) {
+            console.log(parameters.videoLink, parameters.videoName)
             navigate('/compress');
         }
     }, [parameters, navigate]);
@@ -43,7 +45,25 @@ function Menu() {
             alert("Please select a video first");
             return;
         }
-        setParameters({ videoLink: videoFile, videoName: videoName, bandwidth, resolution, pattern });
+        fetch("http://localhost:8000/video/compress/", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                bandwidth: bandwidth,
+                resolution: resolution,
+                crf: parseInt(crf),
+                framerate: 30,
+                fileName: videoName
+            })
+        })
+            .then((resp) => resp.json())
+            .then((data) => {
+                console.log(data['compressedUrl'].split('/'), data)
+                const urlSplit = data['compressedUrl'].split('/');
+                const filename = urlSplit[urlSplit.length - 2];
+                setParameters({ videoLink: videoFile, videoName: filename, bandwidth, resolution, pattern });
+            })
+            .catch((error) => console.log(error))
     };
 
     const handleFileChange = (file) => {
@@ -174,17 +194,17 @@ function Menu() {
                 <div className="dropdown">
                     <label>Bandwidth</label>
                     <select value={bandwidth} onChange={(e) => setBandwidth(e.target.value)}>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
+                        <option value="64k">64kB/s</option>
+                        <option value="128k">128kB/s</option>
+                        <option value="1M">1MB/s</option>
                     </select>
                 </div>
                 <div className="dropdown">
                     <label>Resolution</label>
                     <select value={resolution} onChange={(e) => setResolution(e.target.value)}>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
+                        <option value="1920x1080">1920x1080</option>
+                        <option value="1280x720">1280x720</option>
+                        <option value="400x400">400x400</option>
                     </select>
                 </div>
                 <div className="dropdown">
@@ -193,6 +213,15 @@ function Menu() {
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
+                    </select>
+                </div>
+                <div className="dropdown">
+                    <label>Constant Rate Factor</label>
+                    <select value={crf} onChange={(e) => setCrf(e.target.value)}>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="35">35</option>
+                        <option value="51">51 (max)</option>
                     </select>
                 </div>
                 <button
