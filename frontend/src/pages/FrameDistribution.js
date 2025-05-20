@@ -6,19 +6,30 @@ const FramesDistribution = () => {
     const { parameters } = useSettings();
     const [selectedIdx, setSelectedIdx] = useState(0);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
-    const [frames, setFrames] = useState([]);
+    const [frames, setFrames] = useState(() => {
+        const cachedFrames = sessionStorage.getItem('frames');
+        return cachedFrames ? JSON.parse(cachedFrames) : [];
+    });
+    const [isLoading, setIsLoading] = useState(frames.length === 0);
 
     useEffect(() => {
-        if (parameters.videoName) {
+        if (parameters.videoName && frames.length === 0) {
+            setIsLoading(true);
             fetch(`http://127.0.0.1:8000/video/frames/${parameters.videoName}`)
                 .then((res) => res.json())
                 .then((data) => {
                     const first40 = (data || []).slice(0, 40);
                     setFrames(first40);
+                    sessionStorage.setItem('frames', JSON.stringify(first40));
                 })
-                .catch((error) => console.error("Failed to fetch frames:", error));
+                .catch((error) => console.error("Failed to fetch frames:", error))
+                .finally(() => setIsLoading(false));
         }
-    }, [parameters]);
+    }, [parameters, frames]);
+
+    useEffect(() => {
+        return () => {};
+    }, []);
 
     const handleFrameClick = (index) => {
         setSelectedIdx(index);
@@ -30,6 +41,14 @@ const FramesDistribution = () => {
         }
         return null;
     };
+
+    if (isLoading) {
+        return (
+            <div className="loading-overlay">
+                <div className="spinner"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="distribution-container">
