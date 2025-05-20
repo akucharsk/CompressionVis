@@ -6,10 +6,11 @@ from django.contrib.staticfiles import finders
 from django.conf import settings
 import os
 import subprocess
-import uuid
 import json
 
 from . import serializers
+
+FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
 class VideoView(APIView):
     def get(self, request, file_name):
@@ -76,14 +77,50 @@ class CompressionFramesView(APIView):
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        frames = self.get_frames_with_images(video_file, os.path.join(settings.BASE_DIR, "static", "frames"))
+        file_name = os.path.basename(video_file)
+        video_name = os.path.splitext(file_name)[0]
+        frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
 
-        return Response(frames, status=status.HTTP_200_OK)
+        # TODO: śliskie, możliwe usterki, niezawodność do poprawy
+        if os.path.exists(frames_dir):
+            data = request.GET
+            start = int(data.get('start', 0))
+            end = start + FRAMES_PER_BATCH
 
+            with open(os.path.join(frames_dir, 'info.json')) as f:
+                info = json.load(f)['frames']
 
-    def get_frame_info(self, video_path):
+            frames = info[start:end]
+            for frame in frames:
+                frame_number = frame['frame_number']
+                frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
+
+            resp = {"frames": frames}
+            return Response(resp, status=status.HTTP_200_OK)
+
+        os.makedirs(frames_dir, exist_ok=True)
+
+        info = self.get_frame_info(video_file)
+        with open(os.path.join(frames_dir, 'info.json'), 'w') as f:
+            json.dump({"frames": info}, f)
+
+        peak = min(FRAMES_PER_BATCH, len(info))
+        self.extract_frames(video_file, frames_dir)
+
+        batch = info[:peak]
+        for frame in batch:
+            frame_number = frame['frame_number']
+            frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
+        return Response({"frames": batch}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_frame_info(video_path):
         result = subprocess.run([
-            "ffprobe", "-show_frames", "-select_streams", "v", "-print_format", "json", video_path
+            "ffprobe",
+            "-show_frames",
+            "-select_streams", "v",
+            "-print_format", "json",
+            video_path
         ], capture_output=True, text=True)
 
         data = json.loads(result.stdout)
@@ -102,28 +139,14 @@ class CompressionFramesView(APIView):
 
         return frames
 
-
-    def extract_frames(self, video_path, dir):
-        os.makedirs(dir, exist_ok=True)
-        subprocess.run([
-            "ffmpeg", "-i", video_path, "-fps_mode", "passthrough", "-frame_pts", "true", f"{dir}/frame_%d.png"
+    @staticmethod
+    def extract_frames(video_path, video_dir):
+        os.makedirs(video_dir, exist_ok=True)
+        subprocess.Popen([
+            "ffmpeg", "-i", video_path,
+            "-frame_pts", "true",
+            f"{video_dir}/frame_%d.png"
         ])
-
-    def get_frames_with_images(self, video_file, base_frames_dir):
-        file_name = os.path.basename(video_file)
-        video_name = os.path.splitext(file_name)[0]
-
-        output_dir = os.path.join(base_frames_dir, video_name)
-        os.makedirs(output_dir, exist_ok=True)
-
-        info = self.get_frame_info(video_file)
-        self.extract_frames(video_file, output_dir)
-
-        for frame in info:
-            frame_number = frame["frame_number"]
-            frame["image_url"] = f"/static/frames/{video_name}/frame_{frame_number}.png"
-
-        return info
 
 class ExampleVideosView(APIView):
     def get(self, request):
