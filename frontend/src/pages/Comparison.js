@@ -6,22 +6,16 @@ import ImageDetails from "../components/comparison/ImageDetails";
 import './../styles/pages/Comparison.css';
 
 // temporary imports, hardcoded
-import { frameSequence } from "./data/FrameSequences";
 import { metricsImageInfo } from "./data/Metrics";
 
 const Comparison = () => {
-    const [selectedIdx, setSelectedIdx]  = useState(0);
     const url = 'https://www.w3schools.com/w3css/img_lights.jpg';
 
     const [selectedType, setSelectedType] = useState("H.265");
 
     return (
-        <>
-            <FrameBox
-                frameSequence={frameSequence}
-                selectedIdx={selectedIdx}
-                setSelectedIdx={setSelectedIdx}
-            />
+        <div className="comparison">
+            <FrameBox/>
             <div className="comparison-container">
                 <ImageBlockConst 
                     url={url} 
@@ -50,7 +44,7 @@ const Comparison = () => {
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

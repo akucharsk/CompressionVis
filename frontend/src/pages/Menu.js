@@ -16,7 +16,7 @@ function Menu() {
     }, []);
 
     const handleCompress = () => {
-        setIsLoading(true); // Ustaw ładowanie na true
+        setIsLoading(true);
         fetch("http://localhost:8000/video/compress/", {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
