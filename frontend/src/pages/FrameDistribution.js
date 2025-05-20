@@ -10,11 +10,11 @@ const FramesDistribution = () => {
 
     useEffect(() => {
         if (parameters.videoName) {
-            fetch(`http://127.0.0.1:8000/video/frames/${parameters.videoName}`)
+            fetch(`http://127.0.0.1:8000/video/frames/${parameters.compressedFilename}`)
                 .then((res) => res.json())
                 .then((data) => {
-                    const first40 = (data || []).slice(0, 40);
-                    setFrames(first40);
+                    const frames = data.frames;
+                    setFrames(frames);
                 })
                 .catch((error) => console.error("Failed to fetch frames:", error));
         }

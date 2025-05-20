@@ -25,9 +25,11 @@ function Menu() {
         })
             .then((resp) => resp.json())
             .then((data) => {
-                console.log(data);
-                const urlSplit = data['compressedUrl'].split('/');
-                const filename = urlSplit[urlSplit.length - 2];
+                const compressed = data['compressedFilename'];
+                setParameters(prev => ({
+                    ...prev,
+                    compressedFilename: compressed,
+                }));
             })
             .then(() => {
                 console.log(parameters.videoLink, parameters.videoName)

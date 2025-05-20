@@ -7,6 +7,7 @@ from django.conf import settings
 import os
 import subprocess
 import json
+from threading import Lock
 
 from . import serializers
 
@@ -16,6 +17,8 @@ class VideoView(APIView):
     def get(self, request, file_name):
         video_file = finders.find(os.path.join("videos", file_name))
 
+        if not video_file:
+            video_file = finders.find(os.path.join('compressed_videos', file_name))
         if not video_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -34,8 +37,8 @@ class VideoView(APIView):
         )
         return response
 
-import ffmpeg
 class CompressionView(APIView):
+
     def post(self, request):
         filename = request.data.get('fileName')
 
@@ -54,6 +57,10 @@ class CompressionView(APIView):
         output_filename = f"b{data['bandwidth']}r{data['resolution']}cr{data['crf']}{filename}"
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
+
+        if os.path.exists(os.path.join(compressed_dir, output_filename)):
+            return Response({"compressedFilename": output_filename}, status=status.HTTP_200_OK)
+
         os.makedirs(compressed_dir, exist_ok=True)
         scale = f"{data['width']}:{data['height']}"
         subprocess.run([
@@ -66,13 +73,13 @@ class CompressionView(APIView):
             "-crf", str(data['crf']),
             output
         ])
-        return Response({"compressedUrl": f"http://localhost:8000/static/compressed_videos/{output_filename}/"}, status=status.HTTP_200_OK)
+        return Response({"compressedFilename": output_filename}, status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
     def get(self, request, file_name):
-        video_file = finders.find(os.path.join("../static/compressed_videos", file_name))
+        video_file = finders.find(os.path.join("compressed_videos", file_name))
         if not video_file:
-            video_file = finders.find(os.path.join("../static/videos", file_name))
+            video_file = finders.find(os.path.join("videos", file_name))
 
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -81,13 +88,14 @@ class CompressionFramesView(APIView):
         video_name = os.path.splitext(file_name)[0]
         frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
 
-        # TODO: śliskie, możliwe usterki, niezawodność do poprawy
-        if os.path.exists(frames_dir):
+        info_file_path = os.path.join(frames_dir, "info.json")
+
+        if os.path.exists(info_file_path):
             data = request.GET
             start = int(data.get('start', 0))
             end = start + FRAMES_PER_BATCH
 
-            with open(os.path.join(frames_dir, 'info.json')) as f:
+            with open(info_file_path) as f:
                 info = json.load(f)['frames']
 
             frames = info[start:end]
@@ -101,7 +109,7 @@ class CompressionFramesView(APIView):
         os.makedirs(frames_dir, exist_ok=True)
 
         info = self.get_frame_info(video_file)
-        with open(os.path.join(frames_dir, 'info.json'), 'w') as f:
+        with open(info_file_path, 'w') as f:
             json.dump({"frames": info}, f)
 
         peak = min(FRAMES_PER_BATCH, len(info))
@@ -111,6 +119,11 @@ class CompressionFramesView(APIView):
         for frame in batch:
             frame_number = frame['frame_number']
             frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
+
+        target = os.path.join(frames_dir, f'frame_{peak - 1}.png')
+        while not os.path.exists(target):
+            pass
+
         return Response({"frames": batch}, status=status.HTTP_200_OK)
 
     @staticmethod
