@@ -1,3 +1,2 @@
-django-redis
 python-dotenv
-celery
+pyhumps

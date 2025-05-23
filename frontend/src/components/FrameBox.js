@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useSettings } from "../context/SettingsContext";
 import { useFrames } from "../context/FramesContext";
+import apiUrl from "../utils/urls";
 
-const FramesBox = () => {
-    const { parameters } = useSettings();
+const FramesBox = ({filename}) => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
 
@@ -12,18 +11,35 @@ const FramesBox = () => {
         if (cachedFrames) {
             setFrames(JSON.parse(cachedFrames));
             setIsLoading(false);
-        } else if (parameters.videoName) {
-            fetch(`http://127.0.0.1:8000/video/frames/${parameters.videoName}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    const first42 = (data || []).slice(0, 42);
-                    setFrames(first42);
-                    sessionStorage.setItem('frames', JSON.stringify(first42));
+        } else if (filename) {
+            fetch(`${apiUrl}/video/frames/${filename}`)
+                .then((res) => {
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder("UTF-8");
+
+                    const newFrames = [];
+                    const readStream = ({value, done}) => {
+                        if (done) return;
+                        const decodedValue = decoder.decode(value);
+                        const frameLists = decodedValue.split("\n");
+                        frameLists.pop();
+                        for (const strFrames of frameLists) {
+                            const parsedFrames = JSON.parse(strFrames);
+                            newFrames.push(...parsedFrames);
+                            setFrames(newFrames);
+                        }
+                        reader.read()
+                            .then(({value, done}) => readStream({value, done}))
+                    }
+
+                    reader.read()
+                        .then(({value, done}) => readStream({value, done}))
+                        .then(() => sessionStorage.setItem('frames', JSON.stringify(newFrames)))
                 })
                 .catch((error) => console.error("Failed to fetch frames:", error))
                 .finally(() => setIsLoading(false));
         }
-    }, [parameters.videoName, setFrames]);
+    }, [filename, setFrames]);
 
     if (isLoading) {
         return (

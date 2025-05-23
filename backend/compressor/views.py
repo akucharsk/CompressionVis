@@ -6,7 +6,9 @@ from rest_framework.response import Response
 from django.http import FileResponse, StreamingHttpResponse
 from django.contrib.staticfiles import finders
 from django.conf import settings
-import sys
+
+from django.db import IntegrityError
+
 import os
 import subprocess
 import json
@@ -15,7 +17,7 @@ import redis
 from . import models
 from . import serializers
 
-from django.db import IntegrityError
+from utils.camel import camelize
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -71,14 +73,14 @@ class CompressionView(APIView):
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
 
         resp = {
-            "compressedFilename": output_filename,
-            "compressed": False
+            "compressed_filename": output_filename,
+            "is_compressed": False
         }
 
         try:
             video = models.Video.objects.get(name=output_filename)
-            resp['compressed'] = video.is_compressed
-            return Response(resp, status=status.HTTP_200_OK)
+            resp['is_compressed'] = video.is_compressed
+            return Response(camelize(resp), status=status.HTTP_200_OK)
         except models.Video.DoesNotExist:
             pass
 
@@ -86,8 +88,8 @@ class CompressionView(APIView):
             video = serializer.save()
         except IntegrityError:
             video = models.Video.objects.get(name=output_filename)
-            resp['compressed'] = video.is_compressed
-            return Response(resp, status=status.HTTP_200_OK)
+            resp['is_compressed'] = video.is_compressed
+            return Response(camelize(resp), status=status.HTTP_200_OK)
 
         os.makedirs(compressed_dir, exist_ok=True)
         scale = f"{data['width']}:{data['height']}"
@@ -105,8 +107,8 @@ class CompressionView(APIView):
         process.wait()
         video.is_compressed = True
         video.save()
-        resp['compressed'] = True
-        return Response(resp, status=status.HTTP_200_OK)
+        resp['is_compressed'] = True
+        return Response(camelize(resp), status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
     def get(self, request, file_name):
@@ -195,12 +197,11 @@ class CompressionFramesView(APIView):
     @staticmethod
     def extract_frames(video_path, video_dir):
         os.makedirs(video_dir, exist_ok=True)
-        process = subprocess.Popen([
+        subprocess.Popen([
             "ffmpeg", "-i", video_path,
             "-frame_pts", "true",
             f"{video_dir}/frame_%d.png"
         ], stderr=subprocess.PIPE, start_new_session=True)
-        # process.wait()
 
 class ExampleVideosView(APIView):
     def get(self, request):

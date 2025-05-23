@@ -5,6 +5,7 @@ import { useSettings } from "../context/SettingsContext";
 import VideoPlayer from "../components/videoPreview/VideoPlayer";
 import VideoSelect from "../components/videoPreview/VideoSelect";
 import OptionsSection from "../components/videoPreview/OptionsSelection";
+import apiUrl from "../utils/urls";
 
 function Menu() {
     const navigate = useNavigate();
@@ -15,9 +16,11 @@ function Menu() {
         sessionStorage.removeItem('frames');
     }, []);
 
-    const handleCompress = () => {
+    const maxRetries = 10;
+
+    const handleCompress = (retries) => {
         setIsLoading(true);
-        fetch("http://localhost:8000/video/compress/", {
+        fetch(`${apiUrl}/video/compress/`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -30,15 +33,24 @@ function Menu() {
         })
             .then((resp) => resp.json())
             .then((data) => {
-                console.log(data);
-                const urlSplit = data['compressedUrl'].split('/');
-                const filename = urlSplit[urlSplit.length - 2];
+                const compressedFilename = data["compressedFilename"];
+                const isCompressed = data["isCompressed"];
+                if (!isCompressed) {
+                    throw new Error();
+                }
+                return compressedFilename;
             })
-            .then(() => {
-                console.log(parameters.videoLink, parameters.videoName);
-                navigate('/compress');
+            .then((compressedFilename) => {
+                navigate(`/compress?filename=${compressedFilename}`);
             })
-            .catch((error) => console.log(error))
+            .catch((_err) => {
+                if (retries === 0) {
+                    alert(`Failed to acquire compressed video link. Try again later!`);
+                    return;
+                }
+                return new Promise((resolve) => setTimeout(resolve, 2000))
+                    .then(() => handleCompress(retries - 1));
+            })
             .finally(() => setIsLoading(false));
     };
 
@@ -55,7 +67,7 @@ function Menu() {
                 <h3>Video Source</h3>
                 <VideoSelect />
             </div>
-            <OptionsSection handleCompress={handleCompress} />
+            <OptionsSection handleCompress={() => handleCompress(maxRetries)} />
         </div>
     );
 }
