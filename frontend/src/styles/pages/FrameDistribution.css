@@ -29,6 +29,7 @@
     display: flex;
     justify-content: center;
     padding: 4px;
+    overflow: auto;
 }
 
 .frame {

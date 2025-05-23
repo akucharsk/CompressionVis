@@ -25,6 +25,10 @@ function Menu() {
         })
             .then((resp) => resp.json())
             .then((data) => {
+                if (!data['compressed']) {
+                    setTimeout(handleCompress, 5000);
+                    throw Error('Compression in progress');
+                }
                 const compressed = data['compressedFilename'];
                 setParameters(prev => ({
                     ...prev,
@@ -54,3 +58,4 @@ function Menu() {
 }
 
 export default Menu;
+

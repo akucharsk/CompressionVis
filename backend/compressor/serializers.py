@@ -1,5 +1,6 @@
 
 from rest_framework import serializers
+from . import models
 
 import os
 
@@ -45,10 +46,13 @@ class CompressSerializer(serializers.Serializer):
     bandwidth = serializers.CharField(required=False, default='128k')
     resolution = serializers.CharField(required=False, default="1920x1080")
     crf = serializers.IntegerField(required=False, default=20)
+    fileName = serializers.CharField(required=False, default='')
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
         resolution = attrs.get("resolution")
+        crf = attrs.get("crf")
+        filename = attrs.get("fileName")
 
         dims = resolution.split("x")
         try:
@@ -59,5 +63,28 @@ class CompressSerializer(serializers.Serializer):
 
         attrs['width'] = width
         attrs['height'] = height
+        output_filename = f"b{bandwidth}r{resolution}cr{crf}{filename}"
+
+        attrs['name'] = output_filename
+
+        attrs.pop('fileName', None)
+        attrs.pop('resolution', None)
 
         return attrs
+
+    def create(self, validated_data):
+        multipliers = {
+            'k': 1e3,
+            'M': 1e6,
+            'G': 1e9,
+        }
+        bandwidth = validated_data.pop('bandwidth')
+        if bandwidth[-1] in multipliers:
+            factor = bandwidth[-1]
+            bandwidth = bandwidth[:-1]
+            validated_data['bandwidth'] = int(bandwidth) * multipliers[factor]
+        validated_data['width'] = int(validated_data['width'])
+        validated_data['height'] = int(validated_data['height'])
+
+        video = models.Video.objects.create(**validated_data)
+        return video

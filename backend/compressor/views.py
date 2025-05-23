@@ -1,17 +1,29 @@
+import time
+
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import FileResponse, StreamingHttpResponse
 from django.contrib.staticfiles import finders
 from django.conf import settings
+import sys
 import os
 import subprocess
 import json
-from threading import Lock
+import redis
 
+from . import models
 from . import serializers
 
+from django.db import IntegrityError
+
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
+
+REDIS = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+)
 
 class VideoView(APIView):
     def get(self, request, file_name):
@@ -54,16 +66,33 @@ class CompressionView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
 
-        output_filename = f"b{data['bandwidth']}r{data['resolution']}cr{data['crf']}{filename}"
+        output_filename = data['name']
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
 
-        if os.path.exists(os.path.join(compressed_dir, output_filename)):
-            return Response({"compressedFilename": output_filename}, status=status.HTTP_200_OK)
+        resp = {
+            "compressedFilename": output_filename,
+            "compressed": False
+        }
+
+        try:
+            video = models.Video.objects.get(name=output_filename)
+            resp['compressed'] = video.is_compressed
+            return Response(resp, status=status.HTTP_200_OK)
+        except models.Video.DoesNotExist:
+            pass
+
+        try:
+            video = serializer.save()
+        except IntegrityError:
+            video = models.Video.objects.get(name=output_filename)
+            resp['compressed'] = video.is_compressed
+            return Response(resp, status=status.HTTP_200_OK)
 
         os.makedirs(compressed_dir, exist_ok=True)
         scale = f"{data['width']}:{data['height']}"
-        subprocess.run([
+
+        process = subprocess.Popen([
             "ffmpeg",
             "-y",
             "-i", video_url,
@@ -73,7 +102,11 @@ class CompressionView(APIView):
             "-crf", str(data['crf']),
             output
         ])
-        return Response({"compressedFilename": output_filename}, status=status.HTTP_200_OK)
+        process.wait()
+        video.is_compressed = True
+        video.save()
+        resp['compressed'] = True
+        return Response(resp, status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
     def get(self, request, file_name):
@@ -90,21 +123,31 @@ class CompressionFramesView(APIView):
 
         info_file_path = os.path.join(frames_dir, "info.json")
 
+        def frames_stream(frames):
+            start = 0
+            n = len(frames)
+            while start < n:
+                end = min(start + FRAMES_PER_BATCH, n)
+                file_path = os.path.join(frames_dir, f"frame_{end - 1}.png")
+                while not os.path.exists(file_path):
+                    time.sleep(0.05)
+                ready_frames = frames[start:end]
+                yield json.dumps(ready_frames) + '\n'
+                start = end
+
         if os.path.exists(info_file_path):
-            data = request.GET
-            start = int(data.get('start', 0))
-            end = start + FRAMES_PER_BATCH
 
             with open(info_file_path) as f:
                 info = json.load(f)['frames']
 
-            frames = info[start:end]
-            for frame in frames:
+            for frame in info:
                 frame_number = frame['frame_number']
                 frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
 
-            resp = {"frames": frames}
-            return Response(resp, status=status.HTTP_200_OK)
+            return StreamingHttpResponse(
+                frames_stream(info),
+                status=status.HTTP_200_OK
+            )
 
         os.makedirs(frames_dir, exist_ok=True)
 
@@ -112,19 +155,16 @@ class CompressionFramesView(APIView):
         with open(info_file_path, 'w') as f:
             json.dump({"frames": info}, f)
 
-        peak = min(FRAMES_PER_BATCH, len(info))
         self.extract_frames(video_file, frames_dir)
 
-        batch = info[:peak]
-        for frame in batch:
+        for frame in info:
             frame_number = frame['frame_number']
             frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
 
-        target = os.path.join(frames_dir, f'frame_{peak - 1}.png')
-        while not os.path.exists(target):
-            pass
-
-        return Response({"frames": batch}, status=status.HTTP_200_OK)
+        return StreamingHttpResponse(
+            frames_stream(info),
+            status=status.HTTP_200_OK
+        )
 
     @staticmethod
     def get_frame_info(video_path):
@@ -155,11 +195,12 @@ class CompressionFramesView(APIView):
     @staticmethod
     def extract_frames(video_path, video_dir):
         os.makedirs(video_dir, exist_ok=True)
-        subprocess.Popen([
+        process = subprocess.Popen([
             "ffmpeg", "-i", video_path,
             "-frame_pts", "true",
             f"{video_dir}/frame_%d.png"
-        ])
+        ], stderr=subprocess.PIPE, start_new_session=True)
+        # process.wait()
 
 class ExampleVideosView(APIView):
     def get(self, request):

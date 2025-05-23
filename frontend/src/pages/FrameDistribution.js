@@ -1,24 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { useSettings } from "../context/SettingsContext";
+import React, {useEffect, useState} from 'react';
+import {useSettings} from "../context/SettingsContext";
 import './../styles/pages/FrameDistribution.css';
+import apiUrl from '../utils/urls'
 
 const FramesDistribution = () => {
     const { parameters } = useSettings();
     const [selectedIdx, setSelectedIdx] = useState(0);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [frames, setFrames] = useState([]);
+    const filename = parameters.compressedFilename;
 
     useEffect(() => {
-        if (parameters.videoName) {
-            fetch(`http://127.0.0.1:8000/video/frames/${parameters.compressedFilename}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    const frames = data.frames;
-                    setFrames(frames);
-                })
-                .catch((error) => console.error("Failed to fetch frames:", error));
+        const fetchFrames = async () => {
+            const resp = await fetch(`${apiUrl}/video/frames/${filename}/`);
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder("UTF-8");
+            const fetchedFrames = [];
+            while (true) {
+                const {value, done} = await reader.read();
+                if (done) {
+                    break;
+                }
+                const decodedData = decoder.decode(value);
+                const framesLists = decodedData.split("\n");
+                framesLists.pop();
+                for (const newFrames of framesLists) {
+                    const parsedFrames = JSON.parse(newFrames);
+                    fetchedFrames.push(...parsedFrames);
+                    setFrames(fetchedFrames);
+                }
+            }
         }
-    }, [parameters]);
+
+        fetchFrames()
+            .then(() => {})
+            .catch((error) => console.log(error));
+    }, [filename]);
 
     const handleFrameClick = (index) => {
         setSelectedIdx(index);
@@ -26,7 +43,7 @@ const FramesDistribution = () => {
 
     const getFrameImageUrl = (index) => {
         if (frames.length > 0 && index < frames.length) {
-            return `http://127.0.0.1:8000${frames[index].image_url}`;
+            return `${apiUrl}/${frames[index].image_url}`;
         }
         return null;
     };
@@ -40,17 +57,20 @@ const FramesDistribution = () => {
                     ))}
                 </div>
 
-                <div className="frameBox">
-                    {frames.map((frame, idx) => (
-                        <div
-                            key={idx}
-                            className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                            onClick={() => handleFrameClick(idx)}
-                            title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
-                        >
-                            {frame.type}
-                        </div>
-                    ))}
+                <div id="frameBox" className="frameBox">
+                    {frames.map((frame, idx) => {
+                        console.log(frames.length)
+                        return (
+                            <div
+                                key={idx}
+                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
+                                onClick={() => handleFrameClick(idx)}
+                                title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
+                            >
+                                {frame.type}
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
 
