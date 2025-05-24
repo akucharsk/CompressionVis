@@ -1,63 +1,8 @@
 .distribution-container {
     font-family: sans-serif;
-}
-
-.timeline-container {
-    border: 1px solid #999;
-}
-
-.time-labels {
-    display: flex;
-    justify-content: space-between;
-    background: #aaa;
-    padding: 5px;
-
-}
-
-.time-label {
-    width: 10%;
-    text-align: center;
-}
-
-.frameBox {
-    display: flex;
-    justify-content: center;
-    padding: 4px;
-}
-
-.frame {
-    border: 1px solid black;
-    padding: 10px;
-    margin: -4px;
-    min-width: 30px;
-    text-align: center;
-    font-weight: bold;
-    border-radius: 5px;
-}
-
-.I {
-    background-color: #ceffa1;
-}
-
-.P {
-    background-color: #99f2ff;
-}
-
-.B {
-    background-color: #fded9b;
-}
-.frame:hover{
-    cursor: pointer;
-    transform: scale(1.05);
-    transition: transform 0.1s;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.frame.selected {
-    transform: scale(1.2);
-    transition: transform 0.1s;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    z-index: 1;
+    color: #e0e0e0;
+    background-color: #1f1f1f;
+    padding: 24px;
 }
 
 .frame-preview-container {
@@ -71,7 +16,6 @@
     justify-content: center;
     align-items: center;
 }
-
 
 .main-frame-container {
     display: flex;
@@ -98,94 +42,43 @@
     justify-content: center;
 }
 
-.frame-preview{
+.frame-preview {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: #f5f5f5;
+    background-color: #333;
     border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
 
-.frame-preview img{
+.frame-preview img {
+    margin: 25px;
     width: 70%;
-    padding: 15px;
-    border-radius: 6px;
-
-}
-
-.highlight-macroblock {
-    width: 90%;
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 1px solid #555;
-    background-color: #f5f5f5;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.highlight-macroblock:hover {
-    background-color: #ddd;
+    height: auto;
+    border-radius: 8px;
 }
 
 .macroblock-box {
-    border: 1px solid #aaa;
-    /*padding: 1!**!px;*/
-    width: 100%;
-    max-width: 250px;
-    background-color: #eee;
+    border: 1px solid #444;
+    background-color: #2a2a2a;
+    color: #eee;
     text-align: center;
     border-radius: 6px;
+    padding: 10px;
+    width: 100%;
+    max-width: 250px;
 }
 
 .macroblock-img {
+    width: 90%;
     height: auto;
     margin-bottom: 10px;
     border-radius: 4px;
-    width: 90%;
 }
 
 .macroblock-info {
     font-size: 14px;
     margin-bottom: 10px;
-
-
-}
-
-.history-button {
-    padding: 8px 15px;
-    background-color: #f5f5f5;
-    cursor: pointer;
-    transition: 0.3s;
-    border: 1px solid #000000;
-    border-radius: 4px;
-}
-
-.history-button:hover {
-    background-color: #ddd;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    text-align: center;
 }

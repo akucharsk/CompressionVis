@@ -1,20 +1,38 @@
+import time
+
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from django.http import FileResponse, StreamingHttpResponse
 from django.contrib.staticfiles import finders
 from django.conf import settings
+
+from django.db import IntegrityError
+
 import os
 import subprocess
-import uuid
 import json
+import redis
 
+from . import models
 from . import serializers
+
+from utils.camel import camelize
+
+FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
+
+REDIS = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+)
 
 class VideoView(APIView):
     def get(self, request, file_name):
         video_file = finders.find(os.path.join("videos", file_name))
 
+        if not video_file:
+            video_file = finders.find(os.path.join('compressed_videos', file_name))
         if not video_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -33,8 +51,8 @@ class VideoView(APIView):
         )
         return response
 
-import ffmpeg
 class CompressionView(APIView):
+
     def post(self, request):
         filename = request.data.get('fileName')
 
@@ -50,12 +68,33 @@ class CompressionView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
 
-        output_filename = f"b{data['bandwidth']}r{data['resolution']}cr{data['crf']}{filename}"
+        output_filename = data['name']
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
+
+        resp = {
+            "compressed_filename": output_filename,
+            "is_compressed": False
+        }
+
+        try:
+            video = models.Video.objects.get(name=output_filename)
+            resp['is_compressed'] = video.is_compressed
+            return Response(camelize(resp), status=status.HTTP_200_OK)
+        except models.Video.DoesNotExist:
+            pass
+
+        try:
+            video = serializer.save()
+        except IntegrityError:
+            video = models.Video.objects.get(name=output_filename)
+            resp['is_compressed'] = video.is_compressed
+            return Response(camelize(resp), status=status.HTTP_200_OK)
+
         os.makedirs(compressed_dir, exist_ok=True)
         scale = f"{data['width']}:{data['height']}"
-        subprocess.run([
+
+        process = subprocess.Popen([
             "ffmpeg",
             "-y",
             "-i", video_url,
@@ -65,25 +104,78 @@ class CompressionView(APIView):
             "-crf", str(data['crf']),
             output
         ])
-        return Response({"compressedUrl": f"http://localhost:8000/static/compressed_videos/{output_filename}/"}, status=status.HTTP_200_OK)
+        process.wait()
+        video.is_compressed = True
+        video.save()
+        resp['is_compressed'] = True
+        return Response(camelize(resp), status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
     def get(self, request, file_name):
-        video_file = finders.find(os.path.join("../static/compressed_videos", file_name))
+        video_file = finders.find(os.path.join("compressed_videos", file_name))
         if not video_file:
-            video_file = finders.find(os.path.join("../static/videos", file_name))
+            video_file = finders.find(os.path.join("videos", file_name))
 
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        frames = self.get_frames_with_images(video_file, os.path.join(settings.BASE_DIR, "static", "frames"))
+        file_name = os.path.basename(video_file)
+        video_name = os.path.splitext(file_name)[0]
+        frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
 
-        return Response(frames, status=status.HTTP_200_OK)
+        info_file_path = os.path.join(frames_dir, "info.json")
 
+        def frames_stream(frames):
+            start = 0
+            n = len(frames)
+            while start < n:
+                end = min(start + FRAMES_PER_BATCH, n)
+                file_path = os.path.join(frames_dir, f"frame_{end - 1}.png")
+                while not os.path.exists(file_path):
+                    time.sleep(0.05)
+                ready_frames = frames[start:end]
+                yield json.dumps(ready_frames) + '\n'
+                start = end
 
-    def get_frame_info(self, video_path):
+        if os.path.exists(info_file_path):
+
+            with open(info_file_path) as f:
+                info = json.load(f)['frames']
+
+            for frame in info:
+                frame_number = frame['frame_number']
+                frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
+
+            return StreamingHttpResponse(
+                frames_stream(info),
+                status=status.HTTP_200_OK
+            )
+
+        os.makedirs(frames_dir, exist_ok=True)
+
+        info = self.get_frame_info(video_file)
+        with open(info_file_path, 'w') as f:
+            json.dump({"frames": info}, f)
+
+        self.extract_frames(video_file, frames_dir)
+
+        for frame in info:
+            frame_number = frame['frame_number']
+            frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
+
+        return StreamingHttpResponse(
+            frames_stream(info),
+            status=status.HTTP_200_OK
+        )
+
+    @staticmethod
+    def get_frame_info(video_path):
         result = subprocess.run([
-            "ffprobe", "-show_frames", "-select_streams", "v", "-print_format", "json", video_path
+            "ffprobe",
+            "-show_frames",
+            "-select_streams", "v",
+            "-print_format", "json",
+            video_path
         ], capture_output=True, text=True)
 
         data = json.loads(result.stdout)
@@ -102,28 +194,14 @@ class CompressionFramesView(APIView):
 
         return frames
 
-
-    def extract_frames(self, video_path, dir):
-        os.makedirs(dir, exist_ok=True)
-        subprocess.run([
-            "ffmpeg", "-i", video_path, "-fps_mode", "passthrough", "-frame_pts", "true", f"{dir}/frame_%d.png"
-        ])
-
-    def get_frames_with_images(self, video_file, base_frames_dir):
-        file_name = os.path.basename(video_file)
-        video_name = os.path.splitext(file_name)[0]
-
-        output_dir = os.path.join(base_frames_dir, video_name)
-        os.makedirs(output_dir, exist_ok=True)
-
-        info = self.get_frame_info(video_file)
-        self.extract_frames(video_file, output_dir)
-
-        for frame in info:
-            frame_number = frame["frame_number"]
-            frame["image_url"] = f"/static/frames/{video_name}/frame_{frame_number}.png"
-
-        return info
+    @staticmethod
+    def extract_frames(video_path, video_dir):
+        os.makedirs(video_dir, exist_ok=True)
+        subprocess.Popen([
+            "ffmpeg", "-i", video_path,
+            "-frame_pts", "true",
+            f"{video_dir}/frame_%d.png"
+        ], stderr=subprocess.PIPE, start_new_session=True)
 
 class ExampleVideosView(APIView):
     def get(self, request):
