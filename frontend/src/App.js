@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation  } from 'react-rout
 import FramesDistribution from './pages/FrameDistribution';
 import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
+import QuizNew from './pages/QuizNew';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 import { SettingsProvider } from './context/SettingsContext';
@@ -21,6 +22,7 @@ function Layout() {
                   <Route path="/compress" element={<FramesDistribution />} />
                   <Route path="/comparison" element={<Comparison />} />
                   <Route path="/quiz" element={<Quiz />} />
+                  <Route path="/newquiz" element={<QuizNew />} />
               </Routes>
               </FramesProvider>
           </SettingsProvider>
