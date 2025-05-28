@@ -19,53 +19,51 @@ const QuizNew = () => {
         setScore(0);
     };
 
-    // const answerChange = (index) => {
-    //     // const correct = questions[selectedQuestion].correctAnswer;
-    //     // if (answer === correct) {
-    //     //     setScore(score + 1);
-    //     // }
-
-    //     // if (selectedQuestion + 1 < questions.length) {
-    //     //     setSelectedQuestion(selectedQuestion + 1);
-    //     // } else {
-    //     //     setStep("end");
-    //     // }
-    //     const newAnswers = [...userAnswers];
-
-    //     if (newAnswers[selectedQuestion])
-    // };
-
     if (step === "menu") {
-        return <QuizMenu startQuiz={startQuiz} />;
+        return (
+        <>
+            <div className="quiz-content">
+                <QuizMenu startQuiz={startQuiz} />
+            </div>
+        </>
+        )
     }
 
     if (step === "question") {
         return (
             <>
-            {console.log(questions)}
-            <QuizSidebar
-                questions={questions}
-                selectedQuestion={selectedQuestion}
-                setSelectedQuestion={setSelectedQuestion}
-                selectedAnswers={userAnswers}
-            />
-            <QuizQuestionNew
-                allQuestionsNumber={questions.length}
-                questionNumber={selectedQuestion + 1}
-                question={questions[selectedQuestion].question}
-                type={"checkbox"}
-                options={questions[selectedQuestion].answers}
-                setSelectedQuestion={setSelectedQuestion}
-                selectedAnswer={userAnswers[selectedQuestion]}
-                userAnswers={userAnswers}
-                setUserAnswers={setUserAnswers}
-            />
+            <div className="quiz-content">
+                {console.log(questions)}
+                <QuizSidebar
+                    questions={questions}
+                    selectedQuestion={selectedQuestion}
+                    setSelectedQuestion={setSelectedQuestion}
+                    selectedAnswers={userAnswers}
+                />
+                <QuizQuestionNew
+                    allQuestionsNumber={questions.length}
+                    questionNumber={selectedQuestion + 1}
+                    question={questions[selectedQuestion].question}
+                    type={"checkbox"}
+                    options={questions[selectedQuestion].answers}
+                    setSelectedQuestion={setSelectedQuestion}
+                    selectedAnswer={userAnswers[selectedQuestion]}
+                    userAnswers={userAnswers}
+                    setUserAnswers={setUserAnswers}
+                />
+            </div>
             </>
         );
     }
 
     if (step === "end") {
-        return <QuizEnded score={score} total={questions.length} />;
+        return (
+        <>
+            <div className="quiz-content">
+                <QuizMenu startQuiz={startQuiz} />
+            </div>
+        </>
+        )
     }
 
     return null;

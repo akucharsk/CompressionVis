@@ -1,7 +1,5 @@
 .quiz-navigation {
     width: 300px;
-    /* min-height: 100px; */
-    height: 100%;
     padding: 30px;
     margin: 10px;
 
@@ -12,6 +10,8 @@
     flex-wrap: wrap;
     column-gap: 8px;
     row-gap: 8px;
+
+    align-content: flex-start;
 }
 
 .quiz-navigation-question-selected {
@@ -21,7 +21,7 @@
     border-radius: 4px;
     border: white solid 2px;
 
-    background-color: rgba(229, 9, 20, 0.5);
+    background-color: white;
     color: black;
 
     display: flex;
@@ -50,7 +50,7 @@
     border-radius: 4px;
     border: white solid 2px;
 
-    background-color: rgb(200, 200, 200);
+    background-color: #e50914;
     color: black;
 
     display: flex;
@@ -88,7 +88,8 @@ h3 {
 .quiz-navigation-check-false {
     height: 20px;
     width: 100%;
-    background-color: rgb(183, 183, 183);
+    border-top: solid white 2px;
+    background-color: rgba(150, 7, 15);
 }
 
 .quiz-navigation-check-now {
