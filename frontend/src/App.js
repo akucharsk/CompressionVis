@@ -21,8 +21,7 @@ function Layout() {
                   <Route path="/" element={<Menu />} />
                   <Route path="/compress" element={<FramesDistribution />} />
                   <Route path="/comparison" element={<Comparison />} />
-                  <Route path="/quiz" element={<Quiz />} />
-                  <Route path="/newquiz" element={<QuizNew />} />
+                  <Route path="/quiz" element={<QuizNew />} />
               </Routes>
               </FramesProvider>
           </SettingsProvider>

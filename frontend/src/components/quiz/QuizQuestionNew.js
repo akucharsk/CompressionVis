@@ -7,6 +7,7 @@ const QuizQuestion = ({
   setSelectedQuestion,
   userAnswers,
   setUserAnswers,
+  endQuiz
 }) => {
   const questionIndex = questionNumber - 1;
 
@@ -70,7 +71,7 @@ const QuizQuestion = ({
             {questionNumber === allQuestionsNumber ? (
             <div
                 className="quiz-finish-button"
-                onClick={() => setSelectedQuestion(questionNumber)}
+                onClick={() => endQuiz()}
             >
                 Zakończ
             </div>

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { questionsList as questions} from "./data/Questions";
 import QuizMenu from "../components/quiz/QuizMenu";
-// import QuizQuestion from "../components/quiz/QuizQuestion";
 import QuizQuestionNew from "../components/quiz/QuizQuestionNew";
 import QuizEnded from "../components/quiz/QuizEnded";
 import QuizSidebar from "../components/quiz/QuizSidebarNew";
@@ -12,6 +11,10 @@ const QuizNew = () => {
     const [selectedQuestion, setSelectedQuestion] = useState(0);
     const [userAnswers, setUserAnswers] = useState(Array(questions.length).fill(null))
     const [score, setScore] = useState(0);
+
+    const endQuiz = () => {
+        setStep("end")
+    }
 
     const startQuiz = () => {
         setStep("question");
@@ -33,7 +36,6 @@ const QuizNew = () => {
         return (
             <>
             <div className="quiz-content">
-                {console.log(questions)}
                 <QuizSidebar
                     questions={questions}
                     selectedQuestion={selectedQuestion}
@@ -50,6 +52,7 @@ const QuizNew = () => {
                     selectedAnswer={userAnswers[selectedQuestion]}
                     userAnswers={userAnswers}
                     setUserAnswers={setUserAnswers}
+                    endQuiz={endQuiz}
                 />
             </div>
             </>
@@ -60,7 +63,10 @@ const QuizNew = () => {
         return (
         <>
             <div className="quiz-content">
-                <QuizMenu startQuiz={startQuiz} />
+                <QuizEnded 
+                    userAnswers={userAnswers}
+                    questions={questions}
+                />
             </div>
         </>
         )

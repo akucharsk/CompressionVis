@@ -59,7 +59,7 @@ export const questionsList = [
             "Sed do eiusmod tempor",
             "Incididunt ut labore"
         ],
-        correctAnswer: 0,
+        correctAnswer: [0],
         explanation: "Lorem ipsum is often followed by 'consectetur adipiscing elit'."
     },
     {
@@ -69,7 +69,7 @@ export const questionsList = [
             "Duis aute irure dolor",
             "Reprehenderit in voluptate"
         ],
-        correctAnswer: 1,
+        correctAnswer: [1],
         explanation: "The phrase 'Duis aute irure dolor' is commonly used in placeholder text."
     },
     {
@@ -79,7 +79,7 @@ export const questionsList = [
             "Cupidatat non proident",
             "Quis nostrud exercitation"
         ],
-        correctAnswer: 2,
+        correctAnswer: [2],
         explanation: "This line is typically completed with 'quis nostrud exercitation'."
     },
     {
@@ -89,7 +89,7 @@ export const questionsList = [
             "Deserunt mollit anim id",
             "Est laborum"
         ],
-        correctAnswer: 0,
+        correctAnswer: [0],
         explanation: "The full sentence ends with 'sunt in culpa qui officia deserunt mollit anim id est laborum'."
     },
     {
@@ -99,7 +99,7 @@ export const questionsList = [
             "Doloremque laudantium",
             "Totam rem aperiam"
         ],
-        correctAnswer: 2,
+        correctAnswer: [2],
         explanation: "The sentence usually continues with 'totam rem aperiam'."
     },
     {
@@ -109,7 +109,7 @@ export const questionsList = [
             "Sed do eiusmod tempor",
             "Incididunt ut labore"
         ],
-        correctAnswer: 0,
+        correctAnswer: [0],
         explanation: "Lorem ipsum is often followed by 'consectetur adipiscing elit'."
     },
     {
@@ -119,7 +119,7 @@ export const questionsList = [
             "Duis aute irure dolor",
             "Reprehenderit in voluptate"
         ],
-        correctAnswer: 1,
+        correctAnswer: [1],
         explanation: "The phrase 'Duis aute irure dolor' is commonly used in placeholder text."
     },
     {
@@ -129,7 +129,7 @@ export const questionsList = [
             "Cupidatat non proident",
             "Quis nostrud exercitation"
         ],
-        correctAnswer: 2,
+        correctAnswer: [2],
         explanation: "This line is typically completed with 'quis nostrud exercitation'."
     },
     {
@@ -139,7 +139,7 @@ export const questionsList = [
             "Deserunt mollit anim id",
             "Est laborum"
         ],
-        correctAnswer: 0,
+        correctAnswer: [0],
         explanation: "The full sentence ends with 'sunt in culpa qui officia deserunt mollit anim id est laborum'."
     },
     {
@@ -149,7 +149,7 @@ export const questionsList = [
             "Doloremque laudantium",
             "Totam rem aperiam"
         ],
-        correctAnswer: 2,
+        correctAnswer: [2],
         explanation: "The sentence usually continues with 'totam rem aperiam'."
     }
 ];

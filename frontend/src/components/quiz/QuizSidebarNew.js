@@ -1,10 +1,14 @@
+import { useState } from "react";
 import "../../styles/components/QuizSidebar.css"
 
 const QuizSidebar = ({questions, selectedQuestion, setSelectedQuestion, selectedAnswers}) => {
-    
+    const [openSidebar, setOpenSidebar] = useState(true)
+
+    console.log("CZY? ", openSidebar)
     return (
         <>
-            <div className="quiz-navigation">
+            <div className={openSidebar ? "quiz-navigation-opened" : "quiz-navigation-closed"}>
+                <div className={openSidebar ? "close-arrow" : "open-arrow"} onClick={() => setOpenSidebar(!openSidebar)}></div>
                 {questions.map((question, index) => (    
                             <>
                                 <div 

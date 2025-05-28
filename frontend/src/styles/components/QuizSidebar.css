@@ -1,5 +1,7 @@
-.quiz-navigation {
-    width: 300px;
+.quiz-navigation-opened, .quiz-navigation-closed {
+    position: relative;
+    
+    width: 340px;
     padding: 30px;
     margin: 10px;
 
@@ -12,6 +14,36 @@
     row-gap: 8px;
 
     align-content: flex-start;
+
+    transition: margin-left 0.8s ease;
+}
+
+.quiz-navigation-closed {
+    margin-left: -405px;
+}
+
+.quiz-navigation-opened {
+    margin-left: 0px;
+}
+
+.close-arrow, .open-arrow {
+    height: 30px;
+    width: 30px;
+
+    top: 12px;
+    right: -40px;
+    z-index: 3;
+
+    position: absolute;
+    background-size: contain;
+    background-image: url("../../../public/arrow.svg");
+    rotate: 180deg;
+
+    transition: transform 0.8s ease;
+}
+
+.close-arrow {
+    transform: rotate(180deg);
 }
 
 .quiz-navigation-question-selected {
