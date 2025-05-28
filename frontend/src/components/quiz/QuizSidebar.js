@@ -4,7 +4,6 @@ import "../../styles/components/QuizSidebar.css"
 const QuizSidebar = ({questions, selectedQuestion, setSelectedQuestion, selectedAnswers}) => {
     const [openSidebar, setOpenSidebar] = useState(false)
 
-    console.log("CZY? ", openSidebar)
     return (
         <>
             <div className={openSidebar ? "quiz-navigation-opened" : "quiz-navigation-closed"}>
