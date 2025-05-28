@@ -66,6 +66,8 @@ const QuizNew = () => {
                 <QuizEnded 
                     userAnswers={userAnswers}
                     questions={questions}
+                    setStep={setStep}
+                    setUserAnswers={setUserAnswers}
                 />
             </div>
         </>
