@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../../styles/components/QuizSidebar.css"
 
 const QuizSidebar = ({questions, selectedQuestion, setSelectedQuestion, selectedAnswers}) => {
-    const [openSidebar, setOpenSidebar] = useState(true)
+    const [openSidebar, setOpenSidebar] = useState(false)
 
     console.log("CZY? ", openSidebar)
     return (

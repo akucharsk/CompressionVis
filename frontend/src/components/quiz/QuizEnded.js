@@ -1,6 +1,6 @@
 import React from "react";
 
-const QuizEnded = ({ userAnswers, questions }) => {
+const QuizEnded = ({ userAnswers, questions, setStep, setUserAnswers }) => {
 
     console.log(questions)
 
@@ -31,6 +31,27 @@ const QuizEnded = ({ userAnswers, questions }) => {
         <div className="quiz-box">
             <h1>Quiz Completed!</h1>
             <p>Your score: {countScore()} / {questions.length}</p>
+            {/* <p>{userAnswers}</p> */}
+            <div className="end-navigation-box">
+                <div
+                    className="quiz-try-again-button"
+                    onClick={() => {{
+                        setStep("menu")
+                        const newArray = Array(questions.length).fill(null)
+                        setUserAnswers(newArray)
+                    }}
+                    }
+                >
+                    Try again
+                </div>
+                <div
+                    className="quiz-see-results-button"
+                    onClick={() => {}}
+                    disabled
+                >
+                    See results
+                </div>
+            </div>
         </div>
     );
 };
