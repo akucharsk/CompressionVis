@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useFrames } from "../context/FramesContext";
-import apiUrl from "../utils/urls";
+import {apiUrl} from "../utils/urls";
+import {useSearchParams} from "react-router-dom";
 
-const FramesBox = ({filename}) => {
+const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
-
+    const [params] = useSearchParams();
+    const filename = params.get("filename");
     useEffect(() => {
-        const cachedFrames = sessionStorage.getItem('frames');
-        if (cachedFrames) {
-            setFrames(JSON.parse(cachedFrames));
-            setIsLoading(false);
-        } else if (filename) {
+        if (filename) {
             fetch(`${apiUrl}/video/frames/${filename}`)
                 .then((res) => {
                     const reader = res.body.getReader();
@@ -20,21 +18,20 @@ const FramesBox = ({filename}) => {
                     const newFrames = [];
                     const readStream = ({value, done}) => {
                         if (done) return;
-                        const decodedValue = decoder.decode(value);
+                        const decodedValue = decoder.decode(value, {stream: true});
                         const frameLists = decodedValue.split("\n");
                         frameLists.pop();
                         for (const strFrames of frameLists) {
                             const parsedFrames = JSON.parse(strFrames);
                             newFrames.push(...parsedFrames);
-                            setFrames(newFrames);
                         }
+                        setFrames(newFrames);
                         reader.read()
                             .then(({value, done}) => readStream({value, done}))
                     }
 
                     reader.read()
                         .then(({value, done}) => readStream({value, done}))
-                        .then(() => sessionStorage.setItem('frames', JSON.stringify(newFrames)))
                 })
                 .catch((error) => console.error("Failed to fetch frames:", error))
                 .finally(() => setIsLoading(false));

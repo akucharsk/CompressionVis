@@ -5,7 +5,7 @@ import { useSettings } from "../context/SettingsContext";
 import VideoPlayer from "../components/videoPreview/VideoPlayer";
 import VideoSelect from "../components/videoPreview/VideoSelect";
 import OptionsSection from "../components/videoPreview/OptionsSelection";
-import apiUrl from "../utils/urls";
+import {apiUrl} from "../utils/urls";
 
 function Menu() {
     const navigate = useNavigate();

@@ -1,11 +1,5 @@
 import React from "react";
-
-const getFrameImageUrl = (selectedIdx, frames) => {
-    if (frames.length > 0 && selectedIdx < frames.length) {
-        return `http://127.0.0.1:8000${frames[selectedIdx].image_url}`;
-    }
-    return null;
-};
+import {getFrameImageUrl} from "../../utils/urls";
 
 const Frame = ({ frames, selectedIdx}) => (
     <div className="left-section">
