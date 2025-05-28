@@ -6,15 +6,20 @@ const QuizEnded = ({ userAnswers, questions, setStep, setUserAnswers }) => {
 
     const arraysEqual = (a, b) => {
         if (a.length !== b.length) return false;
-        return a.every((val, index) => val === b[index]);
+        const aSorted = [...a].sort();
+        const bSorted = [...b].sort();
+        return aSorted.every((val, index) => val === bSorted[index]);
     };
 
     const countScore = () => {
         let score = 0
-        console.log(userAnswers)
+        // console.log(userAnswers)
+        // console.log("SIEMA TU JA")
+        console.log(userAnswers.length)
 
         for (let i = 0; i < userAnswers.length; i ++) {
-            console.log(userAnswers[i], questions[i].correctAnswer, "SIEMA")
+            // console.log(userAnswers[i], questions[i].correctAnswer, "SIEMA")
+            console.log("DEBUG")
             if (Array.isArray(userAnswers[i]) && Array.isArray(questions[i].correctAnswer)) {
                 if (arraysEqual(userAnswers[i], questions[i].correctAnswer)) {
                     score += 1;
