@@ -72,6 +72,11 @@
 .quiz-content {
   height: 600px;
   display: flex;
+  transition: all 0.3s ease;
+
+  flex: 1;
+  box-sizing: border-box;
+  transition: margin 0.3s ease;
 }
 
 .question-box {
