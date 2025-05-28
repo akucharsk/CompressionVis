@@ -4,27 +4,28 @@ import QuizMenu from "../components/quiz/QuizMenu";
 // import QuizQuestion from "../components/quiz/QuizQuestion";
 import QuizQuestionNew from "../components/quiz/QuizQuestionNew";
 import QuizEnded from "../components/quiz/QuizEnded";
+import QuizSidebar from "../components/quiz/QuizSidebarNew";
 import "../styles/pages/Quiz.css";
 
 const QuizNew = () => {
     const [step, setStep] = useState("menu"); 
-    const [currentIdx, setCurrentIdx] = useState(0);
+    const [selectedQuestion, setSelectedQuestion] = useState(0);
     const [score, setScore] = useState(0);
 
     const startQuiz = () => {
         setStep("question");
-        setCurrentIdx(0);
+        setSelectedQuestion(0);
         setScore(0);
     };
 
     const answerQuestion = (answer) => {
-        const correct = questions[currentIdx].correctAnswer;
+        const correct = questions[selectedQuestion].correctAnswer;
         if (answer === correct) {
             setScore(score + 1);
         }
 
-        if (currentIdx + 1 < questions.length) {
-            setCurrentIdx(currentIdx + 1);
+        if (selectedQuestion + 1 < questions.length) {
+            setSelectedQuestion(selectedQuestion + 1);
         } else {
             setStep("end");
         }
@@ -36,6 +37,12 @@ const QuizNew = () => {
 
     if (step === "question") {
         return (
+            <>
+            {console.log(questions)}
+            <QuizSidebar
+                questions={questions}
+                setSelectedQuestion={setSelectedQuestion}
+            />
             <QuizQuestionNew
                 // number={currentIdx + 1}
                 // total={questions.length}
@@ -43,11 +50,13 @@ const QuizNew = () => {
                 // answers={questions[currentIdx].answers}
                 // onAnswer={answerQuestion}
                 allQuestionsNumber={questions.length}
-                questionNumber={currentIdx}
-                question={questions[currentIdx].question}
+                questionNumber={selectedQuestion + 1}
+                question={questions[selectedQuestion].question}
                 type={"checkbox"}
-                options={questions[currentIdx].answers}
+                options={questions[selectedQuestion].answers}
+                setSelectedQuestion={setSelectedQuestion}
             />
+            </>
         );
     }
 

@@ -1,4 +1,4 @@
-const QuizQuestion = ({allQuestionsNumber, questionNumber, question, type, options }) => {
+const QuizQuestion = ({allQuestionsNumber, questionNumber, question, type, options, setSelectedQuestion}) => {
     return (
         <>
             <div className="question-box">
@@ -9,9 +9,9 @@ const QuizQuestion = ({allQuestionsNumber, questionNumber, question, type, optio
 
             <div className="options-box">
                 {console.log(options)}
-                {options.map((option) => {
+                {options.map((option, index) => {
                     return ( 
-                        <div className="quiz-option">
+                        <div className="quiz-option" key={index}>
                             <input type={type} className={`${type}-option`}></input>
                             <p>{option}</p>
                         </div>
@@ -20,10 +20,10 @@ const QuizQuestion = ({allQuestionsNumber, questionNumber, question, type, optio
             </div>
 
             <div className="navigation-box">
-                {questionNumber == 0 && <div className="quiz-back-button">Wstecz</div>}
+                {questionNumber == 0 && <div className="quiz-back-button" onClick={setSelectedQuestion(questionNumber - 1)}>Wstecz</div>}
                 {questionNumber == allQuestionsNumber 
-                    ? <div className="quiz-finish-button">Zakończ</div> 
-                    : <div className="quiz-finish-button">Dalej</div>}
+                    ? <div className="quiz-finish-button" onClick={() => setSelectedQuestion(questionNumber + 1)}>Zakończ</div> 
+                    : <div className="quiz-finish-button" onClick={() => setSelectedQuestion(questionNumber + 1)}>Dalej</div>}
             </div>
         </>
     )
