@@ -47,6 +47,7 @@ class CompressSerializer(serializers.Serializer):
     resolution = serializers.CharField(required=False, default="1920x1080")
     crf = serializers.IntegerField(required=False, default=20)
     fileName = serializers.CharField(required=False, default='')
+    original_id = serializers.IntegerField(required=False, default=None)
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
@@ -65,7 +66,7 @@ class CompressSerializer(serializers.Serializer):
         attrs['height'] = height
         output_filename = f"b{bandwidth}r{resolution}cr{crf}{filename}"
 
-        attrs['name'] = output_filename
+        attrs['filename'] = output_filename
 
         attrs.pop('fileName', None)
         attrs.pop('resolution', None)
@@ -88,3 +89,20 @@ class CompressSerializer(serializers.Serializer):
 
         video = models.Video.objects.create(**validated_data)
         return video
+
+class FrameSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.FrameMetadata
+        fields = '__all__'
+
+class CreateFramesSerializer(serializers.Serializer):
+
+    frames = serializers.ListField()
+
+    def create(self, validated_data):
+        frames = [
+            models.FrameMetadata(**data) for data in validated_data['frames']
+        ]
+        frames = models.FrameMetadata.objects.bulk_create(frames)
+        return frames
