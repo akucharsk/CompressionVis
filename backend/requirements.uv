@@ -1,2 +1,7 @@
 python-dotenv
 pyhumps
+django
+djangorestframework
+redis
+django-cors-headers
+django-redis
