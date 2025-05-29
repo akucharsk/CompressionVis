@@ -18,9 +18,9 @@ const OptionsSection = ({ handleCompress }) => {
             value: parameters.bandwidth,
             onChange: updateParam("bandwidth"),
             options: [
-                { value: "64k", label: "64kB/s" },
-                { value: "128k", label: "128kB/s" },
-                { value: "1M", label: "1MB/s" },
+                { value: "64k", label: "64kb/s" },
+                { value: "128k", label: "128kb/s" },
+                { value: "1M", label: "1Mb/s" },
             ],
         },
         {
@@ -30,7 +30,10 @@ const OptionsSection = ({ handleCompress }) => {
             options: [
                 { value: "1920x1080", label: "1920x1080" },
                 { value: "1280x720", label: "1280x720" },
-                { value: "400x400", label: "400x400" },
+                { value: "960x540", label: "960x540" },
+                { value: "854x480", label: "854x480" },
+                { value: "640x360", label: "640x360" },
+                { value: "426x240", label: "426x240" },
             ],
         },
         {
@@ -50,7 +53,10 @@ const OptionsSection = ({ handleCompress }) => {
             options: [
                 { value: "10", label: "10" },
                 { value: "20", label: "20" },
+                { value: "25", label: "25" },
                 { value: "35", label: "35" },
+                { value: "35", label: "35" },
+                { value: "40", label: "40" },
                 { value: "51", label: "51 (max)" },
             ],
         },
