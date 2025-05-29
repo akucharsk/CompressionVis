@@ -37,6 +37,7 @@ class FrameMetadata(models.Model):
         max_length=255,
     )
     pts_time = models.FloatField(default=None, null=True)
+    pkt_size = models.IntegerField(default=None, null=True)
     vmaf_score = models.FloatField(default=0.0)
     psnr_score = models.FloatField(default=0.0)
     ssim_score = models.FloatField(default=0.0)

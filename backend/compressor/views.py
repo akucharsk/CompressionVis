@@ -197,7 +197,8 @@ class CompressionFramesView(APIView):
                     "type": pict_type,
                     "pts_time": frame.get("pts_time"),
                     "video_id": video.id,
-                    "image_url": f"frames/{frames_dir}/frame_{i}.png"
+                    "image_url": f"frames/{frames_dir}/frame_{i}.png",
+                    "pkt_size": frame.get("pkt_size"),
                 })
                 i += 1
 
@@ -276,6 +277,14 @@ class MetricView(APIView):
     def get(self, request, video_name):
         try:
             video = models.Video.objects.get(filename=video_name)
+            metrics = video.vmaf_mean, video.psnr_mean, video.ssim_mean
+            if all(map(lambda m: m is not None, metrics)):
+                return Response(camelize({"video_metrics": {
+                    "VMAF": round(video.vmaf_mean, 2),
+                    "SSIM": round(video.ssim_mean, 2),
+                    "PSNR": round(video.psnr_mean, 2),
+                }}), status=status.HTTP_200_OK)
+
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -321,11 +330,17 @@ class MetricView(APIView):
 
         result = {
             "video_metrics": {
-                "vmaf": pooled_metrics["vmaf"]["mean"],
-                "ssim": pooled_metrics["float_ssim"]["mean"],
-                "psnr": weighted_psnr_420(**vid_psnr_scores)
+                "VMAF": round(pooled_metrics["vmaf"]["mean"], 2),
+                "SSIM": round(pooled_metrics["float_ssim"]["mean"], 2),
+                "PSNR": round(weighted_psnr_420(**vid_psnr_scores), 2)
             }
         }
+
+        video.psnr_mean = result["video_metrics"]["psnr"]
+        video.ssim_mean = result["video_metrics"]["ssim"]
+        video.vmaf_mean = result["video_metrics"]["vmaf"]
+        video.save()
+
         return Response(camelize(result), status=status.HTTP_200_OK)
 
 class FrameMetricView(APIView):
@@ -339,8 +354,8 @@ class FrameMetricView(APIView):
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
         resp = {
-            "psnr": frame.psnr_score,
-            "ssim": frame.ssim_score,
-            "vmaf": frame.vmaf_score,
+            "VMAF": round(frame.vmaf_score, 2),
+            "SSIM": round(frame.ssim_score, 2),
+            "PSNR": round(frame.psnr_score, 2),
         }
         return Response(resp, status=status.HTTP_200_OK)

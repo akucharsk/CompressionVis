@@ -13,6 +13,7 @@ const Frame = ({ frames, selectedIdx}) => (
                     <p>Frame: {selectedIdx}</p>
                     <p>Type: {frames[selectedIdx].type}</p>
                     <p>Time: {frames[selectedIdx].pts_time}s</p>
+                    <p>Size: {`${frames[selectedIdx].pkt_size}B`}</p>
                 </div>
             </div>
         )}
