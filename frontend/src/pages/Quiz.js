@@ -1,52 +1,77 @@
 import React, { useState } from "react";
-import { questions } from "./data/Questions";
+import { questionsList as questions} from "./data/Questions";
 import QuizMenu from "../components/quiz/QuizMenu";
 import QuizQuestion from "../components/quiz/QuizQuestion";
 import QuizEnded from "../components/quiz/QuizEnded";
+import QuizSidebar from "../components/quiz/QuizSidebar";
 import "../styles/pages/Quiz.css";
 
 const Quiz = () => {
     const [step, setStep] = useState("menu"); 
-    const [currentIdx, setCurrentIdx] = useState(0);
+    const [selectedQuestion, setSelectedQuestion] = useState(0);
+    const [userAnswers, setUserAnswers] = useState(Array(questions.length).fill(null))
     const [score, setScore] = useState(0);
+
+    const endQuiz = () => {
+        setStep("end")
+    }
 
     const startQuiz = () => {
         setStep("question");
-        setCurrentIdx(0);
+        setSelectedQuestion(0);
         setScore(0);
     };
 
-    const answerQuestion = (answer) => {
-        const correct = questions[currentIdx].correctAnswer;
-        if (answer === correct) {
-            setScore(score + 1);
-        }
-
-        if (currentIdx + 1 < questions.length) {
-            setCurrentIdx(currentIdx + 1);
-        } else {
-            setStep("end");
-        }
-    };
-
     if (step === "menu") {
-        return <QuizMenu startQuiz={startQuiz} />;
+        return (
+        <>
+            <div className="quiz-content">
+                <QuizMenu startQuiz={startQuiz} />
+            </div>
+        </>
+        )
     }
 
     if (step === "question") {
         return (
-            <QuizQuestion
-                number={currentIdx + 1}
-                total={questions.length}
-                question={questions[currentIdx].question}
-                answers={questions[currentIdx].answers}
-                onAnswer={answerQuestion}
-            />
+            <>
+            <div className="quiz-content">
+                <QuizSidebar
+                    questions={questions}
+                    selectedQuestion={selectedQuestion}
+                    setSelectedQuestion={setSelectedQuestion}
+                    selectedAnswers={userAnswers}
+                />
+                <QuizQuestion
+                    allQuestionsNumber={questions.length}
+                    questionNumber={selectedQuestion + 1}
+                    question={questions[selectedQuestion].question}
+                    type={"checkbox"}
+                    options={questions[selectedQuestion].answers}
+                    setSelectedQuestion={setSelectedQuestion}
+                    selectedAnswer={userAnswers[selectedQuestion]}
+                    userAnswers={userAnswers}
+                    setUserAnswers={setUserAnswers}
+                    endQuiz={endQuiz}
+                />
+            </div>
+            </>
         );
     }
 
     if (step === "end") {
-        return <QuizEnded score={score} total={questions.length} />;
+        return (
+        <>
+            <div className="quiz-content">
+                <QuizEnded 
+                    userAnswers={userAnswers}
+                    questions={questions}
+                    setStep={setStep}
+                    setUserAnswers={setUserAnswers}
+                />
+            </div>
+        </>
+        )
     }
 
     return null;

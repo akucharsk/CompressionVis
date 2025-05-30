@@ -50,3 +50,106 @@ export const questions = [
         explanation: "The sentence usually continues with 'totam rem aperiam'."
     }
 ];
+
+export const questionsList = [
+    {
+        question: "Lorem ipsum dolor sit amet?",
+        answers: [
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore"
+        ],
+        correctAnswer: [0],
+        explanation: "Lorem ipsum is often followed by 'consectetur adipiscing elit'."
+    },
+    {
+        question: "Quis nostrud exercitation ullamco laboris?",
+        answers: [
+            "Nisi ut aliquip ex ea",
+            "Duis aute irure dolor",
+            "Reprehenderit in voluptate"
+        ],
+        correctAnswer: [1],
+        explanation: "The phrase 'Duis aute irure dolor' is commonly used in placeholder text."
+    },
+    {
+        question: "Ut enim ad minim veniam?",
+        answers: [
+            "Excepteur sint occaecat",
+            "Cupidatat non proident",
+            "Quis nostrud exercitation"
+        ],
+        correctAnswer: [2],
+        explanation: "This line is typically completed with 'quis nostrud exercitation'."
+    },
+    {
+        question: "Excepteur sint occaecat cupidatat non proident?",
+        answers: [
+            "Sunt in culpa qui officia",
+            "Deserunt mollit anim id",
+            "Est laborum"
+        ],
+        correctAnswer: [0],
+        explanation: "The full sentence ends with 'sunt in culpa qui officia deserunt mollit anim id est laborum'."
+    },
+    {
+        question: "Sed ut perspiciatis unde omnis iste natus error?",
+        answers: [
+            "Sit voluptatem accusantium",
+            "Doloremque laudantium",
+            "Totam rem aperiam"
+        ],
+        correctAnswer: [2],
+        explanation: "The sentence usually continues with 'totam rem aperiam'."
+    },
+    {
+        question: "Lorem ipsum dolor sit amet?",
+        answers: [
+            "Consectetur adipiscing elit",
+            "Sed do eiusmod tempor",
+            "Incididunt ut labore"
+        ],
+        correctAnswer: [0],
+        explanation: "Lorem ipsum is often followed by 'consectetur adipiscing elit'."
+    },
+    {
+        question: "Quis nostrud exercitation ullamco laboris?",
+        answers: [
+            "Nisi ut aliquip ex ea",
+            "Duis aute irure dolor",
+            "Reprehenderit in voluptate"
+        ],
+        correctAnswer: [1],
+        explanation: "The phrase 'Duis aute irure dolor' is commonly used in placeholder text."
+    },
+    {
+        question: "Ut enim ad minim veniam?",
+        answers: [
+            "Excepteur sint occaecat",
+            "Cupidatat non proident",
+            "Quis nostrud exercitation"
+        ],
+        correctAnswer: [2],
+        explanation: "This line is typically completed with 'quis nostrud exercitation'."
+    },
+    {
+        question: "Excepteur sint occaecat cupidatat non proident?",
+        answers: [
+            "Sunt in culpa qui officia",
+            "Deserunt mollit anim id",
+            "Est laborum"
+        ],
+        correctAnswer: [0],
+        explanation: "The full sentence ends with 'sunt in culpa qui officia deserunt mollit anim id est laborum'."
+    },
+    {
+        question: "Sed ut perspiciatis unde omnis iste natus error?",
+        answers: [
+            "Sit voluptatem accusantium",
+            "Doloremque laudantium",
+            "Totam rem aperiam"
+        ],
+        correctAnswer: [2],
+        explanation: "The sentence usually continues with 'totam rem aperiam'."
+    }
+];
