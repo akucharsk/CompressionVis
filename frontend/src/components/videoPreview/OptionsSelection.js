@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 import DropdownSelect from "./DropdownSelect";
 import { useSettings } from "../../context/SettingsContext";
+import "../../styles/components/video/OptionsSelection.css";
 
 const OptionsSection = ({ handleCompress }) => {
     const { parameters, setParameters } = useSettings();
@@ -72,7 +73,7 @@ const OptionsSection = ({ handleCompress }) => {
 
     return (
         <div className="options-section">
-            <h3>Options</h3>
+            <h2>Options</h2>
             {optionsConfig.map((config) => (
                 <DropdownSelect key={config.label} {...config} />
             ))}

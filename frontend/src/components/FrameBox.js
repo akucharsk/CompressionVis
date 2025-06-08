@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useFrames } from "../context/FramesContext";
 import apiUrl from "../utils/urls";
+import '../styles/components/FrameBox.css';
 
 const FramesBox = ({filename}) => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();

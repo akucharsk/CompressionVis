@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-
+import "../../styles/components/video/VideoPlayer.css";
 
 const VideoPlayer = ({ fileName }) => {
     const videoRef = useRef(null);

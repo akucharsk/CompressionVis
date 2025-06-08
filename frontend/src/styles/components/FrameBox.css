@@ -1,0 +1,80 @@
+.timeline-container {
+    border: 1px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #2b2b2b;
+    margin-bottom: 20px;
+}
+
+.time-labels {
+    display: flex;
+    justify-content: space-between;
+    background: #333;
+    color: #ccc;
+    padding: 5px;
+}
+
+.time-label {
+    width: 10%;
+    text-align: center;
+}
+
+.frameBox {
+    display: flex;
+    justify-content: center;
+    padding: 4px;
+}
+
+.frame {
+    border: 1px solid #444;
+    padding: 10px;
+    margin: -4px;
+    min-width: 30px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    color: #111;
+    background-image: linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
+    backdrop-filter: blur(2px);
+}
+
+.frame.I {
+    background-color: #e50914;
+    color: #ffffff;
+}
+
+.frame.P {
+    background-color: #8d1c1c;
+    color: #ffffff;
+}
+
+.frame.B {
+    background-color: #3a3f51;
+    color: #ffffff;
+}
+
+.frame:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6);
+}
+
+.frame.selected {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.8);
+    z-index: 1;
+}
+
+
+.frame:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+}
+
+.frame.selected {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(0, 188, 212, 0.7);
+    z-index: 1;
+}
