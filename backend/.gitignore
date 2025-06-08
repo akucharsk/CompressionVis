@@ -13,3 +13,4 @@ venv/
 static/compressed_videos/
 static/frames/
 static/thumbnails/*.png
+static/macroblocks/

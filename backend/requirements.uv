@@ -1,3 +1,9 @@
 python-dotenv
 pyhumps
 uvicorn
+
+django
+djangorestframework
+redis
+django-cors-headers
+django-redis
