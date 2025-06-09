@@ -1,4 +1,5 @@
 import React from "react";
+import './../../styles/components/distribution/Frame.css';
 
 const getFrameImageUrl = (selectedIdx, frames) => {
     if (frames.length > 0 && selectedIdx < frames.length) {
@@ -15,11 +16,6 @@ const Frame = ({ frames, selectedIdx}) => (
                     src={getFrameImageUrl(selectedIdx, frames)}
                     alt={`Frame ${selectedIdx} (${frames[selectedIdx].type})`}
                 />
-                <div className="frame-info">
-                    <p>Frame: {selectedIdx}</p>
-                    <p>Type: {frames[selectedIdx].type}</p>
-                    <p>Time: {frames[selectedIdx].pts_time}s</p>
-                </div>
             </div>
         )}
     </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import '../../styles/components/distribution/Macroblock.css';
 
 const MacroblockHistory = ({ frames, selectedIdx, handleOffClick }) => (
     <div className="modal-overlay" onClick={handleOffClick}>
