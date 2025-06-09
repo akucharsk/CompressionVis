@@ -1,57 +1,58 @@
 .timeline-container {
-    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     overflow: hidden;
-    background-color: #2b2b2b;
-    margin-bottom: 20px;
+    background-color: var(--background-second);
+    width: 100%;
+    margin: 0 auto;
 }
 
 .time-labels {
     display: flex;
     justify-content: space-between;
-    background: #333;
-    color: #ccc;
+    background: var(--background-second);
+    color: var(--font-color);
     padding: 5px;
+    border: 1px solid var(--border-color);
 }
 
 .time-label {
-    width: 10%;
+    width: 20%;
     text-align: center;
 }
 
 .frameBox {
     display: flex;
     justify-content: center;
-    padding: 4px;
+    padding: 10px;
 }
 
 .frame {
-    border: 1px solid #444;
-    padding: 10px;
-    margin: -4px;
+    border: 1px solid var(--netflix-black);
+    padding: 15px;
+    margin: 0 -4px;
     min-width: 30px;
     text-align: center;
     font-weight: bold;
     border-radius: 5px;
     transition: transform 0.1s, box-shadow 0.1s;
-    color: #111;
+    color: var(--font-color);
     background-image: linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
     backdrop-filter: blur(2px);
 }
 
 .frame.I {
-    background-color: #e50914;
-    color: #ffffff;
+    background-color: var(--netflix-red);
 }
 
 .frame.P {
-    background-color: #8d1c1c;
-    color: #ffffff;
+    background-color: var(--netflix-dark-red);
 }
 
 .frame.B {
-    background-color: #3a3f51;
-    color: #ffffff;
+    background-color: var(--netflix-gray);
 }
 
 .frame:hover {
@@ -66,7 +67,6 @@
     z-index: 1;
 }
 
-
 .frame:hover {
     cursor: pointer;
     transform: scale(1.05);
@@ -78,3 +78,43 @@
     box-shadow: 0 0 15px rgba(0, 188, 212, 0.7);
     z-index: 1;
 }
+
+.scrollable-frameBox {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 4px;
+    flex: 3;
+    scrollbar-width: none;
+}
+
+.scrollable-frameBox::-webkit-scrollbar {
+    display: none;
+}
+
+.scroll-button {
+    font-size: 2em;
+    width: 2em;
+    height: auto;
+    cursor: pointer;
+    border: 1px solid #00bcd4;
+    background-color: var(--background-second);
+    color: #00bcd4;
+    transition: background 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.frameWithTime {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 2px;
+}
+
+.time-label {
+    font-size: 0.7rem;
+    color: var(--font-color);
+}
+

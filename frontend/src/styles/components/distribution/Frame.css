@@ -1,0 +1,12 @@
+.left-section {
+    flex: 6;
+}
+
+.frame-preview {
+}
+
+.frame-preview img {
+    width: 95%;
+    height: auto;
+    border-radius: 8px;
+}

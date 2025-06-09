@@ -1,0 +1,104 @@
+.right-section {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    gap: 20px;
+    padding: 20px;
+}
+
+.frame-preview-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 70%;
+    margin: 0 auto;
+}
+
+.macroblock-box {
+    border: 1px solid var(--border-color);
+    background-color: var(--background-second);
+    color: var(--font-color);
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    width: 70%;
+    margin: 0 auto;
+}
+
+.macroblock-img {
+    width: 90%;
+    height: auto;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.macroblock-info {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+button, .highlight-macroblock, .history-button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    border: 1px solid #00bcd4;
+    background-color: var(--background-second);
+    color: #00bcd4;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    display: block;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+
+button:hover, .highlight-macroblock:hover, .history-button:hover {
+    background-color: #00bcd4;
+    color: #000;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    color: #eee;
+    padding: 25px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+
+.frame-info{
+    border: 1px solid var(--border-color);
+    background-color: var(--background-second);
+    border-radius: 10px;
+    width: 70%;
+    margin: 0 auto;
+    padding: 8px;
+
+}
+
+.frame-info p {
+    font-size: 1em;
+    margin: 1em;
+    color: var(--font-color);
+}

@@ -52,23 +52,26 @@ const FramesBox = ({filename}) => {
 
     return (
         <div className="timeline-container">
-            <div className="time-labels">
-                {Array.from({length: 42}, (_, i) => (
-                    <div key={i} className="time-label">{(i * 0.04).toFixed(2)}</div>
-                ))}
-            </div>
-            <div className="frameBox">
+            <button className="scroll-button left" onClick={() => {
+                document.querySelector('.scrollable-frameBox').scrollBy({left: -300, behavior: 'smooth'});
+            }}>&lt;</button>
+            <div className="scrollable-frameBox">
                 {frames.map((frame, idx) => (
-                    <div
-                        key={idx}
-                        className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                        onClick={() => setSelectedIdx(idx)}
-                        title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
-                    >
-                        {frame.type}
+                    <div key={idx} className="frameWithTime">
+                        <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                        <div
+                            className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
+                            onClick={() => setSelectedIdx(idx)}
+                            title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
+                        >
+                            {frame.type}
+                        </div>
                     </div>
                 ))}
             </div>
+            <button className="scroll-button right" onClick={() => {
+                document.querySelector('.scrollable-frameBox').scrollBy({left: 300, behavior: 'smooth'});
+            }}>&gt;</button>
         </div>
     );
 };
