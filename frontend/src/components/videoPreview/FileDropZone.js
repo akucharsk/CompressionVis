@@ -39,7 +39,7 @@ const FileDropZone = ({
 
     return (
         <div
-            className={`video-thumbnail ${dragActive ? "active" : ""} drop-zone`}
+            className={`video-thumbnail ${dragActive ? "active" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

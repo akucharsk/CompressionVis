@@ -1,84 +1,17 @@
+@import '../shared/Shared.css';
+
 .distribution-container {
     font-family: sans-serif;
-    color: #e0e0e0;
-    background-color: #1f1f1f;
-    padding: 24px;
-}
-
-.frame-preview-container {
-    display: flex;
-    width: 100%;
-}
-
-.frame-preview-left {
-    width: 80%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    color: var(--font-color);
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    width: 90%;
+    margin: 0 auto;
 }
 
 .main-frame-container {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
-}
-
-.left-section {
-    flex: 5;
-    width: 100%;
-}
-
-.right-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.frame-preview-right {
-    margin-bottom: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.frame-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    background-color: #333;
-    border-radius: 6px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.4);
-}
-
-.frame-preview img {
-    margin: 25px;
-    width: 70%;
-    height: auto;
-    border-radius: 8px;
-}
-
-.macroblock-box {
-    border: 1px solid #444;
-    background-color: #2a2a2a;
-    color: #eee;
-    text-align: center;
-    border-radius: 6px;
-    padding: 10px;
-    width: 100%;
-    max-width: 250px;
-}
-
-.macroblock-img {
-    width: 90%;
-    height: auto;
-    margin-bottom: 10px;
-    border-radius: 4px;
-}
-
-.macroblock-info {
-    font-size: 14px;
-    margin-bottom: 10px;
 }

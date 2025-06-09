@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {useSettings} from "../../context/SettingsContext";
 import FileDropZone from "./FileDropZone";
+import "../../styles/components/video/VideoSelect.css";
 
 const VideoSelect = ({ }) => {
     const [videoSources, setVideoSources] = useState([]);
