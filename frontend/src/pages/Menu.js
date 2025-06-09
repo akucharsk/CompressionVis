@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
-import './../styles/App.css';
+import '../styles/pages/Menu.css';
 import { useSettings } from "../context/SettingsContext";
 import VideoPlayer from "../components/videoPreview/VideoPlayer";
 import VideoSelect from "../components/videoPreview/VideoSelect";
@@ -66,9 +66,9 @@ function Menu() {
                 </div>
             )}
             <div className="video-section">
-                <h3>Video Preview</h3>
+                <h2>Video Preview</h2>
                 <VideoPlayer fileName={parameters.videoLink} />
-                <h3>Video Source</h3>
+                <h2>Video Source</h2>
                 <VideoSelect />
             </div>
             <OptionsSection handleCompress={() => handleCompress(MAX_RETRIES)} />
