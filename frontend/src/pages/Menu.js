@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
-import './../styles/App.css';
+import '../styles/pages/Menu.css';
 import { useSettings } from "../context/SettingsContext";
 import VideoPlayer from "../components/videoPreview/VideoPlayer";
 import VideoSelect from "../components/videoPreview/VideoSelect";
 import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
+import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
+import {STATUS} from "../utils/enums/status";
 
 function Menu() {
     const navigate = useNavigate();
@@ -16,42 +18,43 @@ function Menu() {
         sessionStorage.removeItem('frames');
     }, []);
 
-    const maxRetries = 10;
-
-    const handleCompress = (retries) => {
+    const handleCompress = async (retries) => {
         setIsLoading(true);
-        fetch(`${apiUrl}/video/compress/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                bandwidth: parameters.bandwidth,
-                resolution: parameters.resolution,
-                crf: parseInt(parameters.crf),
-                framerate: 30,
-                fileName: parameters.videoName,
+        try {
+            const resp = await fetch(`${apiUrl}/video/compress/`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    bandwidth: parameters.bandwidth,
+                    resolution: parameters.resolution,
+                    crf: parseInt(parameters.crf),
+                    framerate: 30,
+                    videoId: parameters.videoId
+                }),
             })
-        })
-            .then((resp) => resp.json())
-            .then((data) => {
-                const compressedFilename = data["compressedFilename"];
-                const isCompressed = data["isCompressed"];
-                if (!isCompressed) {
-                    throw new Error();
-                }
-                return compressedFilename;
-            })
-            .then((compressedFilename) => {
-                navigate(`/compress?filename=${compressedFilename}`);
-            })
-            .catch((_err) => {
+
+            if (resp.status === STATUS.HTTP_102_PROCESSING) {
                 if (retries === 0) {
-                    alert(`Failed to acquire compressed video link. Try again later!`);
+                    alert("Failed to acquire compressed video ID. Please try again later!");
                     return;
                 }
-                return new Promise((resolve) => setTimeout(resolve, 2000))
-                    .then(() => handleCompress(retries - 1));
-            })
-            .finally(() => setIsLoading(false));
+                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
+                handleCompress(retries - 1).then(() => {
+                });
+                return;
+            } else if (!resp.ok) {
+                const data = await resp.text();
+                throw new Error(`${resp.status}: ${data}`);
+            }
+            setIsLoading(false);
+            const data = await resp.json();
+            const videoId = data.videoId;
+            if (!videoId)
+                throw new Error("Invalid data received" + JSON.stringify(data));
+            navigate(`/compress?videoId=${videoId}`);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -62,12 +65,12 @@ function Menu() {
                 </div>
             )}
             <div className="video-section">
-                <h3>Video Preview</h3>
-                <VideoPlayer fileName={parameters.videoLink} />
-                <h3>Video Source</h3>
+                <h2>Video Preview</h2>
+                <VideoPlayer />
+                <h2>Video Source</h2>
                 <VideoSelect />
             </div>
-            <OptionsSection handleCompress={() => handleCompress(maxRetries)} />
+            <OptionsSection handleCompress={() => handleCompress(MAX_RETRIES)} />
         </div>
     );
 }

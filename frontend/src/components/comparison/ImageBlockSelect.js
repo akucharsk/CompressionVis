@@ -1,6 +1,6 @@
 import React from "react";
 
-const ImageBlockSelect = ({ url, types, selectedType, setSelectedType }) => {
+const ImageBlockSelect = ({ types, selectedType, setSelectedType, ref }) => {
     const handleChange = (e) => {
         setSelectedType(e.target.value);
     };
@@ -10,8 +10,8 @@ const ImageBlockSelect = ({ url, types, selectedType, setSelectedType }) => {
             <div className="comparision-block">
                 <div className="image-block">
                     <img 
-                        src={url} 
                         alt="Image"
+                        ref={ref}
                     >
                     </img>
                 </div>

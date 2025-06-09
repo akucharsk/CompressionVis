@@ -1,13 +1,13 @@
 import React from "react";
 
-const ImageBlockConst = ({url, type}) => {
+const ImageBlockConst = ({ type, ref }) => {
     return (
         <>
             <div className="image-block">
                 <div >
                     <img 
-                        src={url} 
                         alt="Image"
+                        ref={ref}
                     >
                     </img>
                 </div>

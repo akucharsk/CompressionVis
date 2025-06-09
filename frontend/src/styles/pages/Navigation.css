@@ -1,38 +1,36 @@
+@import '../shared/Shared.css';
+
 .nav-container {
     display: flex;
     justify-content: center;
     gap: 30px;
     padding: 20px;
-    background-color: #121212;
-    border-bottom: 1px solid #333;
 }
 
 .nav-tab {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #1f1f1f;
-    color: #eaeaea;
+    background-color: var(--background-second);
+    color: var(--font-color);
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: bold;
-    padding: 12px 20px;
+    padding: 12px 24px;
     border-radius: 10px;
     border: 2px solid transparent;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .nav-tab:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 12px rgba(229, 9, 20, 0.5);
-    border-color: #e50914;
+    box-shadow: var(--shadow-red-active);
+    border-color: var(--netflix-red);
     background-color: #232323;
 }
 
 .nav-tab.active {
-    border-color: #e50914;
-    background-color: #292929;
-    box-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
-    color: #fff;
+    border-color: var(--netflix-red);
+    box-shadow: var(--shadow-red-active);
+    color: var(--font-color);
 }

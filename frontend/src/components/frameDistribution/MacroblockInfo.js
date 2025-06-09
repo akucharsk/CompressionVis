@@ -1,4 +1,5 @@
 import React from "react";
+import '../../styles/components/distribution/Macroblock.css';
 
 const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
     const handleHighlightClick = () => {
@@ -7,14 +8,14 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
 
     return (
         <div className="right-section">
-            <div className="frame-preview-right">
-                <button
-                    className="highlight-macroblock"
-                    onClick={handleHighlightClick}
-                >
-                    Highlight macroblocks
-                </button>
+            <div className="frame-info">
+                <h3>Frame Information</h3>
+                <p>Frame: {selectedIdx}</p>
+                <p>Type: {frames[selectedIdx]?.type}</p>
+                <p>PTS time: {frames[selectedIdx]?.pts_time}s</p>
+                <p>Frame size: {frames[selectedIdx]?.pkt_size}B</p>
             </div>
+
             <div className="macroblock-box">
                 <h3>Macroblock Information</h3>
                 {frames.length > 0 && selectedIdx < frames.length && (
@@ -28,6 +29,15 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
                         </div>
                     </>
                 )}
+
+            </div>
+            <div className="frame-preview-right">
+                <button
+                    className="highlight-macroblock"
+                    onClick={handleHighlightClick}
+                >
+                    Highlight macroblocks
+                </button>
                 <button
                     className="history-button"
                     onClick={() => handleOnClick(true)}

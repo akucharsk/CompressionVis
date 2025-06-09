@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
+import "../../styles/components/video/VideoPlayer.css";
+import {useSettings} from "../../context/SettingsContext";
 
-
-const VideoPlayer = ({ fileName }) => {
+const VideoPlayer = () => {
     const videoRef = useRef(null);
     const [videoURL, setVideoURL] = useState(null);
+    const { parameters } = useSettings();
 
     useEffect(() => {
         const fetchVideo = async () => {
             try {
-                console.log(fileName);
-                const response = await fetch(`${fileName}`, {
+                const response = await fetch(`${parameters.videoLink}`, {
                     headers: {
                         Range: "bytes=0-",
                     },
@@ -26,7 +27,7 @@ const VideoPlayer = ({ fileName }) => {
                 console.error("Błąd podczas pobierania filmu:", error);
             }
         };
-        if(fileName == null){
+        if(!parameters.videoLink) {
             return;
         }
 
@@ -37,7 +38,7 @@ const VideoPlayer = ({ fileName }) => {
                 URL.revokeObjectURL(videoURL);
             }
         };
-    }, [fileName]);
+    }, [parameters.videoLink]);
 
     return (
         <div className="video-container">

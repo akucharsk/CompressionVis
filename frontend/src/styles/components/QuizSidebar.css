@@ -1,0 +1,131 @@
+.quiz-navigation-opened, .quiz-navigation-closed {
+    position: relative;
+    
+    width: 340px;
+    padding: 30px;
+    margin: 10px;
+
+    border-right: solid white 1px;
+    border-radius: 3px;
+
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 8px;
+
+    align-content: flex-start;
+
+    transition: margin-left 0.8s ease;
+}
+
+.quiz-navigation-closed {
+    margin-left: -405px;
+}
+
+.quiz-navigation-opened {
+    margin-left: 0px;
+}
+
+.close-arrow, .open-arrow {
+    height: 30px;
+    width: 30px;
+
+    top: 12px;
+    right: -40px;
+    z-index: 3;
+
+    position: absolute;
+    background-size: contain;
+    background-image: url("../../../public/arrow.svg");
+    rotate: 180deg;
+
+    transition: transform 0.8s ease;
+}
+
+.close-arrow {
+    transform: rotate(180deg);
+}
+
+.quiz-navigation-question-selected {
+    width: 50px;
+    height: 70px;
+    
+    border-radius: 4px;
+    border: white solid 2px;
+
+    background-color: white;
+    color: black;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.quiz-navigation-question-nonselected {
+    width: 50px;
+    height: 70px;
+    
+    border-radius: 4px;
+    border: white solid 2px;
+
+    background-color: rgb(41, 42, 44);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.quiz-navigation-question-answered {
+    width: 50px;
+    height: 70px;
+    
+    border-radius: 4px;
+    border: white solid 2px;
+
+    background-color: #e50914;
+    color: black;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.quiz-navigation-question-nonanswered {
+    width: 50px;
+    height: 70px;
+    
+    border-radius: 4px;
+    border: white solid 2px;
+
+    background-color: rgb(41, 42, 44);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+h3 {
+    height: 25px;
+    text-align: center;
+}
+
+.quiz-navigation-check-true {
+    height: 20px;
+    width: 100%;
+
+    background-color: black;
+    border-top: solid white 2px;
+}
+
+.quiz-navigation-check-false {
+    height: 20px;
+    width: 100%;
+    border-top: solid white 2px;
+    background-color: rgba(150, 7, 15);
+}
+
+.quiz-navigation-check-now {
+    height: 20px;
+    width: 100%;
+    background-color: rgb(156, 156, 156);
+}
