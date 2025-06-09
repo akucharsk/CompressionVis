@@ -3,12 +3,13 @@ import { useFrames } from "../context/FramesContext";
 import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
+import {handleError} from "../utils/handlers";
 
-const FramesBox = ({ filename }) => {
+const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [playSpeed, setPlaySpeed] = useState(1);
+    const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
@@ -27,12 +28,13 @@ const FramesBox = ({ filename }) => {
             .then(res => res.json())
             .then(data => {
                 setFrames(data["frames"]);
+
                 sessionStorage.setItem("frames", JSON.stringify(data["frames"]));
             })
-            .catch(console.error)
+            .catch(handleError)
             .finally(() => setIsLoading(false));
 
-    }, [videoId, setFrames]);
+    }, [videoId, setFrames, setSelectedIdx]);
 
     useEffect(() => {
         if (!isPlaying) {
@@ -80,8 +82,6 @@ const FramesBox = ({ filename }) => {
             container.scrollTo({ left: targetScroll, behavior: isPlaying ? 'auto' : 'smooth' });
         }
     }, [selectedIdx, isPlaying]);
-
-
 
     useEffect(() => {
         const handleKeyDown = (e) => {

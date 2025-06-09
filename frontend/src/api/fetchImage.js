@@ -15,8 +15,7 @@ export const fetchImage = async (retries, url, controller = null) => {
             throw new RetryLimitError();
         }
         await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS));
-        fetchImage(retries - 1, url, controller).catch(console.error);
-        return;
+        return await fetchImage(retries - 1, url, controller).catch(console.error);
     }
     if (!resp.ok) {
         const data = await resp.text();

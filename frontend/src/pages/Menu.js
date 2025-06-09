@@ -8,7 +8,6 @@ import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
 import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
 import {STATUS} from "../utils/enums/status";
-import RetryLimitError from "../exceptions/RetryLimitError";
 
 function Menu() {
     const navigate = useNavigate();
@@ -67,7 +66,7 @@ function Menu() {
             )}
             <div className="video-section">
                 <h2>Video Preview</h2>
-                <VideoPlayer fileName={parameters.videoLink} />
+                <VideoPlayer />
                 <h2>Video Source</h2>
                 <VideoSelect />
             </div>

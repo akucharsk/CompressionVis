@@ -12,7 +12,8 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
                 <h3>Frame Information</h3>
                 <p>Frame: {selectedIdx}</p>
                 <p>Type: {frames[selectedIdx]?.type}</p>
-                <p>Time: {frames[selectedIdx]?.pts_time}s</p>
+                <p>PTS time: {frames[selectedIdx]?.pts_time}s</p>
+                <p>Frame size: {frames[selectedIdx]?.pkt_size}B</p>
             </div>
 
             <div className="macroblock-box">

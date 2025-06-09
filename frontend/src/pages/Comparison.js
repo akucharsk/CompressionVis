@@ -5,48 +5,40 @@ import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
 import ImageDetails from "../components/comparison/ImageDetails";
 import './../styles/pages/Comparison.css';
 
-// temporary imports, hardcoded
-import { metricsImageInfo } from "./data/Metrics";
 import {useFrames} from "../context/FramesContext";
-import Frame from "../components/frameDistribution/Frame";
 import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import {fetchImage} from "../api/fetchImage";
 import {MAX_RETRIES} from "../utils/constants";
+import {handleError} from "../utils/handlers";
 
 const Comparison = () => {
-    const url = 'https://www.w3schools.com/w3css/img_lights.jpg';
-
     const [selectedType, setSelectedType] = useState("H.265");
-    const {frames, selectedIdx, setSelectedIdx} = useFrames();
-    const [originalFrames, setOriginalFrames] = useState([]);
+    const { selectedIdx } = useFrames();
     const [params] = useSearchParams();
     const [videoMetrics, setVideoMetrics] = useState({});
     const [frameMetrics, setFrameMetrics] = useState({});
-    const [originalFrameUrl, setOriginalFrameUrl] = useState("");
 
     const videoId = parseInt(params.get("videoId"));
-    const getFrameImageUrl = (a, b) => `http://localhost:8000/${a}/${b}/`;
 
-    // useEffect(() => {
-    //     fetch(`${apiUrl}/metrics/${filename}/`)
-    //         .then(res => res.json())
-    //         .then(data => {
-    //             setVideoMetrics(data["videoMetrics"]);
-    //         })
-    //         .catch(error => console.log(error))
-    // }, [filename]);
-    //
-    // useEffect(() => {
-    //     fetch(`${apiUrl}/metrics/frame/${filename}/${selectedIdx}`)
-    //         .then(res => res.json())
-    //         .then(data => setFrameMetrics(data))
-    //         .catch(error => console.log(error))
-    // }, [filename, selectedIdx]);
-    //
-    // useEffect(() => {
-    //     setOriginalFrameUrl(`${apiUrl}/frames/${filename}/frame_${selectedIdx}.png?original=true`);
-    // }, [selectedIdx, filename]);
+    useEffect(() => {
+        const controller = new AbortController();
+        fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal })
+            .then(res => res.json())
+            .then(data => setVideoMetrics(data["videoMetrics"]))
+            .catch(handleError);
+
+        return () => controller.abort();
+    }, [videoId]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal })
+            .then(res => res.json())
+            .then(setFrameMetrics)
+            .catch(handleError);
+    }, [videoId, selectedIdx, videoMetrics]);
+
     const leftRef = useRef(null);
     const rightRef = useRef(null);
 
@@ -61,7 +53,7 @@ const Comparison = () => {
                 if (rightRef.current)
                     rightRef.current.src = url;
             })
-            .catch(console.error);
+            .catch(handleError);
 
         fetchImage(
             MAX_RETRIES,
@@ -72,7 +64,7 @@ const Comparison = () => {
                 if (leftRef.current)
                     leftRef.current.src = url;
             })
-            .catch(console.error);
+            .catch(handleError);
 
         return () => controller.abort();
     }, [videoId, selectedIdx]);

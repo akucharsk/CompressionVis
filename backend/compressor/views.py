@@ -378,9 +378,9 @@ class MetricView(APIView):
             }
         }
 
-        video.psnr_mean = result["video_metrics"]["psnr"]
-        video.ssim_mean = result["video_metrics"]["ssim"]
-        video.vmaf_mean = result["video_metrics"]["vmaf"]
+        video.psnr_mean = result["video_metrics"]["PSNR"]
+        video.ssim_mean = result["video_metrics"]["SSIM"]
+        video.vmaf_mean = result["video_metrics"]["VMAF"]
         video.save()
 
         return Response(camelize(result), status=status.HTTP_200_OK)

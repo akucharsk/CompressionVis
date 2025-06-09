@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {useSettings} from "../../context/SettingsContext";
 import FileDropZone from "./FileDropZone";
 import {apiUrl} from "../../utils/urls";
@@ -9,11 +9,11 @@ const VideoSelect = () => {
     const { parameters, setParameters } = useSettings();
 
     const selectVideo = (url) => {
-        setParameters({
-            ...parameters,
+        setParameters(prev => ({
+            ...prev,
             videoLink: url,
             videoId: parseInt(url.split('/').at(-2))
-        });
+        }));
     };
 
     useEffect(() => {
@@ -29,6 +29,12 @@ const VideoSelect = () => {
                     url: `${apiUrl}/video/${item.id}/`
                 }));
                 setVideoSources(formatted);
+                const randomUrl = formatted[Math.floor(Math.random() * formatted.length)].url;
+                setParameters(prev => ({
+                    ...prev,
+                    videoLink: randomUrl,
+                    videoId: parseInt(randomUrl.split('/').at(-2)),
+                }))
             })
             .catch((error) => console.error("Failed to fetch video sources:", error));
 
@@ -39,19 +45,22 @@ const VideoSelect = () => {
     const handleFileChange = (file) => {
         const url = URL.createObjectURL(file);
         if (file.type.startsWith("video/")) {
-            setParameters({videoLink: url});
+            setParameters(prev => ({
+                ...prev,
+                videoLink: url
+            }));
         } else {
             alert("Unsupported file format");
         }
     };
     return (
         <div className="video-select">
-            {videoSources.map((video, index) => {
+            {videoSources.map((video) => {
                 const isActive = parameters.videoLink === video.url;
 
                 return (
                     <div
-                        key={index}
+                        key={video.id}
                         className={`video-thumbnail ${isActive ? "active" : ""}`}
                         onClick={() => selectVideo(video.url)}
                     >

@@ -1,9 +1,7 @@
 import React, {useEffect, useRef} from "react";
-import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../../utils/constants";
+import {MAX_RETRIES} from "../../utils/constants";
 import {useSearchParams} from "react-router-dom";
 import {apiUrl} from "../../utils/urls";
-import {STATUS} from "../../utils/enums/status";
-import RetryLimitError from "../../exceptions/RetryLimitError";
 import {fetchImage} from "../../api/fetchImage";
 import './../../styles/components/distribution/Frame.css';
 
@@ -14,6 +12,9 @@ const Frame = ({ frames, selectedIdx }) => {
     const videoId = parseInt(params.get("videoId"));
 
     useEffect(() => {
+        if (selectedIdx === null)
+            return;
+
         const controller = new AbortController();
 
         fetchImage(
@@ -30,7 +31,7 @@ const Frame = ({ frames, selectedIdx }) => {
 
         return () => controller.abort();
 
-    }, [selectedIdx, videoId])
+    }, [selectedIdx, videoId, frames])
 
     return (
         <div className="left-section">
