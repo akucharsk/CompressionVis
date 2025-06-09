@@ -1,5 +1,5 @@
 import FrameBox from "../components/FrameBox";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import ImageBlockConst from "../components/comparison/ImageBlockConst";
 import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
 import ImageDetails from "../components/comparison/ImageDetails";
@@ -9,8 +9,10 @@ import './../styles/pages/Comparison.css';
 import { metricsImageInfo } from "./data/Metrics";
 import {useFrames} from "../context/FramesContext";
 import Frame from "../components/frameDistribution/Frame";
-import {apiUrl, getFrameImageUrl} from "../utils/urls";
+import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
+import {fetchImage} from "../api/fetchImage";
+import {MAX_RETRIES} from "../utils/constants";
 
 const Comparison = () => {
     const url = 'https://www.w3schools.com/w3css/img_lights.jpg';
@@ -23,41 +25,71 @@ const Comparison = () => {
     const [frameMetrics, setFrameMetrics] = useState({});
     const [originalFrameUrl, setOriginalFrameUrl] = useState("");
 
-    const filename = params.get("filename");
+    const videoId = parseInt(params.get("videoId"));
+    const getFrameImageUrl = (a, b) => `http://localhost:8000/${a}/${b}/`;
+
+    // useEffect(() => {
+    //     fetch(`${apiUrl}/metrics/${filename}/`)
+    //         .then(res => res.json())
+    //         .then(data => {
+    //             setVideoMetrics(data["videoMetrics"]);
+    //         })
+    //         .catch(error => console.log(error))
+    // }, [filename]);
+    //
+    // useEffect(() => {
+    //     fetch(`${apiUrl}/metrics/frame/${filename}/${selectedIdx}`)
+    //         .then(res => res.json())
+    //         .then(data => setFrameMetrics(data))
+    //         .catch(error => console.log(error))
+    // }, [filename, selectedIdx]);
+    //
+    // useEffect(() => {
+    //     setOriginalFrameUrl(`${apiUrl}/frames/${filename}/frame_${selectedIdx}.png?original=true`);
+    // }, [selectedIdx, filename]);
+    const leftRef = useRef(null);
+    const rightRef = useRef(null);
 
     useEffect(() => {
-        fetch(`${apiUrl}/metrics/${filename}/`)
-            .then(res => res.json())
-            .then(data => {
-                setVideoMetrics(data["videoMetrics"]);
+        const controller = new AbortController();
+        fetchImage(
+            MAX_RETRIES,
+            `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
+            controller
+        )
+            .then(url => {
+                if (rightRef.current)
+                    rightRef.current.src = url;
             })
-            .catch(error => console.log(error))
-    }, [filename]);
+            .catch(console.error);
 
-    useEffect(() => {
-        fetch(`${apiUrl}/metrics/frame/${filename}/${selectedIdx}`)
-            .then(res => res.json())
-            .then(data => setFrameMetrics(data))
-            .catch(error => console.log(error))
-    }, [filename, selectedIdx]);
+        fetchImage(
+            MAX_RETRIES,
+            `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
+            controller
+        )
+            .then(url => {
+                if (leftRef.current)
+                    leftRef.current.src = url;
+            })
+            .catch(console.error);
 
-    useEffect(() => {
-        setOriginalFrameUrl(`${apiUrl}/frames/${filename}/frame_${selectedIdx}.png?original=true`);
-    }, [selectedIdx, filename]);
+        return () => controller.abort();
+    }, [videoId, selectedIdx]);
 
     return (
         <div className="comparison">
             <FrameBox/>
             <div className="comparison-container">
                 <ImageBlockConst
-                    url={originalFrameUrl}
                     type={"Original"}
+                    ref={leftRef}
                 />
                 <ImageBlockSelect 
-                    url={getFrameImageUrl(selectedIdx, frames)}
                     types={["H.264"]}
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
+                    ref={rightRef}
                 />
             </div>
             <div className="description">

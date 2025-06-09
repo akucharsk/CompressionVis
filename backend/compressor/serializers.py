@@ -46,14 +46,13 @@ class CompressSerializer(serializers.Serializer):
     bandwidth = serializers.CharField(required=False, default='128k')
     resolution = serializers.CharField(required=False, default="1920x1080")
     crf = serializers.IntegerField(required=False, default=20)
-    fileName = serializers.CharField(required=False, default='')
     original_id = serializers.IntegerField(required=False, default=None)
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
         resolution = attrs.get("resolution")
         crf = attrs.get("crf")
-        filename = attrs.get("fileName")
+        filename = self.context.get("original_video").filename
 
         dims = resolution.split("x")
         try:
@@ -68,7 +67,6 @@ class CompressSerializer(serializers.Serializer):
 
         attrs['filename'] = output_filename
 
-        attrs.pop('fileName', None)
         attrs.pop('resolution', None)
 
         return attrs
@@ -86,6 +84,7 @@ class CompressSerializer(serializers.Serializer):
             validated_data['bandwidth'] = int(bandwidth) * multipliers[factor]
         validated_data['width'] = int(validated_data['width'])
         validated_data['height'] = int(validated_data['height'])
+        validated_data["original_id"] = self.context["original_video"].id
 
         video = models.Video.objects.create(**validated_data)
         return video

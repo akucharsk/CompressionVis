@@ -13,7 +13,7 @@ const FramesDistribution = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const compressedFilename = searchParams.get("filename");
+    const videoId = searchParams.get("videoId");
 
     // if (!compressedUrl) {
     //     navigate("/404");
@@ -21,9 +21,7 @@ const FramesDistribution = () => {
 
     return (
         <div className="distribution-container">
-            <FramesBox
-                filename={compressedFilename}
-            />
+            <FramesBox />
             <div className="main-frame-container">
                 <Frame
                     selectedIdx={selectedIdx}

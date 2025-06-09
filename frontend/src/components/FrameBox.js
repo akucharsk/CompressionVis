@@ -7,36 +7,25 @@ const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
     const [params] = useSearchParams();
-    const filename = params.get("filename");
-    useEffect(() => {
-        if (filename) {
-            fetch(`${apiUrl}/video/frames/${filename}`)
-                .then((res) => {
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder("UTF-8");
+    const videoId = params.get("videoId");
 
-                    const newFrames = [];
-                    const readStream = ({value, done}) => {
-                        if (done) return;
-                        const decodedValue = decoder.decode(value, {stream: true});
-                        const frameLists = decodedValue.split("\n");
-                        frameLists.pop();
-                        for (const strFrames of frameLists) {
-                            const parsedFrames = JSON.parse(strFrames);
-                            newFrames.push(...parsedFrames);
-                        }
-                        setFrames(newFrames);
-                        reader.read()
-                            .then(({value, done}) => readStream({value, done}))
-                    }
-
-                    reader.read()
-                        .then(({value, done}) => readStream({value, done}))
-                })
-                .catch((error) => console.error("Failed to fetch frames:", error))
-                .finally(() => setIsLoading(false));
+    useEffect( () => {
+        const cachedFrames = sessionStorage.getItem("frames");
+        if (cachedFrames) {
+            setFrames(JSON.parse(cachedFrames));
+            setIsLoading(false);
+            return;
         }
-    }, [filename, setFrames]);
+        fetch(`${apiUrl}/video/frames/${videoId}/`)
+            .then(res => res.json())
+            .then(data => {
+                setFrames(data["frames"]);
+                sessionStorage.setItem("frames", JSON.stringify(data["frames"]));
+            })
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
+
+    }, [videoId, setFrames]);
 
     if (isLoading) {
         return (
