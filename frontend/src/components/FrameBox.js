@@ -42,6 +42,54 @@ const FramesBox = ({filename}) => {
         }
     }, [filename, setFrames]);
 
+    useEffect(() => {
+        const container = document.querySelector('.scrollable-frameBox');
+        const selectedFrame = container?.children[selectedIdx];
+
+        if (!container || !selectedFrame) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const frameRect = selectedFrame.getBoundingClientRect();
+
+        const isFullyVisible =
+            frameRect.left >= containerRect.left &&
+            frameRect.right <= containerRect.right;
+
+        if (!isFullyVisible) {
+            const timeout = setTimeout(() => {
+                selectedFrame.scrollIntoView({
+                    behavior: 'smooth',
+                    inline: 'center',
+                    block: 'nearest',
+                });
+            }, 80);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [selectedIdx]);
+
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowLeft') {
+                setSelectedIdx(prev => {
+                    const newIdx = Math.max(0, prev - 1);
+                    document.querySelector('.scrollable-frameBox')?.children[newIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+                    return newIdx;
+                });
+            } else if (e.key === 'ArrowRight') {
+                setSelectedIdx(prev => {
+                    const newIdx = Math.min(frames.length - 1, prev + 1);
+                    document.querySelector('.scrollable-frameBox')?.children[newIdx]?.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+                    return newIdx;
+                });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [frames.length]);
+
     if (isLoading) {
         return (
             <div className="loading-overlay">
