@@ -1,0 +1,38 @@
+services:
+  # vmaf:
+  #   build:
+  #     context: ./vmaf
+  #     dockerfile: vmaf.Dockerfile
+  #   volumes:
+  #     - ./vmaf:/vmaf
+
+  backend:
+    build:
+      context: ./backend
+    container_name: django_app
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py shell < /app/startup.py &&
+             python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    # depends_on:
+    #   - vmaf
+    
+  frontend:
+    build:
+      context: ./frontend
+    container_name: react_app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+
+  
+  

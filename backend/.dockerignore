@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+media/
+static/
+*.mp4
+*.mov
+*.mkv
+.idea
+.git
+.venv
+
