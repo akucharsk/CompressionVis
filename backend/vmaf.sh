@@ -15,6 +15,7 @@ vmaf \
   --output result.json \
   --json \
   --feature psnr \
-  --feature float_ssim
+  --feature float_ssim \
+  --model path=/vmaf/model/vmaf_v0.6.1.json
 
 rm -rf static/temp/*
