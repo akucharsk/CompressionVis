@@ -1,10 +1,11 @@
 services:
-  # vmaf:
-  #   build:
-  #     context: ./vmaf
-  #     dockerfile: vmaf.Dockerfile
-  #   volumes:
-  #     - ./vmaf:/vmaf
+  vmaf:
+    build:
+      context: ./vmaf
+      dockerfile: vmaf.Dockerfile
+    volumes:
+      - ./vmaf:/vmaf
+    command: tail -f /dev/null
 
   backend:
     build:
@@ -22,8 +23,8 @@ services:
       - .env
     ports:
       - "8000:8000"
-    # depends_on:
-    #   - vmaf
+    depends_on:
+      - vmaf 
     
   frontend:
     build:
