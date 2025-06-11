@@ -18,6 +18,7 @@ class Video(models.Model):
     height = models.IntegerField(default=None, null=True)
     crf = models.IntegerField(default=None, null=True)
     is_compressed = models.BooleanField(default=False)
+    gop_size = models.IntegerField(default=None, null=True)
 
     vmaf_mean = models.FloatField(default=None, null=True)
     psnr_mean = models.FloatField(default=None, null=True)

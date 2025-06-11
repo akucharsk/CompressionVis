@@ -47,11 +47,13 @@ class CompressSerializer(serializers.Serializer):
     resolution = serializers.CharField(required=False, default="1920x1080")
     crf = serializers.IntegerField(required=False, default=20)
     original_id = serializers.IntegerField(required=False, default=None)
+    gop_size = serializers.IntegerField(required=False, default=60, min_value=1, max_value=300)
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
         resolution = attrs.get("resolution")
         crf = attrs.get("crf")
+        gop_size = attrs.get("gop_size")
         filename = self.context.get("original_video").filename
 
         dims = resolution.split("x")
@@ -63,7 +65,7 @@ class CompressSerializer(serializers.Serializer):
 
         attrs['width'] = width
         attrs['height'] = height
-        output_filename = f"b{bandwidth}r{resolution}cr{crf}{filename}"
+        output_filename = f"b{bandwidth}r{resolution}g{gop_size}cr{crf}{filename}"
 
         attrs['filename'] = output_filename
 
