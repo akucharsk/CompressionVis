@@ -1,4 +1,5 @@
 import React from "react";
+import "../../styles/components/comparison/Images.css";
 
 const ImageBlockSelect = ({ types, selectedType, setSelectedType, ref }) => {
     const handleChange = (e) => {
@@ -7,14 +8,12 @@ const ImageBlockSelect = ({ types, selectedType, setSelectedType, ref }) => {
     
     return (
         <>
-            <div className="comparision-block">
-                <div className="image-block">
-                    <img 
-                        alt="Image"
-                        ref={ref}
-                    >
-                    </img>
-                </div>
+            <div className="image-block">
+                <img
+                    alt="Image"
+                    ref={ref}
+                >
+                </img>
                 <div className="compression-type">
                     <select value={selectedType} onChange={handleChange}>
                         {types.map((type, idx) => (

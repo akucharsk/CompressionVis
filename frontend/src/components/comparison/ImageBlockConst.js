@@ -1,4 +1,5 @@
 import React from "react";
+import "../../styles/components/comparison/Images.css";
 
 const ImageBlockConst = ({ type, ref }) => {
     return (

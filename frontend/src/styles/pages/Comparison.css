@@ -1,98 +1,46 @@
 @import './../shared/Shared.css';
 
 .comparison {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 90%;
+  margin: auto;
+  gap:1em;
 }
 
 .comparison-container {
   display: flex;
   justify-content: center;
-  gap: 100px;
-  margin-top: 20px;
-  padding: 24px;
-  background-color: #2b2b2b;
   border-radius: 8px;
-  width: 70%;
-  margin: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
-.image-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.image-block img {
-  width: 600px;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  background-color: #2b2b2b;
-}
-
-.compression-type {
-  margin-top: 10px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  color: #00bcd4;
-}
-
-.compression-type select {
-  padding: 5px 10px;
-  font-size: 1rem;
-  border-radius: 6px;
-  background-color: #2c2c2c;
-  color: #eee;
-  border: 1px solid #00bcd4;
-  margin-top: 5px;
-  transition: border-color 0.3s;
-}
-
-.compression-type select:focus {
-  outline: none;
-  border-color: #00ffff;
+  gap: 1em;
 }
 
 .description {
-  width: 45%;
-  margin: auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 30px;
-  border-radius: 4px;
-  background-color: #2b2b2b;
-  color: #e0e0e0;
-  padding: 20px;
-}
-
-.comparision-details {
-  display: flex;
-  justify-content: center;
-  gap: 100px;
+  border-radius: 8px;
+  border : 1px solid var(--border-color);
+  padding: 8px;
+  gap: 1em;
 }
 
 .image-details {
-  background-color: #2c2c2c;
-  padding: 20px;
-  border-radius: 12px;
-  width: 300px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  color: #ddd;
-}
-
-.image-details h1 {
-  font-size: 1.5rem;
-  margin-bottom: 15px;
-  text-align: center;
-  border-bottom: 2px solid #00bcd4;
-  padding-bottom: 5px;
-  color: #00bcd4;
+  flex: 2;
+  width: 70%;
+  background-color: var(--background-second);
+  padding: 8px;
+  border-radius:10px;
+  border: 1px solid var(--border-color);
+  margin: 0 auto;
 }
 
 .image-details p {
-  margin: 8px 0;
-  font-size: 1rem;
-  color: #ccc;
+  font-size: 1em;
+  margin: 1em;
+  color: var(--font-color);
 }

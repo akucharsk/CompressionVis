@@ -5,9 +5,9 @@ const ImageDetails = ({ type, details }) => {
     return (
         <>
             <div className="image-details">
-                <h1>{type}</h1>
+                <h3>{type}</h3>
                 {Object.entries(details).map(([key, value], idx) => (
-                    <p key={idx}><b>{key}</b>: {value}</p>
+                    <p key={idx}>{key}: {value}</p>
                 ))}
             </div>
         </>
