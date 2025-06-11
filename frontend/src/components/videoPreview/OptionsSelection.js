@@ -38,9 +38,9 @@ const OptionsSection = ({ handleCompress }) => {
             ],
         },
         {
-            label: "I,P,B frame pattern",
-            value: parameters.pattern,
-            onChange: updateParam("pattern"),
+            label: "Group of pictures (GOP)",
+            value: parameters.gop,
+            onChange: updateParam("gop"),
             options: [
                 { value: "1", label: "1" },
                 { value: "2", label: "2" },
@@ -61,14 +61,25 @@ const OptionsSection = ({ handleCompress }) => {
                 { value: "51", label: "51 (max)" },
             ],
         },
+        {
+            label: "Framerate",
+            value: parameters.framerate,
+            onChange: updateParam("framerate"),
+            options: [
+                { value: "15", label: "15 fps" },
+                { value: "30", label: "30 fps" },
+                { value: "60", label: "60 fps" },
+            ],
+        }
     ];
 
     useEffect(() => {
         const defaultOptions = {
             bandwidth: "128k",
             resolution: "1280x720",
-            pattern: "1",
+            gop: "1",
             crf: "20",
+            framerate: "30",
         };
 
         setParameters((prev) => ({

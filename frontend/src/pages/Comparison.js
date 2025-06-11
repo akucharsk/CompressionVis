@@ -11,6 +11,7 @@ import {useSearchParams} from "react-router-dom";
 import {fetchImage} from "../api/fetchImage";
 import {MAX_RETRIES} from "../utils/constants";
 import {handleError} from "../utils/handlers";
+import Parameters from "../components/Parameters";
 
 const Comparison = () => {
     const [selectedType, setSelectedType] = useState("H.265");
@@ -97,6 +98,7 @@ const Comparison = () => {
                         details={frameMetrics}
                     />
                 </div>
+                <Parameters/>
             </div>
         </div>
     );

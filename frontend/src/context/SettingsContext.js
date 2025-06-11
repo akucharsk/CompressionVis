@@ -11,8 +11,9 @@ export const SettingsProvider = ({ children }) => {
         videoId: null,
         bandwidth: null,
         resolution: null,
-        pattern: null,
+        gop: null,
         crf: null,
+        framerate: null,
     });
 
     return (

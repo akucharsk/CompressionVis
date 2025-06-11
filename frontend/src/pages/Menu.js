@@ -28,7 +28,7 @@ function Menu() {
                     bandwidth: parameters.bandwidth,
                     resolution: parameters.resolution,
                     crf: parseInt(parameters.crf),
-                    framerate: 30,
+                    framerate: parseInt(parameters.framerate),
                     videoId: parameters.videoId
                 }),
             })

@@ -1,5 +1,6 @@
 import React from "react";
 import '../../styles/components/distribution/Macroblock.css';
+import Parameters from "../Parameters";
 
 const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
     const handleHighlightClick = () => {
@@ -8,6 +9,7 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
 
     return (
         <div className="right-section">
+            <Parameters />
             <div className="frame-info">
                 <h3>Frame Information</h3>
                 <p>Frame: {selectedIdx}</p>
