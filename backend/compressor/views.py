@@ -156,6 +156,7 @@ class CompressionView(APIView):
             "-vf", f'scale={scale}',
             "-b:v", data['bandwidth'],
             "-crf", str(data['crf']),
+            "-g", str(data['gop_size']),
             output
         ])
         process.wait()

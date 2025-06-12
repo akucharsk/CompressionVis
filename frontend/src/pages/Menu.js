@@ -29,7 +29,8 @@ function Menu() {
                     resolution: parameters.resolution,
                     crf: parseInt(parameters.crf),
                     framerate: parseInt(parameters.framerate),
-                    videoId: parameters.videoId
+                    videoId: parameters.videoId,
+                    gop_size: parseInt(parameters.pattern),
                 }),
             })
 

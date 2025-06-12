@@ -38,13 +38,14 @@ const OptionsSection = ({ handleCompress }) => {
             ],
         },
         {
-            label: "Group of pictures (GOP)",
-            value: parameters.gop,
-            onChange: updateParam("gop"),
+            label: "GOP Size (Keyframe Interval)",
+            value: parameters.pattern,
+            onChange: updateParam("pattern"),
             options: [
-                { value: "1", label: "1" },
-                { value: "2", label: "2" },
-                { value: "3", label: "3" },
+                { value: "30", label: "30 (short)" },
+                { value: "60", label: "60 (medium)" },
+                { value: "120", label: "120 (long)" },
+                { value: "250", label: "250 (very long)" },
             ],
         },
         {
@@ -77,7 +78,7 @@ const OptionsSection = ({ handleCompress }) => {
         const defaultOptions = {
             bandwidth: "128k",
             resolution: "1280x720",
-            gop: "1",
+            pattern: "250",
             crf: "20",
             framerate: "30",
         };
