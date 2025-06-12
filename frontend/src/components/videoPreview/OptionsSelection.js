@@ -19,9 +19,9 @@ const OptionsSection = ({ handleCompress }) => {
             value: parameters.bandwidth,
             onChange: updateParam("bandwidth"),
             options: [
-                { value: "64k", label: "64kB/s" },
-                { value: "128k", label: "128kB/s" },
-                { value: "1M", label: "1MB/s" },
+                { value: "64k", label: "64kb/s" },
+                { value: "128k", label: "128kb/s" },
+                { value: "1M", label: "1Mb/s" },
             ],
         },
         {
@@ -31,17 +31,21 @@ const OptionsSection = ({ handleCompress }) => {
             options: [
                 { value: "1920x1080", label: "1920x1080" },
                 { value: "1280x720", label: "1280x720" },
-                { value: "400x400", label: "400x400" },
+                { value: "960x540", label: "960x540" },
+                { value: "854x480", label: "854x480" },
+                { value: "640x360", label: "640x360" },
+                { value: "426x240", label: "426x240" },
             ],
         },
         {
-            label: "I,P,B frame pattern",
+            label: "GOP Size (Keyframe Interval)",
             value: parameters.pattern,
             onChange: updateParam("pattern"),
             options: [
-                { value: "1", label: "1" },
-                { value: "2", label: "2" },
-                { value: "3", label: "3" },
+                { value: "30", label: "30 (short)" },
+                { value: "60", label: "60 (medium)" },
+                { value: "120", label: "120 (long)" },
+                { value: "250", label: "250 (very long)" },
             ],
         },
         {
@@ -51,18 +55,32 @@ const OptionsSection = ({ handleCompress }) => {
             options: [
                 { value: "10", label: "10" },
                 { value: "20", label: "20" },
+                { value: "25", label: "25" },
+                { value: "30", label: "30" },
                 { value: "35", label: "35" },
+                { value: "40", label: "40" },
                 { value: "51", label: "51 (max)" },
             ],
         },
+        {
+            label: "Framerate",
+            value: parameters.framerate,
+            onChange: updateParam("framerate"),
+            options: [
+                { value: "15", label: "15 fps" },
+                { value: "30", label: "30 fps" },
+                { value: "60", label: "60 fps" },
+            ],
+        }
     ];
 
     useEffect(() => {
         const defaultOptions = {
             bandwidth: "128k",
             resolution: "1280x720",
-            pattern: "1",
+            pattern: "250",
             crf: "20",
+            framerate: "30",
         };
 
         setParameters((prev) => ({

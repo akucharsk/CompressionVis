@@ -46,13 +46,15 @@ class CompressSerializer(serializers.Serializer):
     bandwidth = serializers.CharField(required=False, default='128k')
     resolution = serializers.CharField(required=False, default="1920x1080")
     crf = serializers.IntegerField(required=False, default=20)
-    fileName = serializers.CharField(required=False, default='')
+    original_id = serializers.IntegerField(required=False, default=None)
+    gop_size = serializers.IntegerField(required=False, default=60, min_value=1, max_value=300)
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
         resolution = attrs.get("resolution")
         crf = attrs.get("crf")
-        filename = attrs.get("fileName")
+        gop_size = attrs.get("gop_size")
+        filename = self.context.get("original_video").filename
 
         dims = resolution.split("x")
         try:
@@ -63,11 +65,10 @@ class CompressSerializer(serializers.Serializer):
 
         attrs['width'] = width
         attrs['height'] = height
-        output_filename = f"b{bandwidth}r{resolution}cr{crf}{filename}"
+        output_filename = f"b{bandwidth}r{resolution}g{gop_size}cr{crf}{filename}"
 
-        attrs['name'] = output_filename
+        attrs['filename'] = output_filename
 
-        attrs.pop('fileName', None)
         attrs.pop('resolution', None)
 
         return attrs
@@ -85,6 +86,24 @@ class CompressSerializer(serializers.Serializer):
             validated_data['bandwidth'] = int(bandwidth) * multipliers[factor]
         validated_data['width'] = int(validated_data['width'])
         validated_data['height'] = int(validated_data['height'])
+        validated_data["original_id"] = self.context["original_video"].id
 
         video = models.Video.objects.create(**validated_data)
         return video
+
+class FrameSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.FrameMetadata
+        fields = '__all__'
+
+class CreateFramesSerializer(serializers.Serializer):
+
+    frames = serializers.ListField()
+
+    def create(self, validated_data):
+        frames = [
+            models.FrameMetadata(**data) for data in validated_data['frames']
+        ]
+        frames = models.FrameMetadata.objects.bulk_create(frames)
+        return frames

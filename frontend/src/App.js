@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation  } from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, useLocation, Navigate} from 'react-router-dom';
 import FramesDistribution from './pages/FrameDistribution';
 import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
@@ -17,6 +17,7 @@ function Layout() {
               <FramesProvider>
               {!hideNavbar && <NavigationTabs />}
               <Routes>
+                  <Route path="*" element={<Navigate to="/" />} />
                   <Route path="/" element={<Menu />} />
                   <Route path="/compress" element={<FramesDistribution />} />
                   <Route path="/comparison" element={<Comparison />} />

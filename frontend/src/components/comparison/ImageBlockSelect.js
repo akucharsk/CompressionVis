@@ -1,20 +1,19 @@
 import React from "react";
+import "../../styles/components/comparison/Images.css";
 
-const ImageBlockSelect = ({ url, types, selectedType, setSelectedType }) => {
+const ImageBlockSelect = ({ types, selectedType, setSelectedType, ref }) => {
     const handleChange = (e) => {
         setSelectedType(e.target.value);
     };
     
     return (
         <>
-            <div className="comparision-block">
-                <div className="image-block">
-                    <img 
-                        src={url} 
-                        alt="Image"
-                    >
-                    </img>
-                </div>
+            <div className="image-block">
+                <img
+                    alt="Image"
+                    ref={ref}
+                >
+                </img>
                 <div className="compression-type">
                     <select value={selectedType} onChange={handleChange}>
                         {types.map((type, idx) => (

@@ -1,51 +1,40 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrames } from "../context/FramesContext";
-import apiUrl from "../utils/urls";
+import {apiUrl} from "../utils/urls";
+import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
+import {handleError} from "../utils/handlers";
 
-const FramesBox = ({ filename }) => {
+const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [playSpeed, setPlaySpeed] = useState(1);
+    const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
 
-    useEffect(() => {
-        const cachedFrames = sessionStorage.getItem('frames');
+    const [params] = useSearchParams();
+    const videoId = params.get("videoId");
+
+    useEffect( () => {
+        const cachedFrames = sessionStorage.getItem("frames");
         if (cachedFrames) {
             setFrames(JSON.parse(cachedFrames));
             setIsLoading(false);
-        } else if (filename) {
-            fetch(`${apiUrl}/video/frames/${filename}`)
-                .then((res) => {
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder("UTF-8");
-
-                    const newFrames = [];
-                    const readStream = ({ value, done }) => {
-                        if (done) return;
-                        const decodedValue = decoder.decode(value);
-                        const frameLists = decodedValue.split("\n");
-                        frameLists.pop();
-                        for (const strFrames of frameLists) {
-                            const parsedFrames = JSON.parse(strFrames);
-                            newFrames.push(...parsedFrames);
-                            setFrames(newFrames);
-                        }
-                        reader.read()
-                            .then(({ value, done }) => readStream({ value, done }))
-                    }
-
-                    reader.read()
-                        .then(({ value, done }) => readStream({ value, done }))
-                        .then(() => sessionStorage.setItem('frames', JSON.stringify(newFrames)))
-                })
-                .catch((error) => console.error("Failed to fetch frames:", error))
-                .finally(() => setIsLoading(false));
+            return;
         }
-    }, [filename, setFrames]);
+        fetch(`${apiUrl}/video/frames/${videoId}/`)
+            .then(res => res.json())
+            .then(data => {
+                setFrames(data["frames"]);
+
+                sessionStorage.setItem("frames", JSON.stringify(data["frames"]));
+            })
+            .catch(handleError)
+            .finally(() => setIsLoading(false));
+
+    }, [videoId, setFrames, setSelectedIdx]);
 
     useEffect(() => {
         if (!isPlaying) {
@@ -93,8 +82,6 @@ const FramesBox = ({ filename }) => {
             container.scrollTo({ left: targetScroll, behavior: isPlaying ? 'auto' : 'smooth' });
         }
     }, [selectedIdx, isPlaying]);
-
-
 
     useEffect(() => {
         const handleKeyDown = (e) => {

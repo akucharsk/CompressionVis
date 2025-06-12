@@ -5,7 +5,7 @@
     border: 1px solid var(--border-color);
     border-radius: 10px;
     gap: 20px;
-    padding: 20px;
+    padding: 20px 0;
 }
 
 .frame-preview-right {
@@ -23,7 +23,7 @@
     background-color: var(--background-second);
     color: var(--font-color);
     text-align: center;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 8px;
     width: 70%;
     margin: 0 auto;
@@ -33,7 +33,7 @@
     width: 90%;
     height: auto;
     margin-bottom: 10px;
-    border-radius: 4px;
+    border-radius: 10px;
 }
 
 .macroblock-info {
@@ -48,7 +48,7 @@ button, .highlight-macroblock, .history-button {
     border: 1px solid #00bcd4;
     background-color: var(--background-second);
     color: #00bcd4;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
     display: block;

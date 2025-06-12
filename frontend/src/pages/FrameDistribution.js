@@ -8,12 +8,12 @@ import './../styles/pages/FrameDistribution.css';
 import {useNavigate, useSearchParams} from "react-router-dom";
 
 const FramesDistribution = () => {
-    const { frames, setFrames, selectedIdx, setSelectedIdx  } = useFrames();
+    const { frames,  selectedIdx, } = useFrames();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const compressedFilename = searchParams.get("filename");
+    const videoId = searchParams.get("videoId");
 
     // if (!compressedUrl) {
     //     navigate("/404");
@@ -21,9 +21,7 @@ const FramesDistribution = () => {
 
     return (
         <div className="distribution-container">
-            <FramesBox
-                filename={compressedFilename}
-            />
+            <FramesBox />
             <div className="main-frame-container">
                 <Frame
                     selectedIdx={selectedIdx}

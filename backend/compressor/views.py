@@ -1,3 +1,4 @@
+import sys
 import time
 
 from rest_framework.views import APIView
@@ -13,11 +14,13 @@ import os
 import subprocess
 import json
 import redis
+import shutil
 
+from utils.psnr import weighted_psnr_420
 from . import models
 from . import serializers
 
-from utils.camel import camelize
+from utils.camel import camelize, decamelize
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -28,11 +31,15 @@ REDIS = redis.Redis(
 )
 
 class VideoView(APIView):
-    def get(self, request, file_name):
-        video_file = finders.find(os.path.join("videos", file_name))
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        video_file = finders.find(os.path.join("videos", video.filename))
 
         if not video_file:
-            video_file = finders.find(os.path.join('compressed_videos', file_name))
+            video_file = finders.find(os.path.join('compressed_videos', video.filename))
         if not video_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -51,24 +58,61 @@ class VideoView(APIView):
         )
         return response
 
+    def delete(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        dot_idx = video.filename.find(".")
+        if dot_idx == -1:
+            return Response({"message": "Invalid filename"}, status=status.HTTP_400_BAD_REQUEST)
+        frames_dirname = video.filename[:dot_idx]
+        video_path = finders.find(os.path.join("compressed_videos", video.filename))
+        frames_path = finders.find(os.path.join("frames", frames_dirname))
+
+        os.remove(video_path)
+        shutil.rmtree(frames_path)
+        models.Video.objects.filter(id=video_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class CompressionView(APIView):
 
     def post(self, request):
-        filename = request.data.get('fileName')
+        data = decamelize(request.data)
+        video_id = data.get("video_id")
 
-        if not filename:
-            return Response({"message": "Video file name not provided"}, status=status.HTTP_400_BAD_REQUEST)
-        video_url = finders.find(os.path.join("videos", filename))
+        if not video_id:
+            return Response(
+                {"message": "Video id not provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            original_video = models.Video.objects.get(
+                id=video_id,
+                original=None
+            )
+        except models.Video.DoesNotExist:
+            return Response(
+                {"message": f"Couldn't find uncompressed video with id {video_id}"},
+            )
+        video_url = finders.find(os.path.join("videos", original_video.filename))
         if not video_url:
-            return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": "Video not present in the file system. Please contact management!"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        serializer = serializers.CompressSerializer(data=request.data)
+        serializer = serializers.CompressSerializer(
+            data=request.data,
+            context={"original_video": original_video}
+        )
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
 
-        output_filename = data['name']
+        output_filename = data['filename']
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
 
@@ -78,21 +122,40 @@ class CompressionView(APIView):
         }
 
         try:
-            video = models.Video.objects.get(name=output_filename)
+            video = models.Video.objects.get(filename=output_filename)
             resp['is_compressed'] = video.is_compressed
-            return Response(camelize(resp), status=status.HTTP_200_OK)
+            if video.is_compressed:
+                resp_status = status.HTTP_200_OK
+            else:
+                resp_status = status.HTTP_102_PROCESSING
+            resp["video_id"] = video.id
+            return Response(camelize(resp), status=resp_status)
         except models.Video.DoesNotExist:
             pass
 
         try:
             video = serializer.save()
         except IntegrityError:
-            video = models.Video.objects.get(name=output_filename)
+            video = models.Video.objects.get(filename=output_filename)
             resp['is_compressed'] = video.is_compressed
-            return Response(camelize(resp), status=status.HTTP_200_OK)
+            if video.is_compressed:
+                resp_status = status.HTTP_200_OK
+            else:
+                resp_status = status.HTTP_102_PROCESSING
+            resp["video_id"] = video.id
+            return Response(camelize(resp), status=resp_status)
 
         os.makedirs(compressed_dir, exist_ok=True)
         scale = f"{data['width']}:{data['height']}"
+        resp["video_id"] = video.id
+
+        gop_size = data.get("gop_size")
+        print('gop_size', gop_size)
+        sys.stdout.flush()
+        if gop_size in ["default", 1, None]:
+            gop_params = []
+        else:
+            gop_params = ["-g", str(gop_size), "-keyint_min", str(gop_size), "-sc_threshold", "0"]
 
         process = subprocess.Popen([
             "ffmpeg",
@@ -102,6 +165,7 @@ class CompressionView(APIView):
             "-vf", f'scale={scale}',
             "-b:v", data['bandwidth'],
             "-crf", str(data['crf']),
+            *gop_params,
             output
         ])
         process.wait()
@@ -111,10 +175,15 @@ class CompressionView(APIView):
         return Response(camelize(resp), status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
-    def get(self, request, file_name):
-        video_file = finders.find(os.path.join("compressed_videos", file_name))
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        video_file = finders.find(os.path.join("compressed_videos", video.filename))
         if not video_file:
-            video_file = finders.find(os.path.join("videos", file_name))
+            video_file = finders.find(os.path.join("videos", video.filename))
 
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -123,53 +192,35 @@ class CompressionFramesView(APIView):
         video_name = os.path.splitext(file_name)[0]
         frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
 
-        info_file_path = os.path.join(frames_dir, "info.json")
+        frames = models.FrameMetadata.objects.filter(video__id=video_id)
+        if frames.exists():
+            info = serializers.FrameSerializer(instance=frames, many=True).data
 
-        def frames_stream(frames):
-            start = 0
-            n = len(frames)
-            while start < n:
-                end = min(start + FRAMES_PER_BATCH, n)
-                file_path = os.path.join(frames_dir, f"frame_{end - 1}.png")
-                while not os.path.exists(file_path):
-                    time.sleep(0.05)
-                ready_frames = frames[start:end]
-                yield json.dumps(ready_frames) + '\n'
-                start = end
-
-        if os.path.exists(info_file_path):
-
-            with open(info_file_path) as f:
-                info = json.load(f)['frames']
-
-            for frame in info:
-                frame_number = frame['frame_number']
-                frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
-
-            return StreamingHttpResponse(
-                frames_stream(info),
-                status=status.HTTP_200_OK
-            )
+            return Response({"frames": info}, status=status.HTTP_200_OK)
 
         os.makedirs(frames_dir, exist_ok=True)
 
-        info = self.get_frame_info(video_file)
-        with open(info_file_path, 'w') as f:
-            json.dump({"frames": info}, f)
+        info = self.get_frame_info(video_file, video)
+        frames_serializer = serializers.CreateFramesSerializer(data={"frames": info})
+
+        if not frames_serializer.is_valid():
+            return Response(frames_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            frames_serializer.save()
+        except IntegrityError:
+            frames = models.FrameMetadata.objects.filter(video__id=video_id)
+            info = serializers.FrameSerializer(instance=frames, many=True).data
+            return Response({"frames": info}, status=status.HTTP_200_OK)
+
+        data = frames_serializer.validated_data['frames']
 
         self.extract_frames(video_file, frames_dir)
 
-        for frame in info:
-            frame_number = frame['frame_number']
-            frame['image_url'] = f"/static/frames/{video_name}/frame_{frame_number}.png"
-
-        return StreamingHttpResponse(
-            frames_stream(info),
-            status=status.HTTP_200_OK
-        )
+        return Response({"frames": data}, status=status.HTTP_200_OK)
 
     @staticmethod
-    def get_frame_info(video_path):
+    def get_frame_info(video_path, video):
         result = subprocess.run([
             "ffprobe",
             "-show_frames",
@@ -182,13 +233,18 @@ class CompressionFramesView(APIView):
 
         frames = []
         i = 0
+        frames_dir = video.filename.split(".")[0]
+        print(list(data.keys()))
         for frame in data.get("frames", []):
             pict_type = frame.get("pict_type")
             if pict_type in ["I", "P", "B"]:
                 frames.append({
                     "frame_number": i,
                     "type": pict_type,
-                    "pts_time": frame.get("pts_time")
+                    "pts_time": frame.get("pts_time"),
+                    "video_id": video.id,
+                    "image_url": f"frames/{frames_dir}/frame_{i}.png",
+                    "pkt_size": frame.get("pkt_size"),
                 })
                 i += 1
 
@@ -203,23 +259,19 @@ class CompressionFramesView(APIView):
             f"{video_dir}/frame_%d.png"
         ], stderr=subprocess.PIPE, start_new_session=True)
 
+
 class ExampleVideosView(APIView):
     def get(self, request):
-        print(request.GET)
         videos_dir = os.path.join(settings.BASE_DIR, "static", "videos")
         thumbs_dir = os.path.join(settings.BASE_DIR, "static", "thumbnails")
         os.makedirs(thumbs_dir, exist_ok=True)
 
-        video_files = [
-            f for f in os.listdir(videos_dir)
-            if f.lower().endswith(".mp4")
-        ]
+        videos = models.Video.objects.filter(original=None)
 
-        response_data = []
-        for filename in video_files:
-            video_path = os.path.join(videos_dir, filename)
-            thumbnail_path = os.path.join(thumbs_dir, f"{os.path.splitext(filename)[0]}.png")
-            thumbnail_url = f"{os.path.splitext(filename)[0]}.png"
+        for video in videos:
+            video_path = os.path.join(videos_dir, video.filename)
+            thumbnail_filename = f"{os.path.splitext(video.filename)[0]}.png"
+            thumbnail_path = os.path.join(thumbs_dir, thumbnail_filename)
 
             if not os.path.exists(thumbnail_path):
                 subprocess.run([
@@ -230,17 +282,133 @@ class ExampleVideosView(APIView):
                     thumbnail_path
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            response_data.append({
-                "name": filename,
-                "thumbnail": thumbnail_url
-            })
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(
+            {"videoIds": videos.values("id", "filename")},
+            status=status.HTTP_200_OK
+        )
 
 class ThumbnailView(APIView):
-    def get(self, request, file_name):
-        file_path = finders.find(os.path.join('thumbnails', file_name))
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        thumbnail_filename = f"{os.path.splitext(video.filename)[0]}.png"
+        file_path = finders.find(os.path.join('thumbnails', thumbnail_filename))
         if not file_path:
             return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(file_path, 'rb'), content_type="image/png", status=status.HTTP_200_OK)
+
+class FrameView(APIView):
+    def get(self, request, video_id, frame_number):
+        original = request.GET.get("original")
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if original:
+            dirname = video.original.filename.split(".")[0]
+        else:
+            dirname = video.filename.split(".")[0]
+
+        frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
+        if not frame:
+            total_frame_count = models.FrameMetadata.objects.filter(video__id=video_id).count()
+            if frame_number < total_frame_count:
+                return Response(status=status.HTTP_102_PROCESSING)
+
+            return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+        return FileResponse(
+            open(frame, 'rb'),
+            content_type="image/png",
+            status=status.HTTP_200_OK
+        )
+
+class MetricView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+            metrics = video.vmaf_mean, video.psnr_mean, video.ssim_mean
+            if all(map(lambda m: m is not None, metrics)):
+                return Response(camelize({"video_metrics": {
+                    "VMAF": round(video.vmaf_mean, 2),
+                    "SSIM": round(video.ssim_mean, 2),
+                    "PSNR": round(video.psnr_mean, 2),
+                }}), status=status.HTTP_200_OK)
+
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        original = video.original
+        if video.width * video.height > original.width * original.height:
+            scale = f"{original.width}:{original.height}"
+        else:
+            scale = f"{video.width}:{video.height}"
+
+        subprocess.run([
+            "bash", "vmaf.sh",
+            original.filename, video.filename, scale
+        ])
+        with open("result.json", "r") as f:
+            metric_info = json.load(f)
+
+        pooled_metrics = metric_info["pooled_metrics"]
+        frame_metrics = metric_info["frames"]
+        frame_metrics = {
+            data["frameNum"]: data["metrics"] for data in frame_metrics
+        }
+        frames = models.FrameMetadata.objects.filter(video=video)
+        for frame in frames:
+            frame.vmaf_score = frame_metrics[frame.frame_number]["vmaf"]
+            frame.ssim_score = frame_metrics[frame.frame_number]["float_ssim"]
+            psnr_scores = {
+                "psnr_y": frame_metrics[frame.frame_number]["psnr_y"],
+                "psnr_cr": frame_metrics[frame.frame_number]["psnr_cr"],
+                "psnr_cb": frame_metrics[frame.frame_number]["psnr_cb"],
+            }
+            frame.psnr_score = weighted_psnr_420(**psnr_scores)
+
+        models.FrameMetadata.objects.bulk_update(
+            frames,
+            fields=["vmaf_score", "psnr_score", "ssim_score"]
+        )
+
+        vid_psnr_scores = {
+            "psnr_y": pooled_metrics["psnr_y"]["mean"],
+            "psnr_cr": pooled_metrics["psnr_cr"]["mean"],
+            "psnr_cb": pooled_metrics["psnr_cb"]["mean"],
+        }
+
+        result = {
+            "video_metrics": {
+                "VMAF": round(pooled_metrics["vmaf"]["mean"], 2),
+                "SSIM": round(pooled_metrics["float_ssim"]["mean"], 2),
+                "PSNR": round(weighted_psnr_420(**vid_psnr_scores), 2)
+            }
+        }
+
+        video.psnr_mean = result["video_metrics"]["PSNR"]
+        video.ssim_mean = result["video_metrics"]["SSIM"]
+        video.vmaf_mean = result["video_metrics"]["VMAF"]
+        video.save()
+
+        return Response(camelize(result), status=status.HTTP_200_OK)
+
+class FrameMetricView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            frame = models.FrameMetadata.objects.get(
+                video__id=video_id,
+                frame_number=frame_number
+            )
+        except models.FrameMetadata.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        resp = {
+            "VMAF": round(frame.vmaf_score, 2),
+            "SSIM": round(frame.ssim_score, 2),
+            "PSNR": round(frame.psnr_score, 2),
+        }
+        return Response(resp, status=status.HTTP_200_OK)

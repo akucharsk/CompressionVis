@@ -6,13 +6,14 @@ export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider = ({ children }) => {
     const [parameters, setParameters] = useState({
-        videoLink: "http://127.0.0.1:8000/video/example1.mp4",
-        videoName: "example1.mp4",
-        compressedFilename: null,
+        videoLink: null,
+        videoName: null,
+        videoId: null,
         bandwidth: null,
         resolution: null,
-        pattern: null,
+        gop: null,
         crf: null,
+        framerate: null,
     });
 
     return (
