@@ -30,7 +30,7 @@ function Menu() {
                     crf: parseInt(parameters.crf),
                     framerate: parseInt(parameters.framerate),
                     videoId: parameters.videoId,
-                    gop_size: parseInt(parameters.pattern),
+                    gop_size: parseInt(parameters.pattern) || 1,
                 }),
             })
 

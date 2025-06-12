@@ -9,7 +9,7 @@ const Parameters = () => {
             <h3>Video Parameters</h3>
             <p>Bandwidth: {parameters.bandwidth}</p>
             <p>Resolution: {parameters.resolution}</p>
-            <p>GOP: {parameters.gop}</p>
+            <p>GOP: {parameters.pattern}</p>
             <p>CRF: {parameters.crf}</p>
             <p>Framerate: {parameters.framerate}</p>
         </div>
