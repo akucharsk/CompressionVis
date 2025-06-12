@@ -1,3 +1,4 @@
+import sys
 import time
 
 from rest_framework.views import APIView
@@ -148,6 +149,14 @@ class CompressionView(APIView):
         scale = f"{data['width']}:{data['height']}"
         resp["video_id"] = video.id
 
+        gop_size = data.get("gop_size")
+        print('gop_size', gop_size)
+        sys.stdout.flush()
+        if gop_size in ["default", 1, None]:
+            gop_params = []
+        else:
+            gop_params = ["-g", str(gop_size), "-keyint_min", str(gop_size), "-sc_threshold", "0"]
+
         process = subprocess.Popen([
             "ffmpeg",
             "-y",
@@ -156,7 +165,7 @@ class CompressionView(APIView):
             "-vf", f'scale={scale}',
             "-b:v", data['bandwidth'],
             "-crf", str(data['crf']),
-            "-g", str(data['gop_size']),
+            *gop_params,
             output
         ])
         process.wait()
@@ -225,6 +234,7 @@ class CompressionFramesView(APIView):
         frames = []
         i = 0
         frames_dir = video.filename.split(".")[0]
+        print(list(data.keys()))
         for frame in data.get("frames", []):
             pict_type = frame.get("pict_type")
             if pict_type in ["I", "P", "B"]:
