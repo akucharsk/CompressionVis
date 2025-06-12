@@ -42,6 +42,7 @@ const OptionsSection = ({ handleCompress }) => {
             value: parameters.pattern,
             onChange: updateParam("pattern"),
             options: [
+                { value: "default", label: "default"},
                 { value: "30", label: "30 (short)" },
                 { value: "60", label: "60 (medium)" },
                 { value: "120", label: "120 (long)" },
