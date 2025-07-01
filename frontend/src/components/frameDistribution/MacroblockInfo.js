@@ -7,6 +7,7 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
         alert("Highlighting macroblocks is not implemented yet.");
     };
 
+
     return (
         <div className="right-section">
             <Parameters />
@@ -14,8 +15,8 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
                 <h3>Frame Information</h3>
                 <p>Frame: {selectedIdx}</p>
                 <p>Type: {frames[selectedIdx]?.type}</p>
-                <p>PTS time: {frames[selectedIdx]?.pts_time}s</p>
-                <p>Frame size: {frames[selectedIdx]?.pkt_size}B</p>
+                <p>PTS time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
+                <p>Frame size: {Intl.NumberFormat('pl-PL').format(frames[selectedIdx]?.pkt_size)}B</p>
             </div>
 
             <div className="macroblock-box">
@@ -27,7 +28,7 @@ const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
                         </div>
                         <div className="macroblock-info">
                             <p>Type: {frames[selectedIdx].type}</p>
-                            <p>Time: {frames[selectedIdx].pts_time}s</p>
+                            <p>Time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
                         </div>
                     </>
                 )}

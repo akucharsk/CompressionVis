@@ -183,7 +183,7 @@ const FramesBox = () => {
                             <div
                                 className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
                                 onClick={() => setSelectedIdx(idx)}
-                                title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
+                                title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
                             >
                                 {frame.type}
                             </div>
