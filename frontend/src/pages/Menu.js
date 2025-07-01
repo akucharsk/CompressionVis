@@ -13,6 +13,8 @@ function Menu() {
     const navigate = useNavigate();
     const { parameters } = useSettings();
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [errorCode, setErrorCode] = useState(null);
 
     useEffect(() => {
         sessionStorage.removeItem('frames');
@@ -20,42 +22,46 @@ function Menu() {
 
     const handleCompress = async (retries) => {
         setIsLoading(true);
-        try {
-            const resp = await fetch(`${apiUrl}/video/compress/`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    bandwidth: parameters.bandwidth,
-                    resolution: parameters.resolution,
-                    crf: parseInt(parameters.crf),
-                    framerate: parseInt(parameters.framerate),
-                    videoId: parameters.videoId,
-                    gop_size: parseInt(parameters.pattern) || 1,
-                }),
-            })
+        setErrorMessage(null);
+        const resp = await fetch(`${apiUrl}/video/compress/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                bandwidth: parameters.bandwidth,
+                resolution: parameters.resolution,
+                crf: parseInt(parameters.crf),
+                framerate: parseInt(parameters.framerate),
+                videoId: parameters.videoId,
+                gop_size: parseInt(parameters.pattern) || 1,
+            }),
+        })
 
-            if (resp.status === STATUS.HTTP_102_PROCESSING) {
-                if (retries === 0) {
-                    alert("Failed to acquire compressed video ID. Please try again later!");
-                    return;
-                }
-                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
-                handleCompress(retries - 1).then(() => {
-                });
+        if (resp.status === STATUS.HTTP_102_PROCESSING) {
+            if (retries === 0) {
+                setErrorMessage("Failed to acquire compressed video ID. Please try again later!");
                 return;
-            } else if (!resp.ok) {
-                const data = await resp.text();
-                throw new Error(`${resp.status}: ${data}`);
             }
-            setIsLoading(false);
+            await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
+            handleCompress(retries - 1).then(() => {
+            });
+            return;
+        } else if (!resp.ok) {
             const data = await resp.json();
-            const videoId = data.videoId;
-            if (!videoId)
-                throw new Error("Invalid data received" + JSON.stringify(data));
-            navigate(`/compress?videoId=${videoId}`);
-        } finally {
+            setErrorCode(resp.status);
+            setErrorMessage(data.message || "An unknown error occurred");
             setIsLoading(false);
+            return;
         }
+        setIsLoading(false);
+        const data = await resp.json();
+        const videoId = data.videoId;
+        if (!videoId){
+            setErrorMessage("Invalid data received" + JSON.stringify(data));
+            setErrorCode(STATUS.HTTP_500_INTERNAL_SERVER_ERROR);
+            setIsLoading(false);
+            return;
+        }
+        navigate(`/compress?videoId=${videoId}`);
     };
 
     return (
@@ -63,6 +69,16 @@ function Menu() {
             {isLoading && (
                 <div className="loading-overlay">
                     <div className="spinner"></div>
+                </div>
+            )}
+            {errorMessage && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Compression Failed</h3>
+                        <p>Error {errorCode}</p>
+                        <p>{errorMessage}</p>
+                        <button onClick={() => setErrorMessage(null)}>Close</button>
+                    </div>
                 </div>
             )}
             <div className="video-section">
