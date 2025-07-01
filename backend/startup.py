@@ -16,7 +16,15 @@ for file in os.listdir(os.path.join("static", "frames")):
 for vid in reserved_filenames:
     name, ext = os.path.splitext(vid)
     if vid.endswith(".mp4"):
-        models.Video.objects.create(filename=vid, width=1920, height=1080)
+        original_filename = vid[:-4] + ".y4m"
+        video_titles = {
+            "example1.mp4": "Witcher 3",
+            "example2.mp4": "Big Buck Bunny",
+            "example3.mp4": "Park Joy",
+            "example4.mp4": "Elephant Dream"
+        }
+        title = video_titles.get(vid, "Unknown Video")
+        models.Video.objects.create(filename=vid, width=1920, height=1080, original_filename=original_filename, title=title)
         video_dir = os.path.join("static", "frames", name)
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)

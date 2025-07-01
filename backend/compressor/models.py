@@ -7,6 +7,8 @@ class FrameType(models.TextChoices):
 
 class Video(models.Model):
     filename = models.CharField(max_length=255, unique=True)
+    original_filename = models.CharField(max_length=255, unique=True, null=True, default=None)
+    title = models.CharField(max_length=255, default="Unknown Video")
     original = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,

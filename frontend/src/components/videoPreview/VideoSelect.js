@@ -24,7 +24,7 @@ const VideoSelect = () => {
                 console.log(data);
                 const formatted = data["videoIds"].map((item) => ({
                     id: item.id,
-                    name: item.filename,
+                    name: item.title,
                     thumbnail: `${apiUrl}/video/thumbnail/${item.id}/`,
                     url: `${apiUrl}/video/${item.id}/`
                 }));

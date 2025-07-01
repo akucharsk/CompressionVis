@@ -96,7 +96,8 @@ class CompressionView(APIView):
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
             )
-        video_url = finders.find(os.path.join("videos", original_video.filename))
+
+        video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
         if not video_url:
             return Response(
                 {"message": "Video not present in the file system. Please contact management!"},
@@ -283,7 +284,7 @@ class ExampleVideosView(APIView):
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         return Response(
-            {"videoIds": videos.values("id", "filename")},
+            {"videoIds": videos.values("id", "title")},
             status=status.HTTP_200_OK
         )
 
