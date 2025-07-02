@@ -9,11 +9,13 @@ export const SettingsProvider = ({ children }) => {
         videoLink: null,
         videoName: null,
         videoId: null,
-        bandwidth: null,
         resolution: null,
         gop: null,
         crf: null,
-        framerate: null,
+        preset: null,
+        bFrames: null,
+        aqMode: null,
+        aqStrength: null,
     });
 
     return (

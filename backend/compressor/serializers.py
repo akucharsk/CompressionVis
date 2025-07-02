@@ -3,7 +3,7 @@ from rest_framework import serializers
 from . import models
 
 import os
-
+import sys
 class VideoSerializer(serializers.Serializer):
     range_header = serializers.CharField()
     video_url = serializers.CharField()
@@ -48,6 +48,10 @@ class CompressSerializer(serializers.Serializer):
     crf = serializers.IntegerField(required=False, default=20)
     original_id = serializers.IntegerField(required=False, default=None)
     gop_size = serializers.IntegerField(required=False, default=60, min_value=1, max_value=300)
+    bf = serializers.IntegerField(required=False, default=0, min_value=-1, max_value=8)
+    aq_mode = serializers.IntegerField(required=False, default=0, min_value=0, max_value=3)
+    aq_strength = serializers.FloatField(required=False, default=0.8, min_value=0.8, max_value=1.6)
+    preset = serializers.CharField(required=False, default="medium")
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
@@ -55,6 +59,11 @@ class CompressSerializer(serializers.Serializer):
         crf = attrs.get("crf")
         gop_size = attrs.get("gop_size")
         filename = self.context.get("original_video").filename
+        bf = attrs.get("bf")
+        sys.stdout.flush()
+        aq_mode = attrs.get("aq_mode")
+        aq_strength = attrs.get("aq_strength")
+        preset = attrs.get("preset")
 
         dims = resolution.split("x")
         try:
@@ -65,7 +74,7 @@ class CompressSerializer(serializers.Serializer):
 
         attrs['width'] = width
         attrs['height'] = height
-        output_filename = f"b{bandwidth}r{resolution}g{gop_size}cr{crf}{filename}"
+        output_filename = f"b{bandwidth}r{resolution}g{gop_size}cr{crf}bf{bf}aq_mode{aq_mode}aq_strength{int(aq_strength*10)}preset{preset}{filename}"
 
         attrs['filename'] = output_filename
 

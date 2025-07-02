@@ -95,6 +95,7 @@ class CompressionView(APIView):
         except models.Video.DoesNotExist:
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
@@ -158,15 +159,25 @@ class CompressionView(APIView):
         else:
             gop_params = ["-g", str(gop_size), "-keyint_min", str(gop_size), "-sc_threshold", "0"]
 
+        bf = data.get("bf")
+        if bf == -1:
+            bf_params = []
+        else:
+            bf_params = ["-bf", str(bf)]
+        print(data)
+        sys.stdout.flush()
         process = subprocess.Popen([
             "ffmpeg",
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
             "-vf", f'scale={scale}',
-            "-b:v", data['bandwidth'],
             "-crf", str(data['crf']),
             *gop_params,
+            "-preset", data['preset'],
+            *bf_params,
+            "-aq-mode", str(data['aq_mode']),
+            "-aq-strength", str(data['aq_strength']),
             output
         ])
         process.wait()
@@ -413,3 +424,19 @@ class FrameMetricView(APIView):
             "PSNR": round(frame.psnr_score, 2),
         }
         return Response(resp, status=status.HTTP_200_OK)
+
+class ParametersView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        params = {
+            "bandwidth": video.bandwidth,
+            "width": video.width,
+            "height": video.height,
+            "crf": video.crf,
+            "gop_size": video.gop_size
+        }
+        return Response(camelize(params), status=status.HTTP_200_OK)

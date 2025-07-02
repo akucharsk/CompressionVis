@@ -27,15 +27,17 @@ function Menu() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                bandwidth: parameters.bandwidth,
                 resolution: parameters.resolution,
                 crf: parseInt(parameters.crf),
-                framerate: parseInt(parameters.framerate),
                 videoId: parameters.videoId,
                 gop_size: parseInt(parameters.pattern) || 1,
+                preset: parameters.preset,
+                bf: parseInt(parameters.bFrames) || -1,
+                aq_mode: parseInt(parameters.aqMode),
+                aq_strength: parseFloat(parameters.aqStrength) || 1.0,
             }),
         })
-
+        console.log(parseInt(parameters.bFrames) || -1);
         if (resp.status === STATUS.HTTP_102_PROCESSING) {
             if (retries === 0) {
                 setErrorMessage("Failed to acquire compressed video ID. Please try again later!");
@@ -56,8 +58,8 @@ function Menu() {
         const data = await resp.json();
         const videoId = data.videoId;
         if (!videoId){
-            setErrorMessage("Invalid data received" + JSON.stringify(data));
-            setErrorCode(STATUS.HTTP_500_INTERNAL_SERVER_ERROR);
+            setErrorMessage("Invalid data received. " + data?.message);
+            setErrorCode(resp.status);
             setIsLoading(false);
             return;
         }

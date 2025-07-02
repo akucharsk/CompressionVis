@@ -57,3 +57,21 @@ select:hover, select:focus {
     transform: scale(1.05);
     color: var(--font-color);
 }
+
+.best-parameters-btn {
+    background-color: var(--netflix-gray);
+    color: var(--font-color);
+    font-weight: 700;
+    padding: 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.best-parameters-btn:hover {
+    background-color: var(--background-second);
+    transform: scale(1.05);
+    color: var(--font-color);
+}

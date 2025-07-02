@@ -8,11 +8,12 @@ const VideoSelect = () => {
     const [videoSources, setVideoSources] = useState([]);
     const { parameters, setParameters } = useSettings();
 
-    const selectVideo = (url) => {
+    const selectVideo = (video) => {
         setParameters(prev => ({
             ...prev,
-            videoLink: url,
-            videoId: parseInt(url.split('/').at(-2))
+            videoLink: video.url,
+            videoId: parseInt(video.url.split('/').at(-2)),
+            videoName: video.name,
         }));
     };
 
@@ -29,12 +30,13 @@ const VideoSelect = () => {
                     url: `${apiUrl}/video/${item.id}/`
                 }));
                 setVideoSources(formatted);
-                const randomUrl = formatted[Math.floor(Math.random() * formatted.length)].url;
+                const randomVideo = formatted[Math.floor(Math.random() * formatted.length)];
                 setParameters(prev => ({
                     ...prev,
-                    videoLink: randomUrl,
-                    videoId: parseInt(randomUrl.split('/').at(-2)),
-                }))
+                    videoLink: randomVideo.url,
+                    videoId: randomVideo.id,
+                    videoName: randomVideo.name
+                }));
             })
             .catch((error) => console.error("Failed to fetch video sources:", error));
 
@@ -62,7 +64,7 @@ const VideoSelect = () => {
                     <div
                         key={video.id}
                         className={`video-thumbnail ${isActive ? "active" : ""}`}
-                        onClick={() => selectVideo(video.url)}
+                        onClick={() => selectVideo(video)}
                     >
                         <img
                             src={video.thumbnail}

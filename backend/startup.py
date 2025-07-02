@@ -29,7 +29,7 @@ for vid in reserved_filenames:
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)
             subprocess.run([
-                "ffmpeg", "-i", os.path.join("static", "videos", vid),
+                "ffmpeg", "-i", os.path.join("static", "original_videos", vid),
                 "-frame_pts", "true",
                 f"{video_dir}/frame_%d.png"
             ])

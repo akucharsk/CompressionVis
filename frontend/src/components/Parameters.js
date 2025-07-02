@@ -7,11 +7,13 @@ const Parameters = () => {
     return (
         <div className="frame-info">
             <h3>Video Parameters</h3>
-            <p>Bandwidth: {parameters.bandwidth}</p>
             <p>Resolution: {parameters.resolution}</p>
             <p>GOP: {parameters.pattern}</p>
             <p>CRF: {parameters.crf}</p>
-            <p>Framerate: {parameters.framerate}</p>
+            <p>Preset: {parameters.preset}</p>
+            <p>B-frames: {parameters.bFrames}</p>
+            <p>AQ-mode: {parameters.aqMode}</p>
+            <p>AQ-strength: {parameters.aqStrength}</p>
         </div>
     )
 };

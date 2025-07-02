@@ -15,16 +15,6 @@ const OptionsSection = ({ handleCompress }) => {
 
     const optionsConfig = [
         {
-            label: "Bandwidth",
-            value: parameters.bandwidth,
-            onChange: updateParam("bandwidth"),
-            options: [
-                { value: "64k", label: "64kb/s" },
-                { value: "128k", label: "128kb/s" },
-                { value: "1M", label: "1Mb/s" },
-            ],
-        },
-        {
             label: "Resolution",
             value: parameters.resolution,
             onChange: updateParam("resolution"),
@@ -64,31 +54,70 @@ const OptionsSection = ({ handleCompress }) => {
             ],
         },
         {
-            label: "Framerate",
-            value: parameters.framerate,
-            onChange: updateParam("framerate"),
+            label: "B‑Frames",
+            value: parameters.bFrames,
+            onChange: updateParam("bFrames"),
             options: [
-                { value: "15", label: "15 fps" },
-                { value: "30", label: "30 fps" },
-                { value: "60", label: "60 fps" },
+                { value: "default", label: "default" },
+                { value: "0", label: "0 (none)" },
+                { value: "2", label: "2" },
+                { value: "4", label: "4" },
+                { value: "8", label: "8" },
+            ],
+        },
+        {
+            label: "AQ Mode",
+            value: parameters.aqMode,
+            onChange: updateParam("aqMode"),
+            options: [
+                { value: "0", label: "0 (disabled)" },
+                { value: "1", label: "1 (variance‑based)" },
+                { value: "2", label: "2 (masked detail)" },
+                { value: "3", label: "3 (composite)" },
+            ],
+        },
+        {
+            label: "AQ Strength",
+            value: parameters.aqStrength,
+            onChange: updateParam("aqStrength"),
+            options: [
+                { value: "0.8", label: "0.8" },
+                { value: "1.0", label: "1.0" },
+                { value: "1.2", label: "1.2" },
+                { value: "1.4", label: "1.4" },
+                { value: "1.6", label: "1.6" },
+            ],
+        },
+        {
+            label: "Preset (speed)",
+            value: parameters.preset,
+            onChange: updateParam("preset"),
+            options: [
+                { value: "ultrafast", label: "ultrafast" },
+                { value: "fast", label: "fast" },
+                { value: "medium", label: "medium" },
+                { value: "slow", label: "slow" },
+                { value: "veryslow", label: "veryslow" },
             ],
         }
     ];
 
     useEffect(() => {
         const defaultOptions = {
-            bandwidth: "128k",
             resolution: "1280x720",
             pattern: "250",
             crf: "20",
-            framerate: "30",
+            preset: "medium",
+            bFrames: "2",
+            aqMode: "2",
+            aqStrength: "1.0"
         };
 
         setParameters((prev) => ({
             ...prev,
             ...defaultOptions,
         }));
-    }, []);
+    }, [setParameters]);
 
     return (
         <div className="options-section">
@@ -96,7 +125,9 @@ const OptionsSection = ({ handleCompress }) => {
             {optionsConfig.map((config) => (
                 <DropdownSelect key={config.label} {...config} />
             ))}
-
+            <button className="best-parameters-btn" onClick={() => console.log(parameters)}>
+                SET BEST PARAMETERS
+            </button>
             <button className="compress-btn" onClick={handleCompress}>
                 COMPRESS
             </button>
