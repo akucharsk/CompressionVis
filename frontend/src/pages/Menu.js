@@ -37,7 +37,6 @@ function Menu() {
                 aq_strength: parseFloat(parameters.aqStrength) || 1.0,
             }),
         })
-        console.log(parseInt(parameters.bFrames) || -1);
         if (resp.status === STATUS.HTTP_102_PROCESSING) {
             if (retries === 0) {
                 setErrorMessage("Failed to acquire compressed video ID. Please try again later!");

@@ -23,7 +23,7 @@ class Video(models.Model):
     gop_size = models.IntegerField(default=None, null=True)
     bf = models.IntegerField(default=None, null=True)
     aq_mode = models.IntegerField(default=None, null=True)
-    aq_strength = models.FloatField(default=None, null=True)
+    aq_strength = models.DecimalField(max_digits=3, decimal_places=1, default=None, null=True)
     preset = models.CharField(max_length=50, default="medium")
 
     vmaf_mean = models.FloatField(default=None, null=True)

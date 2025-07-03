@@ -1,10 +1,34 @@
 import React, {useEffect} from "react";
 import DropdownSelect from "./DropdownSelect";
 import { useSettings } from "../../context/SettingsContext";
+import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/OptionsSelection.css";
 
 const OptionsSection = ({ handleCompress }) => {
     const { parameters, setParameters } = useSettings();
+
+    const handleBestParameters = async () => {
+        try {
+            const resp = await fetch(`${apiUrl}/video/best-parameters/${parameters.videoId}/`);
+            if (!resp.ok) {
+                alert("Failed to fetch best parameters. Please try again later.");
+                return;
+            }
+            const data = await resp.json();
+            setParameters((prev) => ({
+                ...prev,
+                resolution: data.resolution || parameters.resolution,
+                pattern: data.pattern || parameters.pattern,
+                crf: String(data.crf) || parameters.crf,
+                preset: data.preset || parameters.preset,
+                bFrames: String(data.bFrames) || parameters.bFrames,
+                aqMode: String(data.aqMode) || parameters.aqMode,
+                aqStrength: String(data.aqStrength) || parameters.aqStrength,
+            }));
+        } catch (error) {
+            alert("Error fetching best parameters");
+        }
+    };
 
     const updateParam = (key) => (value) => {
         setParameters((prev) => ({
@@ -125,7 +149,7 @@ const OptionsSection = ({ handleCompress }) => {
             {optionsConfig.map((config) => (
                 <DropdownSelect key={config.label} {...config} />
             ))}
-            <button className="best-parameters-btn" onClick={() => console.log(parameters)}>
+            <button className="best-parameters-btn" onClick={handleBestParameters}>
                 SET BEST PARAMETERS
             </button>
             <button className="compress-btn" onClick={handleCompress}>

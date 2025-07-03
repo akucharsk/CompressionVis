@@ -433,10 +433,12 @@ class ParametersView(APIView):
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
         params = {
-            "bandwidth": video.bandwidth,
-            "width": video.width,
-            "height": video.height,
             "crf": video.crf,
-            "gop_size": video.gop_size
+            "gop_size": video.gop_size,
+            "b_frames": video.bf,
+            "aq_mode": video.aq_mode,
+            "aq_strength": f"{video.aq_strength:.1f}",
+            "preset": video.preset,
+            "resolution": f"{video.width}x{video.height}"
         }
         return Response(camelize(params), status=status.HTTP_200_OK)

@@ -10,4 +10,5 @@ urlpatterns = [
     path('frames/<int:video_id>/<int:frame_number>/', views.FrameView.as_view(), name='frames'),
     path('metrics/<int:video_id>/', views.MetricView.as_view(), name='metrics'),
     path('metrics/frame/<int:video_id>/<int:frame_number>', views.FrameMetricView.as_view(), name='frame_metrics'),
+    path('video/best-parameters/<int:video_id>/', views.ParametersView.as_view(), name='best_parameters'),
 ]

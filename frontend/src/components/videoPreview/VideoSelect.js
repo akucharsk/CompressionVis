@@ -12,7 +12,7 @@ const VideoSelect = () => {
         setParameters(prev => ({
             ...prev,
             videoLink: video.url,
-            videoId: parseInt(video.url.split('/').at(-2)),
+            videoId: video.id,
             videoName: video.name,
         }));
     };

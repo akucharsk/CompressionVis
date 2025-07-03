@@ -24,7 +24,19 @@ for vid in reserved_filenames:
             "example4.mp4": "Elephant Dream"
         }
         title = video_titles.get(vid, "Unknown Video")
-        models.Video.objects.create(filename=vid, width=1920, height=1080, original_filename=original_filename, title=title)
+        models.Video.objects.create(
+            filename=vid,
+            width=1920,
+            height=1080,
+            original_filename=original_filename,
+            title=title,
+            preset="medium",
+            aq_mode=1,
+            aq_strength=1.0,
+            bf=2,
+            crf=25,
+            gop_size=60
+        )
         video_dir = os.path.join("static", "frames", name)
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)
