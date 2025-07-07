@@ -15,16 +15,16 @@ for file in os.listdir(os.path.join("static", "frames")):
         shutil.rmtree(os.path.join("static", "frames", file))
 
 video_titles = {
-    "example1.mp4": "Witcher 3",
-    "example2.mp4": "Big Buck Bunny",
-    "example3.mp4": "Park Joy",
-    "example4.mp4": "Elephant Dream"
+    "example1.y4m": "Witcher 3",
+    "example2.y4m": "Big Buck Bunny",
+    "example3.y4m": "Park Joy",
+    "example4.y4m": "Elephant Dream"
 }
 video_sizes = {
-    "example1.mp4": 1869354066,
-    "example2.mp4": 973557138,
-    "example3.mp4": 1555203036,
-    "example4.mp4": 1496105346
+    "example1.y4m": 1869354066,
+    "example2.y4m": 973557138,
+    "example3.y4m": 1555203036,
+    "example4.y4m": 1496105346
 }
 
 for vid in reserved_filenames:
