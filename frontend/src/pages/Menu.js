@@ -11,7 +11,7 @@ import {STATUS} from "../utils/enums/status";
 
 function Menu() {
     const navigate = useNavigate();
-    const { parameters } = useSettings();
+    const { parameters, setParameters } = useSettings();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
     const [errorCode, setErrorCode] = useState(null);
@@ -23,20 +23,36 @@ function Menu() {
     const handleCompress = async (retries) => {
         setIsLoading(true);
         setErrorMessage(null);
-        const resp = await fetch(`${apiUrl}/video/compress/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
+
+        let endpoint, requestBody;
+
+        if (parameters.mode === "compressedSize") {
+            endpoint = `${apiUrl}/video/size-compress/`;
+            requestBody = {
+                videoId: parameters.videoId,
+                targetSize: parseInt(parameters.compressedSize)
+            };
+        } else {
+            endpoint = `${apiUrl}/video/compress/`;
+            requestBody = {
                 resolution: parameters.resolution,
-                crf: parseInt(parameters.crf),
                 videoId: parameters.videoId,
                 gop_size: parseInt(parameters.pattern) || 1,
                 preset: parameters.preset,
-                bf: parseInt(parameters.bFrames) || -1,
+                bf: parameters.bFrames,
                 aq_mode: parseInt(parameters.aqMode),
                 aq_strength: parseFloat(parameters.aqStrength) || 1.0,
-            }),
-        })
+                ...(parameters.qualityMode === "crf" && { crf: parseInt(parameters.crf) }),
+                ...(parameters.qualityMode === "bandwidth" && { bandwidth: parameters.bandwidth }),
+            };
+        }
+
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody),
+        });
+
         if (resp.status === STATUS.HTTP_102_PROCESSING) {
             if (retries === 0) {
                 setErrorMessage("Failed to acquire compressed video ID. Please try again later!");
@@ -53,6 +69,7 @@ function Menu() {
             setIsLoading(false);
             return;
         }
+
         setIsLoading(false);
         const data = await resp.json();
         const videoId = data.videoId;
@@ -62,6 +79,14 @@ function Menu() {
             setIsLoading(false);
             return;
         }
+
+        if (data.resultingSize) {
+            setParameters((prev) => ({
+                ...prev,
+                resultingSize: data.resultingSize,
+            }));
+        }
+
         navigate(`/compress?videoId=${videoId}`);
     };
 

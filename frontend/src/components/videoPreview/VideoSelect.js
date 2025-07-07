@@ -22,7 +22,6 @@ const VideoSelect = () => {
         fetch(`${apiUrl}/video/example/`, { signal: controller.signal })
             .then((res) => res.json())
             .then((data) => {
-                console.log(data);
                 const formatted = data["videoIds"].map((item) => ({
                     id: item.id,
                     name: item.title,
