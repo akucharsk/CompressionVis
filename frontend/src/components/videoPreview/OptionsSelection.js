@@ -170,36 +170,53 @@ const OptionsSection = ({ handleCompress }) => {
                 return (
                     <>
                         <div className="quality-controls-frame">
-                            <div
-                                className={`quality-field ${qualityMode === "crf" ? "active" : "inactive"}`}
-                                onClick={() => {
-                                    setQualityMode("crf")
-                                    setParameters({
-                                        ...parameters,
-                                        qualityMode: "crf",
-                                    })
-                                }}
-                            >
-                                <DropdownSelect {...crfOptions} />
-                            </div>
+                            <label>
+                                Quality Control
+                                <span className="tooltip-container">
+                                <span className="info-icon">❔</span>
+                                <span className="tooltip-text">
+                                  <strong>CRF</strong> dynamically adjusts bitrate based on scene complexity
+                                  to keep consistent visual quality. Ideal when quality matters more
+                                  than file size.<br/>
+                                  <strong>Bandwidth</strong> targets a constant data rate (e.g., 3000 kb/s),
+                                  providing predictable file size but possibly lower quality in complex scenes.
+                                </span>
+                              </span>
+                            </label>
+                            <div className="quality-controls-parameters">
+                                <div
+                                    className={`quality-field ${qualityMode === "crf" ? "active" : "inactive"}`}
+                                    onClick={() => {
+                                        setQualityMode("crf")
+                                        setParameters({
+                                            ...parameters,
+                                            qualityMode: "crf",
+                                        })
+                                    }}
+                                >
+                                    <DropdownSelect {...crfOptions} />
+                                </div>
 
-                            <div
-                                className={`quality-field ${qualityMode === "bandwidth" ? "active" : "inactive"}`}
-                                onClick={() => {
-                                    setQualityMode("bandwidth")
-                                    setParameters({
-                                        ...parameters,
-                                        qualityMode: "bandwidth",
-                                    })
-                                }}
-                            >
-                                <DropdownSelect {...bandwidthOptions} />
+                                <div
+                                    className={`quality-field ${qualityMode === "bandwidth" ? "active" : "inactive"}`}
+                                    onClick={() => {
+                                        setQualityMode("bandwidth")
+                                        setParameters({
+                                            ...parameters,
+                                            qualityMode: "bandwidth",
+                                        })
+                                    }}
+                                >
+                                    <DropdownSelect {...bandwidthOptions} />
+                                </div>
                             </div>
                         </div>
 
-                        {optionsConfig.map((config) => (
-                            <DropdownSelect key={config.label} {...config} />
-                        ))}
+                        <div className="parameters-section">
+                            {optionsConfig.map((config) => (
+                                <DropdownSelect key={config.label} {...config} />
+                            ))}
+                        </div>
 
                         <button className="best-parameters-btn" onClick={handleBestParameters}>
                             SET BEST PARAMETERS

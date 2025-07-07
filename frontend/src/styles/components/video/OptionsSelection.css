@@ -2,7 +2,7 @@
     flex: 2;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 5px;
     background-color: var(--background-first);
     padding: 25px;
     border-radius: 10px;
@@ -35,7 +35,14 @@ select:hover, select:focus {
     cursor: pointer;
 }
 
-.dropdown label, .size-slider-container {
+.parameters-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.dropdown label, .size-slider-container, .quality-controls-frame {
     font-weight: 700;
     margin-bottom: 8px;
     color: #ccc;
@@ -70,6 +77,7 @@ select:hover, select:focus {
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-bottom: 10px;
 }
 
 .best-parameters-btn:hover {
@@ -82,7 +90,8 @@ select:hover, select:focus {
     display: flex;
     gap: 5px;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .mode-buttons button {
@@ -125,12 +134,19 @@ select:hover, select:focus {
 }
 .quality-controls-frame {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border: 1px solid #555;
     border-radius: 8px;
     padding: 15px;
     background-color: #333;
+    cursor: default;
+}
+
+.quality-controls-parameters{
+    display: flex;
+    flex-direction: row;
 }
 
 .quality-field {
@@ -242,4 +258,40 @@ select:hover, select:focus {
 
 .size-slider-container {
     cursor: default !important;
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+    cursor: help;
+}
+
+.info-icon {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 240px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
 }
