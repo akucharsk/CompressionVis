@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import DropdownSelect from "./DropdownSelect";
 import { useSettings } from "../../context/SettingsContext";
 import {apiUrl} from "../../utils/urls";
@@ -6,6 +6,29 @@ import "../../styles/components/video/OptionsSelection.css";
 
 const OptionsSection = ({ handleCompress }) => {
     const { parameters, setParameters } = useSettings();
+    const [mode, setMode] = useState("parameters");
+    const [qualityMode, setQualityMode] = useState("crf");
+    const [originalSize, setOriginalSize] = useState(null);
+    const [loadingSize, setLoadingSize] = useState(false);
+
+    const fetchVideoSize = async () => {
+        if (!parameters.videoId) return;
+
+        setLoadingSize(true);
+        try {
+            const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
+            if (!resp.ok) {
+                console.error("Failed to fetch video size");
+                return;
+            }
+            const data = await resp.json();
+            setOriginalSize(data.size);
+        } catch (error) {
+            console.error("Error fetching video size:", error);
+        } finally {
+            setLoadingSize(false);
+        }
+    };
 
     const handleBestParameters = async () => {
         try {
@@ -20,6 +43,7 @@ const OptionsSection = ({ handleCompress }) => {
                 resolution: data.resolution || parameters.resolution,
                 pattern: data.pattern || parameters.pattern,
                 crf: String(data.crf) || parameters.crf,
+                qualityMode: "crf",
                 preset: data.preset || parameters.preset,
                 bFrames: String(data.bFrames) || parameters.bFrames,
                 aqMode: String(data.aqMode) || parameters.aqMode,
@@ -61,20 +85,6 @@ const OptionsSection = ({ handleCompress }) => {
                 { value: "60", label: "60 (medium)" },
                 { value: "120", label: "120 (long)" },
                 { value: "250", label: "250 (very long)" },
-            ],
-        },
-        {
-            label: "Constant Rate Factor",
-            value: parameters.crf,
-            onChange: updateParam("crf"),
-            options: [
-                { value: "10", label: "10" },
-                { value: "20", label: "20" },
-                { value: "25", label: "25" },
-                { value: "30", label: "30" },
-                { value: "35", label: "35" },
-                { value: "40", label: "40" },
-                { value: "51", label: "51 (max)" },
             ],
         },
         {
@@ -126,6 +136,144 @@ const OptionsSection = ({ handleCompress }) => {
         }
     ];
 
+    const crfOptions = {
+        label: "Constant Rate Factor",
+        value: parameters.crf,
+        onChange: updateParam("crf"),
+        options: [
+            { value: "10", label: "10" },
+            { value: "20", label: "20" },
+            { value: "25", label: "25" },
+            { value: "30", label: "30" },
+            { value: "35", label: "35" },
+            { value: "40", label: "40" },
+            { value: "51", label: "51 (max)" },
+        ],
+    };
+
+    const bandwidthOptions = {
+        label: "Bandwidth",
+        value: parameters.bandwidth,
+        onChange: updateParam("bandwidth"),
+        options: [
+            { value: "64k", label: "64kb/s" },
+            { value: "128k", label: "128kb/s" },
+            { value: "1M", label: "1Mb/s" },
+            { value: "5M", label: "5Mb/s" },
+            { value: "10M", label: "10Mb/s" },
+        ],
+    };
+
+    const renderContent = () => {
+        switch (mode) {
+            case "parameters":
+                return (
+                    <>
+                        <div className="quality-controls-frame">
+                            <div
+                                className={`quality-field ${qualityMode === "crf" ? "active" : "inactive"}`}
+                                onClick={() => {
+                                    setQualityMode("crf")
+                                    setParameters({
+                                        ...parameters,
+                                        qualityMode: "crf",
+                                    })
+                                }}
+                            >
+                                <DropdownSelect {...crfOptions} />
+                            </div>
+
+                            <div
+                                className={`quality-field ${qualityMode === "bandwidth" ? "active" : "inactive"}`}
+                                onClick={() => {
+                                    setQualityMode("bandwidth")
+                                    setParameters({
+                                        ...parameters,
+                                        qualityMode: "bandwidth",
+                                    })
+                                }}
+                            >
+                                <DropdownSelect {...bandwidthOptions} />
+                            </div>
+                        </div>
+
+                        {optionsConfig.map((config) => (
+                            <DropdownSelect key={config.label} {...config} />
+                        ))}
+
+                        <button className="best-parameters-btn" onClick={handleBestParameters}>
+                            SET BEST PARAMETERS
+                        </button>
+                    </>
+                );
+            case "compressedSize":
+                return (
+                    <div className="size-slider-container">
+                        <div className="video-info">
+                            <p>Original Size: <strong>
+                                {loadingSize ? "Loading..." :
+                                    originalSize !== null ? `${Intl.NumberFormat('pl-PL').format(originalSize)} B` : "Unknown"}
+                            </strong></p>
+                        </div>
+                        <label>Compressed Size:</label>
+
+                        <input
+                            type="range"
+                            min="1000"
+                            max={originalSize ? parseInt(originalSize, 10) / 10 : 1_000_000}
+                            step="1"
+                            value={parameters.compressedSize}
+                            onChange={(e) => updateParam("compressedSize")(e.target.value)}
+                            className="size-slider"
+                        />
+
+                        <div className="size-input-container">
+                            <input
+                                type="text"
+                                value={Intl.NumberFormat('pl-PL').format(parameters.compressedSize)}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/\s/g, ''); // usuń spacje
+
+                                    if (value === '') {
+                                        updateParam("compressedSize")('');
+                                        return;
+                                    }
+
+                                    const cleanValue = value.replace(/\D/g, '');
+
+                                    if (cleanValue === '') {
+                                        return;
+                                    }
+
+                                    const numValue = parseInt(cleanValue, 10);
+                                    const maxValue = originalSize ? parseInt(originalSize, 10) : 1000;
+                                    const minValue = 1000;
+
+                                    if (numValue >= minValue && numValue <= maxValue) {
+                                        updateParam("compressedSize")(cleanValue);
+                                    } else if (numValue < minValue) {
+                                        updateParam("compressedSize")(minValue.toString());
+                                    } else {
+                                        updateParam("compressedSize")(maxValue.toString());
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    if (e.target.value === '') {
+                                        updateParam("compressedSize")('1000');
+                                    }
+                                }}
+                                placeholder="Enter size in bytes"
+                                className="size-input"
+                            />
+                            <span className="size-unit">B</span>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     useEffect(() => {
         const defaultOptions = {
             resolution: "1280x720",
@@ -134,7 +282,10 @@ const OptionsSection = ({ handleCompress }) => {
             preset: "medium",
             bFrames: "2",
             aqMode: "2",
-            aqStrength: "1.0"
+            aqStrength: "1.0",
+            bandwidth: "5M",
+            compressedSize: "1000",
+            qualityMode: "crf",
         };
 
         setParameters((prev) => ({
@@ -143,15 +294,50 @@ const OptionsSection = ({ handleCompress }) => {
         }));
     }, [setParameters]);
 
+    useEffect(() => {
+        const loadVideoSize = async () => {
+            if (parameters.videoId) {
+                try {
+                    await fetchVideoSize();
+                } catch (error) {
+                    console.error("Failed to fetch video size:", error);
+                }
+            }
+        };
+
+        void loadVideoSize();
+    }, [parameters.videoId]);
+
     return (
         <div className="options-section">
             <h2>Options</h2>
-            {optionsConfig.map((config) => (
-                <DropdownSelect key={config.label} {...config} />
-            ))}
-            <button className="best-parameters-btn" onClick={handleBestParameters}>
-                SET BEST PARAMETERS
-            </button>
+            <div className="mode-buttons">
+                <button
+                    className={mode === "parameters" ? "active" : ""}
+                    onClick={() => {
+                        setMode("parameters");
+                        setParameters((prev) => ({
+                            ...prev,
+                            mode: "parameters"
+                        }));
+                    }}
+                >
+                    Parameters
+                </button>
+                <button
+                    className={mode === "compressedSize" ? "active" : ""}
+                    onClick={() => {
+                        setMode("compressedSize");
+                        setParameters((prev) => ({
+                            ...prev,
+                            mode: "compressedSize"
+                        }));
+                    }}
+                >
+                    Compressed Size
+                </button>
+            </div>
+            {renderContent()}
             <button className="compress-btn" onClick={handleCompress}>
                 COMPRESS
             </button>

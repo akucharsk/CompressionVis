@@ -16,6 +16,9 @@ export const SettingsProvider = ({ children }) => {
         bFrames: null,
         aqMode: null,
         aqStrength: null,
+        qualityType: null,
+        mode: null,
+        resultingSize: null,
     });
 
     return (

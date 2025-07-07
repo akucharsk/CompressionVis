@@ -152,27 +152,30 @@ class CompressionView(APIView):
         resp["video_id"] = video.id
 
         gop_size = data.get("gop_size")
-        print('gop_size', gop_size)
-        sys.stdout.flush()
+
         if gop_size in ["default", 1, None]:
             gop_params = []
         else:
             gop_params = ["-g", str(gop_size), "-keyint_min", str(gop_size), "-sc_threshold", "0"]
 
         bf = data.get("bf")
-        if bf == -1:
+        if bf == "default":
             bf_params = []
         else:
-            bf_params = ["-bf", str(bf)]
-        print(data)
-        sys.stdout.flush()
+            bf_params = ["-bf", bf]
+
+        if data.get("bandwidth"):
+            param = ["-b:v", data['bandwidth']]
+        else:
+            param = ["-crf", str(data['crf'])]
+
         process = subprocess.Popen([
             "ffmpeg",
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
             "-vf", f'scale={scale}',
-            "-crf", str(data['crf']),
+            *param,
             *gop_params,
             "-preset", data['preset'],
             *bf_params,
@@ -246,7 +249,7 @@ class CompressionFramesView(APIView):
         frames = []
         i = 0
         frames_dir = video.filename.split(".")[0]
-        print(list(data.keys()))
+
         for frame in data.get("frames", []):
             pict_type = frame.get("pict_type")
             if pict_type in ["I", "P", "B"]:
@@ -442,3 +445,134 @@ class ParametersView(APIView):
             "resolution": f"{video.width}x{video.height}"
         }
         return Response(camelize(params), status=status.HTTP_200_OK)
+
+class SizeView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if video.size is None:
+            return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"size": video.size}, status=status.HTTP_200_OK)
+
+class SizeCompressionView(APIView):
+    def post(self, request):
+        data = decamelize(request.data)
+        video_id = data.get("video_id")
+        target_size = data.get("target_size")
+
+        if not video_id or not target_size:
+            return Response(
+                {"message": "Video id and target size must be provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            original_video = models.Video.objects.get(id=video_id, original=None)
+        except models.Video.DoesNotExist:
+            return Response(
+                {"message": f"Couldn't find uncompressed video with id {video_id}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
+        if not video_url:
+            return Response(
+                {"message": "Video not present in the file system. Please contact management!"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        duration = self.get_video_duration(video_url)
+        if duration is None:
+            return Response(
+                {"message": "Couldn't determine video duration"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        target_size_bytes = float(target_size)
+        bitrate = (target_size_bytes * 8) / duration
+        bitrate_kbps = int(bitrate / 1000)
+
+
+        output_filename = f"size{target_size}_video_{original_video.filename}"
+        output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
+        compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
+
+        resp = {
+            "compressed_filename": output_filename,
+            "is_compressed": False
+        }
+
+        try:
+            video = models.Video.objects.get(filename=output_filename)
+            resp["is_compressed"] = video.is_compressed
+            resp["video_id"] = video.id
+            return Response(
+                camelize(resp),
+                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_102_PROCESSING
+            )
+        except models.Video.DoesNotExist:
+            pass
+
+        try:
+            video = models.Video.objects.create(
+                filename=output_filename,
+                original=original_video,
+                is_compressed=False
+            )
+        except IntegrityError:
+            video = models.Video.objects.get(filename=output_filename)
+            resp["is_compressed"] = video.is_compressed
+            resp["video_id"] = video.id
+            return Response(
+                camelize(resp),
+                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_102_PROCESSING
+            )
+
+        os.makedirs(compressed_dir, exist_ok=True)
+
+        process = subprocess.Popen([
+            "ffmpeg",
+            "-y",
+            "-i", video_url,
+            "-c:v", "libx264",
+            "-b:v", f"{bitrate_kbps}k",
+            output_path
+        ])
+        process.wait()
+
+        video.is_compressed = True
+        video.width = original_video.width
+        video.height = original_video.height
+        video.save()
+
+        try:
+            file_size_bytes = os.path.getsize(output_path)
+            file_size_mb = file_size_bytes
+            resp["resulting_size"] = round(file_size_mb, 2)
+        except FileNotFoundError:
+            return Response(
+                {"message": "Couldn't determine resulting file size"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        resp["is_compressed"] = True
+        resp["video_id"] = video.id
+
+        return Response(camelize(resp), status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_video_duration(video_path):
+        try:
+            result = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", video_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            return float(result.stdout)
+        except Exception:
+            return None
