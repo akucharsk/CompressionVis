@@ -8,13 +8,14 @@ import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
 import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
 import {STATUS} from "../utils/enums/status";
+import {useError} from "../context/ErrorContext";
+import {handleApiError} from "../utils/errorHandler";
 
 function Menu() {
     const navigate = useNavigate();
     const { parameters, setParameters } = useSettings();
     const [isLoading, setIsLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [errorCode, setErrorCode] = useState(null);
+    const {showError} = useError();
 
     useEffect(() => {
         sessionStorage.removeItem('frames');
@@ -22,7 +23,6 @@ function Menu() {
 
     const handleCompress = async (retries) => {
         setIsLoading(true);
-        setErrorMessage(null);
 
         let endpoint, requestBody;
 
@@ -42,69 +42,57 @@ function Menu() {
                 bf: parameters.bFrames,
                 aq_mode: parseInt(parameters.aqMode),
                 aq_strength: parseFloat(parameters.aqStrength) || 1.0,
-                ...(parameters.qualityMode === "crf" && { crf: parseInt(parameters.crf) }),
-                ...(parameters.qualityMode === "bandwidth" && { bandwidth: parameters.bandwidth }),
+                ...(parameters.qualityMode === "crf" && {crf: parseInt(parameters.crf)}),
+                ...(parameters.qualityMode === "bandwidth" && {bandwidth: parameters.bandwidth}),
             };
         }
 
-        const resp = await fetch(endpoint, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(requestBody),
-        });
+        try {
+            const resp = await fetch(endpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(requestBody),
+            });
 
-        if (resp.status === STATUS.HTTP_102_PROCESSING) {
-            if (retries === 0) {
-                setErrorMessage("Failed to acquire compressed video ID. Please try again later!");
+            if (resp.status === STATUS.HTTP_202_ACCEPTED) {
+                if (retries === 0) {
+                    showError("Failed to acquire compressed video ID. Please try again later!");
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS));
+                return handleCompress(retries - 1);
+            }
+
+            await handleApiError(resp);
+
+            const data = await resp.json();
+            const videoId = data.videoId;
+
+            if (!videoId) {
+                showError("Invalid data received. " + data?.message);
                 return;
             }
-            await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
-            handleCompress(retries - 1).then(() => {
-            });
-            return;
-        } else if (!resp.ok) {
-            const data = await resp.json();
-            setErrorCode(resp.status);
-            setErrorMessage(data.message || "An unknown error occurred");
+
+            if (data.resultingSize) {
+                setParameters((prev) => ({
+                    ...prev,
+                    resultingSize: data.resultingSize,
+                }));
+            }
+
+            navigate(`/compress?videoId=${videoId}`);
+        } catch (error) {
+            showError(error.message, error.statusCode);
+        } finally {
             setIsLoading(false);
-            return;
         }
-
-        setIsLoading(false);
-        const data = await resp.json();
-        const videoId = data.videoId;
-        if (!videoId){
-            setErrorMessage("Invalid data received. " + data?.message);
-            setErrorCode(resp.status);
-            setIsLoading(false);
-            return;
-        }
-
-        if (data.resultingSize) {
-            setParameters((prev) => ({
-                ...prev,
-                resultingSize: data.resultingSize,
-            }));
-        }
-
-        navigate(`/compress?videoId=${videoId}`);
-    };
+    }
 
     return (
         <div className="container">
             {isLoading && (
                 <div className="loading-overlay">
                     <div className="spinner"></div>
-                </div>
-            )}
-            {errorMessage && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>Compression Failed</h3>
-                        <p>Error {errorCode}</p>
-                        <p>{errorMessage}</p>
-                        <button onClick={() => setErrorMessage(null)}>Close</button>
-                    </div>
                 </div>
             )}
             <div className="video-section">

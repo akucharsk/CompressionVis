@@ -3,40 +3,19 @@ import DropdownSelect from "./DropdownSelect";
 import { useSettings } from "../../context/SettingsContext";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/OptionsSelection.css";
+import {useError} from "../../context/ErrorContext";
+import {handleApiError} from "../../utils/errorHandler";
 
 const OptionsSection = ({ handleCompress }) => {
     const { parameters, setParameters } = useSettings();
-    const [mode, setMode] = useState("parameters");
-    const [qualityMode, setQualityMode] = useState("crf");
     const [originalSize, setOriginalSize] = useState(null);
     const [loadingSize, setLoadingSize] = useState(false);
-
-    const fetchVideoSize = async () => {
-        if (!parameters.videoId) return;
-
-        setLoadingSize(true);
-        try {
-            const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
-            if (!resp.ok) {
-                console.error("Failed to fetch video size");
-                return;
-            }
-            const data = await resp.json();
-            setOriginalSize(data.size);
-        } catch (error) {
-            console.error("Error fetching video size:", error);
-        } finally {
-            setLoadingSize(false);
-        }
-    };
+    const {showError} = useError();
 
     const handleBestParameters = async () => {
         try {
             const resp = await fetch(`${apiUrl}/video/best-parameters/${parameters.videoId}/`);
-            if (!resp.ok) {
-                alert("Failed to fetch best parameters. Please try again later.");
-                return;
-            }
+            await handleApiError(resp);
             const data = await resp.json();
             setParameters((prev) => ({
                 ...prev,
@@ -48,9 +27,10 @@ const OptionsSection = ({ handleCompress }) => {
                 bFrames: String(data.bFrames) || parameters.bFrames,
                 aqMode: String(data.aqMode) || parameters.aqMode,
                 aqStrength: String(data.aqStrength) || parameters.aqStrength,
+                mode: "parameters",
             }));
         } catch (error) {
-            alert("Error fetching best parameters");
+            showError(error.message, error.statusCode);
         }
     };
 
@@ -165,7 +145,7 @@ const OptionsSection = ({ handleCompress }) => {
     };
 
     const renderContent = () => {
-        switch (mode) {
+        switch (parameters.mode) {
             case "parameters":
                 return (
                     <>
@@ -185,9 +165,8 @@ const OptionsSection = ({ handleCompress }) => {
                             </label>
                             <div className="quality-controls-parameters">
                                 <div
-                                    className={`quality-field ${qualityMode === "crf" ? "active" : "inactive"}`}
+                                    className={`quality-field ${parameters.qualityMode === "crf" ? "active" : "inactive"}`}
                                     onClick={() => {
-                                        setQualityMode("crf")
                                         setParameters({
                                             ...parameters,
                                             qualityMode: "crf",
@@ -198,9 +177,8 @@ const OptionsSection = ({ handleCompress }) => {
                                 </div>
 
                                 <div
-                                    className={`quality-field ${qualityMode === "bandwidth" ? "active" : "inactive"}`}
+                                    className={`quality-field ${parameters.qualityMode === "bandwidth" ? "active" : "inactive"}`}
                                     onClick={() => {
-                                        setQualityMode("bandwidth")
                                         setParameters({
                                             ...parameters,
                                             qualityMode: "bandwidth",
@@ -249,7 +227,7 @@ const OptionsSection = ({ handleCompress }) => {
                                 type="text"
                                 value={Intl.NumberFormat('pl-PL').format(parameters.compressedSize)}
                                 onChange={(e) => {
-                                    const value = e.target.value.replace(/\s/g, ''); // usuń spacje
+                                    const value = e.target.value.replace(/\s/g, '');
 
                                     if (value === '') {
                                         updateParam("compressedSize")('');
@@ -303,6 +281,7 @@ const OptionsSection = ({ handleCompress }) => {
             bandwidth: "5M",
             compressedSize: "1000",
             qualityMode: "crf",
+            mode: "parameters",
         };
 
         setParameters((prev) => ({
@@ -312,27 +291,42 @@ const OptionsSection = ({ handleCompress }) => {
     }, [setParameters]);
 
     useEffect(() => {
+        const fetchVideoSize = async () => {
+            if (!parameters.videoId) return;
+
+            setLoadingSize(true);
+            try {
+                const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
+                await handleApiError(resp);
+                const data = await resp.json();
+                setOriginalSize(data.size);
+            } catch (error) {
+                showError(error.message, error.statusCode);
+            } finally {
+                setLoadingSize(false);
+            }
+        };
+
         const loadVideoSize = async () => {
             if (parameters.videoId) {
                 try {
                     await fetchVideoSize();
                 } catch (error) {
-                    console.error("Failed to fetch video size:", error);
+                    showError(error.message, error.statusCode);
                 }
             }
         };
 
         void loadVideoSize();
-    }, [parameters.videoId]);
+    }, [parameters.videoId, showError]);
 
     return (
         <div className="options-section">
             <h2>Options</h2>
             <div className="mode-buttons">
                 <button
-                    className={mode === "parameters" ? "active" : ""}
+                    className={parameters.mode === "parameters" ? "active" : ""}
                     onClick={() => {
-                        setMode("parameters");
                         setParameters((prev) => ({
                             ...prev,
                             mode: "parameters"
@@ -342,9 +336,8 @@ const OptionsSection = ({ handleCompress }) => {
                     Parameters
                 </button>
                 <button
-                    className={mode === "compressedSize" ? "active" : ""}
+                    className={parameters.mode === "compressedSize" ? "active" : ""}
                     onClick={() => {
-                        setMode("compressedSize");
                         setParameters((prev) => ({
                             ...prev,
                             mode: "compressedSize"

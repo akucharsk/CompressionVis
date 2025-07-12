@@ -3,10 +3,12 @@ import {useSettings} from "../../context/SettingsContext";
 import FileDropZone from "./FileDropZone";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/VideoSelect.css";
+import {useError} from "../../context/ErrorContext";
 
 const VideoSelect = () => {
     const [videoSources, setVideoSources] = useState([]);
     const { parameters, setParameters } = useSettings();
+    const {showError} = useError();
 
     const selectVideo = (video) => {
         setParameters(prev => ({
@@ -37,11 +39,14 @@ const VideoSelect = () => {
                     videoName: randomVideo.name
                 }));
             })
-            .catch((error) => console.error("Failed to fetch video sources:", error));
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode);
+            });
 
         return () => controller.abort();
 
-    }, []);
+    }, [showError, setParameters]);
 
     const handleFileChange = (file) => {
         const url = URL.createObjectURL(file);
@@ -51,7 +56,7 @@ const VideoSelect = () => {
                 videoLink: url
             }));
         } else {
-            alert("Unsupported file format");
+            showError("Unsupported file format", 400);
         }
     };
     return (

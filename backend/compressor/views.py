@@ -1,5 +1,6 @@
 import sys
 import time
+import threading
 
 from rest_framework.views import APIView
 from rest_framework import status
@@ -129,7 +130,7 @@ class CompressionView(APIView):
             if video.is_compressed:
                 resp_status = status.HTTP_200_OK
             else:
-                resp_status = status.HTTP_102_PROCESSING
+                resp_status = status.HTTP_202_PROCESSING
             resp["video_id"] = video.id
             return Response(camelize(resp), status=resp_status)
         except models.Video.DoesNotExist:
@@ -143,7 +144,7 @@ class CompressionView(APIView):
             if video.is_compressed:
                 resp_status = status.HTTP_200_OK
             else:
-                resp_status = status.HTTP_102_PROCESSING
+                resp_status = status.HTTP_202_ACCEPTED
             resp["video_id"] = video.id
             return Response(camelize(resp), status=resp_status)
 
@@ -213,7 +214,16 @@ class CompressionFramesView(APIView):
 
             return Response({"frames": info}, status=status.HTTP_200_OK)
 
+        if video.frames_extraction_in_progress:
+            return Response(
+                {"message": "Frame extraction in progress"},
+                status=status.HTTP_202_ACCEPTED
+            )
+
         os.makedirs(frames_dir, exist_ok=True)
+
+        video.frames_extraction_in_progress = True
+        video.save()
 
         info = self.get_frame_info(video_file, video)
         frames_serializer = serializers.CreateFramesSerializer(data={"frames": info})
@@ -226,11 +236,14 @@ class CompressionFramesView(APIView):
         except IntegrityError:
             frames = models.FrameMetadata.objects.filter(video__id=video_id)
             info = serializers.FrameSerializer(instance=frames, many=True).data
+            video.frames_extraction_in_progress = False
+            video.frames_extraction_completed = True
+            video.save()
             return Response({"frames": info}, status=status.HTTP_200_OK)
 
         data = frames_serializer.validated_data['frames']
 
-        self.extract_frames(video_file, frames_dir)
+        self.extract_frames(video_file, frames_dir, video)
 
         return Response({"frames": data}, status=status.HTTP_200_OK)
 
@@ -266,13 +279,27 @@ class CompressionFramesView(APIView):
         return frames
 
     @staticmethod
-    def extract_frames(video_path, video_dir):
-        os.makedirs(video_dir, exist_ok=True)
-        subprocess.Popen([
-            "ffmpeg", "-i", video_path,
-            "-frame_pts", "true",
-            f"{video_dir}/frame_%d.png"
-        ], stderr=subprocess.PIPE, start_new_session=True)
+    def extract_frames(video_path, video_dir, video):
+        def extract_and_update_status():
+            try:
+                os.makedirs(video_dir, exist_ok=True)
+                process = subprocess.Popen([
+                    "ffmpeg", "-i", video_path,
+                    "-frame_pts", "true",
+                    f"{video_dir}/frame_%d.png"
+                ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                process.wait()
+
+                video.frames_extraction_completed = True
+            except Exception as e:
+                print(f"Error during frame extraction: {e}")
+            finally:
+                video.frames_extraction_in_progress = False
+                video.save()
+
+        thread = threading.Thread(target=extract_and_update_status)
+        thread.daemon = True
+        thread.start()
 
 
 class ExampleVideosView(APIView):
@@ -330,11 +357,23 @@ class FrameView(APIView):
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:
-            total_frame_count = models.FrameMetadata.objects.filter(video__id=video_id).count()
-            if frame_number < total_frame_count:
-                return Response(status=status.HTTP_102_PROCESSING)
+            if video.frames_extraction_in_progress:
+                return Response(
+                    {"message": "Frame is being processed"},
+                    status=status.HTTP_202_ACCEPTED
+                )
 
-            return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            if video.frames_extraction_completed:
+                return Response(
+                    {"message": "Frame not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            return Response(
+                {"message": "Frame extraction not started"},
+                status=status.HTTP_202_ACCEPTED
+            )
+
         return FileResponse(
             open(frame, 'rb'),
             content_type="image/png",
@@ -512,7 +551,7 @@ class SizeCompressionView(APIView):
             resp["video_id"] = video.id
             return Response(
                 camelize(resp),
-                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_102_PROCESSING
+                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
             )
         except models.Video.DoesNotExist:
             pass
@@ -529,7 +568,7 @@ class SizeCompressionView(APIView):
             resp["video_id"] = video.id
             return Response(
                 camelize(resp),
-                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_102_PROCESSING
+                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
             )
 
         os.makedirs(compressed_dir, exist_ok=True)

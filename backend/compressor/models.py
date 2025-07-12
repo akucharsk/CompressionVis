@@ -26,6 +26,8 @@ class Video(models.Model):
     aq_strength = models.DecimalField(max_digits=3, decimal_places=1, default=None, null=True)
     preset = models.CharField(max_length=50, default="medium")
     size = models.IntegerField(default=None, null=True)
+    frames_extraction_in_progress = models.BooleanField(default=False)
+    frames_extraction_completed = models.BooleanField(default=False)
 
     vmaf_mean = models.FloatField(default=None, null=True)
     psnr_mean = models.FloatField(default=None, null=True)

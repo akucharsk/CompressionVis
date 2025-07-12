@@ -10,8 +10,9 @@ import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import {fetchImage} from "../api/fetchImage";
 import {MAX_RETRIES} from "../utils/constants";
-import {handleError} from "../utils/handlers";
 import Parameters from "../components/Parameters";
+import {useError} from "../context/ErrorContext";
+import {handleApiError} from "../utils/errorHandler";
 
 const Comparison = () => {
     const [selectedType, setSelectedType] = useState("H.265");
@@ -19,26 +20,35 @@ const Comparison = () => {
     const [params] = useSearchParams();
     const [videoMetrics, setVideoMetrics] = useState({});
     const [frameMetrics, setFrameMetrics] = useState({});
+    const {showError} = useError();
 
     const videoId = parseInt(params.get("videoId"));
 
     useEffect(() => {
         const controller = new AbortController();
         fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal })
+            .then(handleApiError)
             .then(res => res.json())
             .then(data => setVideoMetrics(data["videoMetrics"]))
-            .catch(handleError);
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode)
+            });
 
         return () => controller.abort();
-    }, [videoId]);
+    }, [videoId, showError]);
 
     useEffect(() => {
         const controller = new AbortController();
         fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal })
+            .then(handleApiError)
             .then(res => res.json())
             .then(setFrameMetrics)
-            .catch(handleError);
-    }, [videoId, selectedIdx, videoMetrics]);
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode)
+            });
+    }, [videoId, selectedIdx, videoMetrics, showError]);
 
     const leftRef = useRef(null);
     const rightRef = useRef(null);
@@ -54,7 +64,10 @@ const Comparison = () => {
                 if (rightRef.current)
                     rightRef.current.src = url;
             })
-            .catch(handleError);
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode)
+            });
 
         fetchImage(
             MAX_RETRIES,
@@ -65,10 +78,13 @@ const Comparison = () => {
                 if (leftRef.current)
                     leftRef.current.src = url;
             })
-            .catch(handleError);
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode)
+            });
 
         return () => controller.abort();
-    }, [videoId, selectedIdx]);
+    }, [videoId, selectedIdx, showError]);
 
     return (
         <div className="comparison">
