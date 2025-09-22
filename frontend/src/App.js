@@ -6,13 +6,14 @@ import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
+import {ErrorProvider} from "./context/ErrorContext";
 
 function Layout() {
   const location = useLocation();
   const hideNavbar = location.pathname === "/";
 
   return (
-      <>
+      <ErrorProvider>
           <SettingsProvider>
               <FramesProvider>
               {!hideNavbar && <NavigationTabs />}
@@ -25,7 +26,7 @@ function Layout() {
               </Routes>
               </FramesProvider>
           </SettingsProvider>
-      </>
+      </ErrorProvider>
   );
 }
 

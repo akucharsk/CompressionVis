@@ -3,7 +3,8 @@ import { useFrames } from "../context/FramesContext";
 import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
-import {handleError} from "../utils/handlers";
+import {handleApiError} from "../utils/errorHandler";
+import {useError} from "../context/ErrorContext";
 
 const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
@@ -13,6 +14,7 @@ const FramesBox = () => {
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+    const { showError } = useError();
 
     const [params] = useSearchParams();
     const videoId = params.get("videoId");
@@ -25,16 +27,17 @@ const FramesBox = () => {
             return;
         }
         fetch(`${apiUrl}/video/frames/${videoId}/`)
+            .then(handleApiError)
             .then(res => res.json())
             .then(data => {
                 setFrames(data["frames"]);
 
                 sessionStorage.setItem("frames", JSON.stringify(data["frames"]));
             })
-            .catch(handleError)
+            .catch(err => showError(err.message, err.statusCode))
             .finally(() => setIsLoading(false));
 
-    }, [videoId, setFrames, setSelectedIdx]);
+    }, [videoId, setFrames, setSelectedIdx, showError]);
 
     useEffect(() => {
         if (!isPlaying) {
@@ -63,7 +66,7 @@ const FramesBox = () => {
                 clearInterval(playIntervalRef.current);
             }
         };
-    }, [isPlaying, frames.length, playSpeed]);
+    }, [isPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -97,7 +100,7 @@ const FramesBox = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [frames.length]);
+    }, [frames.length, setSelectedIdx]);
 
     const handleScrollLeft = () => {
         setSelectedIdx(prev => Math.max(0, prev - 1));
@@ -183,7 +186,7 @@ const FramesBox = () => {
                             <div
                                 className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
                                 onClick={() => setSelectedIdx(idx)}
-                                title={`Frame ${idx} (${frame.type}), Time: ${frame.pts_time}s`}
+                                title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
                             >
                                 {frame.type}
                             </div>

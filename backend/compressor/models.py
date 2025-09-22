@@ -7,6 +7,8 @@ class FrameType(models.TextChoices):
 
 class Video(models.Model):
     filename = models.CharField(max_length=255, unique=True)
+    original_filename = models.CharField(max_length=255, unique=True, null=True, default=None)
+    title = models.CharField(max_length=255, default="Unknown Video")
     original = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -19,6 +21,13 @@ class Video(models.Model):
     crf = models.IntegerField(default=None, null=True)
     is_compressed = models.BooleanField(default=False)
     gop_size = models.IntegerField(default=None, null=True)
+    bf = models.CharField(default=None, null=True)
+    aq_mode = models.IntegerField(default=None, null=True)
+    aq_strength = models.DecimalField(max_digits=3, decimal_places=1, default=None, null=True)
+    preset = models.CharField(max_length=50, default="medium")
+    size = models.IntegerField(default=None, null=True)
+    frames_extraction_in_progress = models.BooleanField(default=False)
+    frames_extraction_completed = models.BooleanField(default=False)
 
     vmaf_mean = models.FloatField(default=None, null=True)
     psnr_mean = models.FloatField(default=None, null=True)

@@ -8,11 +8,14 @@ import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
 import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
 import {STATUS} from "../utils/enums/status";
+import {useError} from "../context/ErrorContext";
+import {handleApiError} from "../utils/errorHandler";
 
 function Menu() {
     const navigate = useNavigate();
-    const { parameters } = useSettings();
+    const { parameters, setParameters } = useSettings();
     const [isLoading, setIsLoading] = useState(false);
+    const {showError} = useError();
 
     useEffect(() => {
         sessionStorage.removeItem('frames');
@@ -20,43 +23,70 @@ function Menu() {
 
     const handleCompress = async (retries) => {
         setIsLoading(true);
+
+        let endpoint, requestBody;
+
+        if (parameters.mode === "compressedSize") {
+            endpoint = `${apiUrl}/video/size-compress/`;
+            requestBody = {
+                videoId: parameters.videoId,
+                targetSize: parseInt(parameters.compressedSize)
+            };
+        } else {
+            endpoint = `${apiUrl}/video/compress/`;
+            requestBody = {
+                resolution: parameters.resolution,
+                videoId: parameters.videoId,
+                gop_size: parseInt(parameters.pattern) || 1,
+                preset: parameters.preset,
+                bf: parameters.bFrames,
+                aq_mode: parseInt(parameters.aqMode),
+                aq_strength: parseFloat(parameters.aqStrength) || 1.0,
+                ...(parameters.qualityMode === "crf" && {crf: parseInt(parameters.crf)}),
+                ...(parameters.qualityMode === "bandwidth" && {bandwidth: parameters.bandwidth}),
+            };
+        }
+
         try {
-            const resp = await fetch(`${apiUrl}/video/compress/`, {
+            const resp = await fetch(endpoint, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    bandwidth: parameters.bandwidth,
-                    resolution: parameters.resolution,
-                    crf: parseInt(parameters.crf),
-                    framerate: parseInt(parameters.framerate),
-                    videoId: parameters.videoId,
-                    gop_size: parseInt(parameters.pattern) || 1,
-                }),
-            })
+                body: JSON.stringify(requestBody),
+            });
 
-            if (resp.status === STATUS.HTTP_102_PROCESSING) {
+            if (resp.status === STATUS.HTTP_202_ACCEPTED) {
                 if (retries === 0) {
-                    alert("Failed to acquire compressed video ID. Please try again later!");
+                    showError("Failed to acquire compressed video ID. Please try again later!");
                     return;
                 }
-                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
-                handleCompress(retries - 1).then(() => {
-                });
-                return;
-            } else if (!resp.ok) {
-                const data = await resp.text();
-                throw new Error(`${resp.status}: ${data}`);
+                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS));
+                return handleCompress(retries - 1);
             }
-            setIsLoading(false);
+
+            await handleApiError(resp);
+
             const data = await resp.json();
             const videoId = data.videoId;
-            if (!videoId)
-                throw new Error("Invalid data received" + JSON.stringify(data));
+
+            if (!videoId) {
+                showError("Invalid data received. " + data?.message);
+                return;
+            }
+
+            if (data.resultingSize) {
+                setParameters((prev) => ({
+                    ...prev,
+                    resultingSize: data.resultingSize,
+                }));
+            }
+
             navigate(`/compress?videoId=${videoId}`);
+        } catch (error) {
+            showError(error.message, error.statusCode);
         } finally {
             setIsLoading(false);
         }
-    };
+    }
 
     return (
         <div className="container">

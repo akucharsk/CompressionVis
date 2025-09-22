@@ -10,7 +10,8 @@ venv/
 *.http
 *.mp4
 *.avi
-static/compressed_videos/
-static/frames/
+*.y4m
+static/frames/*.png
 static/thumbnails/*.png
 static/macroblocks/
+result.json

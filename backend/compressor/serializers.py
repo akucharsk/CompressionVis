@@ -3,7 +3,7 @@ from rest_framework import serializers
 from . import models
 
 import os
-
+import sys
 class VideoSerializer(serializers.Serializer):
     range_header = serializers.CharField()
     video_url = serializers.CharField()
@@ -43,11 +43,15 @@ class VideoSerializer(serializers.Serializer):
 
 
 class CompressSerializer(serializers.Serializer):
-    bandwidth = serializers.CharField(required=False, default='128k')
+    bandwidth = serializers.CharField(required=False)
     resolution = serializers.CharField(required=False, default="1920x1080")
-    crf = serializers.IntegerField(required=False, default=20)
+    crf = serializers.IntegerField(required=False)
     original_id = serializers.IntegerField(required=False, default=None)
     gop_size = serializers.IntegerField(required=False, default=60, min_value=1, max_value=300)
+    bf = serializers.CharField(required=False, default="default")
+    aq_mode = serializers.IntegerField(required=False, default=0, min_value=0, max_value=3)
+    aq_strength = serializers.FloatField(required=False, default=0.8, min_value=0.8, max_value=1.6)
+    preset = serializers.CharField(required=False, default="medium")
 
     def validate(self, attrs):
         bandwidth = attrs.get("bandwidth")
@@ -55,6 +59,11 @@ class CompressSerializer(serializers.Serializer):
         crf = attrs.get("crf")
         gop_size = attrs.get("gop_size")
         filename = self.context.get("original_video").filename
+        bf = attrs.get("bf")
+        sys.stdout.flush()
+        aq_mode = attrs.get("aq_mode")
+        aq_strength = attrs.get("aq_strength")
+        preset = attrs.get("preset")
 
         dims = resolution.split("x")
         try:
@@ -63,9 +72,14 @@ class CompressSerializer(serializers.Serializer):
         except (ValueError, IndexError):
             raise serializers.ValidationError('Resolution width must be of the form <width>x<height>')
 
+        if bandwidth:
+            name = f"bandwidth{bandwidth}"
+        else:
+            name = f"crf{crf}"
+
         attrs['width'] = width
         attrs['height'] = height
-        output_filename = f"b{bandwidth}r{resolution}g{gop_size}cr{crf}{filename}"
+        output_filename = f"r{resolution}g{gop_size}{name}bf{bf}aq_mode{aq_mode}aq_strength{int(aq_strength*10)}preset{preset}{filename}"
 
         attrs['filename'] = output_filename
 
@@ -79,8 +93,8 @@ class CompressSerializer(serializers.Serializer):
             'M': 1e6,
             'G': 1e9,
         }
-        bandwidth = validated_data.pop('bandwidth')
-        if bandwidth[-1] in multipliers:
+        bandwidth = validated_data.pop('bandwidth', None)
+        if bandwidth and bandwidth[-1] in multipliers:
             factor = bandwidth[-1]
             bandwidth = bandwidth[:-1]
             validated_data['bandwidth'] = int(bandwidth) * multipliers[factor]

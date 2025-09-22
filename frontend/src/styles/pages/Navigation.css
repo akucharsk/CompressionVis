@@ -5,6 +5,7 @@
     justify-content: center;
     gap: 30px;
     padding: 20px;
+    position: relative;
 }
 
 .nav-tab {
@@ -32,5 +33,15 @@
 .nav-tab.active {
     border-color: var(--netflix-red);
     box-shadow: var(--shadow-red-active);
-    color: var(--font-color);
+}
+
+.nav-back {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.nav-back:hover {
+    transform: translateY(-50%) scale(1.05);
 }

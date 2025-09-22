@@ -3,16 +3,19 @@ import {useSettings} from "../../context/SettingsContext";
 import FileDropZone from "./FileDropZone";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/VideoSelect.css";
+import {useError} from "../../context/ErrorContext";
 
 const VideoSelect = () => {
     const [videoSources, setVideoSources] = useState([]);
     const { parameters, setParameters } = useSettings();
+    const {showError} = useError();
 
-    const selectVideo = (url) => {
+    const selectVideo = (video) => {
         setParameters(prev => ({
             ...prev,
-            videoLink: url,
-            videoId: parseInt(url.split('/').at(-2))
+            videoLink: video.url,
+            videoId: video.id,
+            videoName: video.name,
         }));
     };
 
@@ -21,26 +24,29 @@ const VideoSelect = () => {
         fetch(`${apiUrl}/video/example/`, { signal: controller.signal })
             .then((res) => res.json())
             .then((data) => {
-                console.log(data);
                 const formatted = data["videoIds"].map((item) => ({
                     id: item.id,
-                    name: item.filename,
+                    name: item.title,
                     thumbnail: `${apiUrl}/video/thumbnail/${item.id}/`,
                     url: `${apiUrl}/video/${item.id}/`
                 }));
                 setVideoSources(formatted);
-                const randomUrl = formatted[Math.floor(Math.random() * formatted.length)].url;
+                const randomVideo = formatted[Math.floor(Math.random() * formatted.length)];
                 setParameters(prev => ({
                     ...prev,
-                    videoLink: randomUrl,
-                    videoId: parseInt(randomUrl.split('/').at(-2)),
-                }))
+                    videoLink: randomVideo.url,
+                    videoId: randomVideo.id,
+                    videoName: randomVideo.name
+                }));
             })
-            .catch((error) => console.error("Failed to fetch video sources:", error));
+            .catch(err => {
+                if (err.name === "AbortError") return;
+                showError(err.message, err.statusCode);
+            });
 
         return () => controller.abort();
 
-    }, []);
+    }, [showError, setParameters]);
 
     const handleFileChange = (file) => {
         const url = URL.createObjectURL(file);
@@ -50,7 +56,7 @@ const VideoSelect = () => {
                 videoLink: url
             }));
         } else {
-            alert("Unsupported file format");
+            showError("Unsupported file format", 400);
         }
     };
     return (
@@ -62,7 +68,7 @@ const VideoSelect = () => {
                     <div
                         key={video.id}
                         className={`video-thumbnail ${isActive ? "active" : ""}`}
-                        onClick={() => selectVideo(video.url)}
+                        onClick={() => selectVideo(video)}
                     >
                         <img
                             src={video.thumbnail}

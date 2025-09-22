@@ -8,6 +8,9 @@ const Navigation = () => {
 
     return (
         <div className="nav-container">
+            <NavLink to="/" className="nav-tab nav-back">
+                ↩
+            </NavLink>
             <NavLink to={`/compress${search}`} className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}>
                 FRAMES DISTRIBUTION
             </NavLink>
