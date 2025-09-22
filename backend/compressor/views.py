@@ -40,8 +40,6 @@ class VideoView(APIView):
         video_file = finders.find(os.path.join("videos", video.filename))
 
         if not video_file:
-            video_file = finders.find(os.path.join('compressed_videos', video.filename))
-        if not video_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         range_header = request.headers.get('Range')
@@ -96,7 +94,7 @@ class CompressionView(APIView):
         except models.Video.DoesNotExist:
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_404_NOT_FOUND
             )
 
         video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
@@ -514,7 +512,7 @@ class SizeCompressionView(APIView):
         except models.Video.DoesNotExist:
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_404_NOT_FOUND
             )
 
         video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
