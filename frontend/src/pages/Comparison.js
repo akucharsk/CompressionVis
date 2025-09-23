@@ -26,65 +26,84 @@ const Comparison = () => {
 
     useEffect(() => {
         const controller = new AbortController();
-        fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal })
-            .then(handleApiError)
-            .then(res => res.json())
-            .then(data => setVideoMetrics(data["videoMetrics"]))
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
-
+        const fetchVideoMetrics = async () => {
+            try {
+                const resp = await fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal });
+                await handleApiError(resp);
+                const data = await resp.json();
+                setVideoMetrics(data.videoMetrics);
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
+            }
+        }
+        fetchVideoMetrics();
         return () => controller.abort();
     }, [videoId, showError]);
 
     useEffect(() => {
         const controller = new AbortController();
-        fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal })
-            .then(handleApiError)
-            .then(res => res.json())
-            .then(setFrameMetrics)
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
+        const fetchFrameMetrics = async () => {
+            try {
+                const resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal });
+                await handleApiError(resp);
+                const data = await resp.json();
+                setFrameMetrics(data);
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
+            }
+        }
+        fetchFrameMetrics();
+        return () => controller.abort();
     }, [videoId, selectedIdx, videoMetrics, showError]);
 
     const leftRef = useRef(null);
     const rightRef = useRef(null);
 
-    useEffect(() => {
-        const controller = new AbortController();
-        fetchImage(
+    const fetchMetrics = async () => {
+        let resp;
+        try {
+            resp = await fetch(`${apiUrl}/metrics/${videoId}`);
+            const data = await resp.json();
+            setVideoMetrics(data.videoMetrics);
+        } catch (error) {
+
+        }
+    };
+
+    const fetchMetricsForFrame = async () => {
+        const resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`);
+        const data = await resp.json();
+        setFrameMetrics(data);
+    };
+
+    const fetchImagesForComparison = async () => {
+        const processedImageUrl = await fetchImage(
             MAX_RETRIES,
             `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-            controller
-        )
-            .then(url => {
-                if (rightRef.current)
-                    rightRef.current.src = url;
-            })
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
-
-        fetchImage(
+        );
+        const originalImageUrl = await fetchImage(
             MAX_RETRIES,
             `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
-            controller
-        )
-            .then(url => {
-                if (leftRef.current)
-                    leftRef.current.src = url;
-            })
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
+        );
+        if (leftRef.current)
+            leftRef.current.src = originalImageUrl;
+        if (rightRef.current)
+            rightRef.current.src = processedImageUrl;
+    }
 
-        return () => controller.abort();
-    }, [videoId, selectedIdx, showError]);
+    useEffect(() => {
+        fetchMetrics();
+    }, [videoId]);
+
+    useEffect(() => {
+        fetchMetricsForFrame();
+    }, [videoId, selectedIdx, videoMetrics]);
+
+    useEffect(() => {
+        fetchImagesForComparison();
+    }, [videoId, selectedIdx]);
 
     return (
         <div className="comparison">

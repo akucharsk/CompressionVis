@@ -22,20 +22,27 @@ const FramesBox = () => {
     useEffect( () => {
         const cachedFrames = sessionStorage.getItem("frames");
         if (cachedFrames) {
-            setFrames(JSON.parse(cachedFrames));
+            const frames = JSON.parse(cachedFrames);
+            const sizes = frames.map(frame => frame.pkt_size);
+            setFrames(frames);
             setIsLoading(false);
             return;
         }
-        fetch(`${apiUrl}/video/frames/${videoId}/`)
-            .then(handleApiError)
-            .then(res => res.json())
-            .then(data => {
-                setFrames(data["frames"]);
-
-                sessionStorage.setItem("frames", JSON.stringify(data["frames"]));
-            })
-            .catch(err => showError(err.message, err.statusCode))
-            .finally(() => setIsLoading(false));
+        const fetchFrames = async () => {
+            try {
+                const resp = await fetch(`${apiUrl}/video/frames/${videoId}/`);
+                await handleApiError(resp);
+                const data = await resp.json();
+                console.log(data.frames)
+                setFrames(data.frames);
+                sessionStorage.setItem("frames", JSON.stringify(data.frames));
+            } catch (err) {
+                showError(err.message, err.statusCode);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchFrames();
 
     }, [videoId, setFrames, setSelectedIdx, showError]);
 

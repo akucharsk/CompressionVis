@@ -39,7 +39,6 @@ const Frame = ({ frames, selectedIdx }) => {
                     `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
                     controller
                 );
-
                 if (isMounted) {
                     setImageUrl(url);
                     setCurrentFrameIdx(selectedIdx);

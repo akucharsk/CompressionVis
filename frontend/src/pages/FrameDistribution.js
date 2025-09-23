@@ -11,13 +11,6 @@ const FramesDistribution = () => {
     const { frames,  selectedIdx, } = useFrames();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-
-    const videoId = searchParams.get("videoId");
-
-    // if (!compressedUrl) {
-    //     navigate("/404");
-    // }
 
     return (
         <div className="distribution-container">
