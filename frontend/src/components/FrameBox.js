@@ -14,6 +14,7 @@ const FramesBox = () => {
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+    const [fastForwardIdx, setFastForwardIdx] = useState(1);
     const { showError } = useError();
 
     const [params] = useSearchParams();
@@ -102,6 +103,10 @@ const FramesBox = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [frames.length, setSelectedIdx]);
 
+    useEffect(() => {
+
+    }, []);
+
     const handleScrollLeft = () => {
         setSelectedIdx(prev => Math.max(0, prev - 1));
     };
@@ -110,20 +115,12 @@ const FramesBox = () => {
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
     };
 
-    const handleScrollFarLeft = () => {
-        setSelectedIdx(0);
-        const container = containerRef.current;
-        if (container) {
-            container.scrollTo({ left: 0, behavior: 'smooth' });
-        }
+    const handleMinusTen = () => {
+        setSelectedIdx(prev => Math.max(0, prev - 10));
     }
 
-    const handleScrollFarRight = () => {
-        setSelectedIdx(frames.length - 1);
-        const container = containerRef.current;
-        if (container) {
-            container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
-        }
+    const handlePlusTen = () => {
+        setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
     }
 
     if (isLoading) {
@@ -138,8 +135,8 @@ const FramesBox = () => {
         <div className="frames-container">
             <div className="timeline-header">
                 <div className="timeline-controls">
-                    <button className="scroll-button left" onClick={handleScrollFarLeft}>
-                        &laquo;
+                    <button className="scroll-button left" onClick={handleMinusTen}>
+                        -10
                     </button>
                     <button className="scroll-button left" onClick={handleScrollLeft}>
                         &lt;
@@ -153,8 +150,8 @@ const FramesBox = () => {
                     <button className="scroll-button right" onClick={handleScrollRight}>
                         &gt;
                     </button>
-                    <button className="scroll-button right" onClick={handleScrollFarRight}>
-                        &raquo;
+                    <button className="scroll-button right" onClick={handlePlusTen}>
+                        +10
                     </button>
                     <div className="speed-control">
                         <label>Speed:</label>
@@ -172,8 +169,34 @@ const FramesBox = () => {
 
                         </div>
                     </div>
+                    <select
+                        value={selectedIdx}
+                        onChange={(e) => setSelectedIdx(Number(e.target.value))}
+                        className="frame-select"
+                    >
+                        <option value="" disabled hidden>
+                            Fast Forward
+                        </option>
+
+                        <optgroup label="Navigation">
+                            <option value={0}>⏮ Start</option>
+                            <option value={frames.length - 1}>⏭ End</option>
+                        </optgroup>
+
+                        <optgroup label="Keyframes (I)">
+                            {frames
+                                .map((frame, idx) => ({frame, idx}))
+                                .filter(({frame}) => frame.type === "I")
+                                .filter(({idx}) => idx !== 0)
+                                .map(({idx, frame}) => (
+                                    <option key={idx} value={idx}>
+                                        I-Frame {parseFloat(frame.pts_time).toFixed(2)}s
+                                    </option>
+                                ))}
+                        </optgroup>
+                    </select>
                     <div className="frame-counter">
-                    {selectedIdx + 1} / {frames.length}
+                        {selectedIdx + 1} / {frames.length}
                     </div>
                 </div>
             </div>
