@@ -14,7 +14,6 @@ const FramesBox = () => {
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
-    const [fastForwardIdx, setFastForwardIdx] = useState(1);
     const { showError } = useError();
 
     const [params] = useSearchParams();
@@ -103,10 +102,6 @@ const FramesBox = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [frames.length, setSelectedIdx]);
 
-    useEffect(() => {
-
-    }, []);
-
     const handleScrollLeft = () => {
         setSelectedIdx(prev => Math.max(0, prev - 1));
     };
@@ -121,6 +116,19 @@ const FramesBox = () => {
 
     const handlePlusTen = () => {
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
+    }
+
+    const handleNextIFrame = () => {
+        if (frames.length === 0) return;
+        const iFrames = frames
+            .map((frame, idx) => ({ frame, idx }))
+            .filter(({ frame }) => frame.type === "I")
+            .map(({ idx }) => idx);
+
+        if (iFrames.length === 0) return;
+        const currentPos = iFrames.indexOf(selectedIdx);
+        const nextPos = (currentPos + 1) % iFrames.length;
+        setSelectedIdx(iFrames[nextPos]);
     }
 
     if (isLoading) {
@@ -169,32 +177,9 @@ const FramesBox = () => {
 
                         </div>
                     </div>
-                    <select
-                        value={selectedIdx}
-                        onChange={(e) => setSelectedIdx(Number(e.target.value))}
-                        className="frame-select"
-                    >
-                        <option value="" disabled hidden>
-                            Fast Forward
-                        </option>
-
-                        <optgroup label="Navigation">
-                            <option value={0}>⏮ Start</option>
-                            <option value={frames.length - 1}>⏭ End</option>
-                        </optgroup>
-
-                        <optgroup label="Keyframes (I)">
-                            {frames
-                                .map((frame, idx) => ({frame, idx}))
-                                .filter(({frame}) => frame.type === "I")
-                                .filter(({idx}) => idx !== 0)
-                                .map(({idx, frame}) => (
-                                    <option key={idx} value={idx}>
-                                        I-Frame {parseFloat(frame.pts_time).toFixed(2)}s
-                                    </option>
-                                ))}
-                        </optgroup>
-                    </select>
+                    <button className="scroll-button right" onClick={handleNextIFrame}>
+                        Next I-Frame
+                    </button>
                     <div className="frame-counter">
                         {selectedIdx + 1} / {frames.length}
                     </div>
