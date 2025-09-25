@@ -68,7 +68,8 @@ const Comparison = () => {
             const data = await resp.json();
             setVideoMetrics(data.videoMetrics);
         } catch (error) {
-
+            if (error.name === "AbortError") return;
+            showError(error.message, error.statusCode);
         }
     };
 

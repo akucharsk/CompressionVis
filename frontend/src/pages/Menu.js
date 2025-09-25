@@ -65,12 +65,6 @@ function Menu() {
                 return;
             } else if (!resp.ok) {
                 const data = await resp.text();
-                console.error("Failed to compress video", {
-                    status: resp.status,
-                    data,
-                    endpoint,
-                    requestBody
-                });
                 throw new Error(`${resp.status}: ${data}`);
             }
 
@@ -79,11 +73,6 @@ function Menu() {
             const data = await resp.json();
             const videoId = data.videoId;
             if (!videoId) {
-                console.error("Didn't receive data with 'videoId' field", {
-                    data,
-                    endpoint,
-                    requestBody
-                });
                 showError("Invalid data received. " + data?.message);
                 return;
             }

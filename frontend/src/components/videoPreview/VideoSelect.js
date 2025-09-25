@@ -27,7 +27,8 @@ const VideoSelect = () => {
                 const resp = await fetch(`${apiUrl}/video/example/`, { signal: controller.signal });
                 data = await resp.json();
             } catch (error) {
-                console.error("Failed to fetch video sources", error);
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
             }
             
             try {
@@ -46,7 +47,8 @@ const VideoSelect = () => {
                     videoName: randomVideo.name
                 }));
             } catch (error) {
-                console.error("Error when formatting video data", error);
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
             }
         }
         fetchExample();
