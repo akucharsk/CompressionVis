@@ -16,14 +16,14 @@ function Layout() {
       <ErrorProvider>
           <SettingsProvider>
               <FramesProvider>
-              {!hideNavbar && <NavigationTabs />}
-              <Routes>
-                  <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="/" element={<Menu />} />
-                  <Route path="/compress" element={<FramesDistribution />} />
-                  <Route path="/comparison" element={<Comparison />} />
-                  <Route path="/quiz" element={<Quiz />} />
-              </Routes>
+                  {!hideNavbar && <NavigationTabs />}
+                  <Routes>
+                      <Route path="*" element={<Navigate to="/" />} />
+                      <Route path="/" element={<Menu />} />
+                      <Route path="/compress" element={<FramesDistribution />} />
+                      <Route path="/comparison" element={<Comparison />} />
+                      <Route path="/quiz" element={<Quiz />} />
+                  </Routes>
               </FramesProvider>
           </SettingsProvider>
       </ErrorProvider>

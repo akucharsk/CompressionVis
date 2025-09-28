@@ -5,46 +5,92 @@ import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
 import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
+import Select, { components } from "react-select";
+import Spinner from "./Spinner";
+import IndicatorConfig from "./indicators/IndicatorConfig";
+import IndicatorBlock from "./indicators/IndicatorBlock";
 
 const FramesBox = () => {
-    const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
+    const [areMetricsLoading, setAreMetricsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const [playSpeed] = useState(1);
+    const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
-    const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+
+    const [params, setParams] = useSearchParams();
+    const videoId = params.get("videoId");
+    const indicator = params.get("indicator") || "none";
+
+    const {
+        frames,
+        setFrames,
+        selectedIdx,
+        setSelectedIdx,
+        setFrameMetrics
+    } = useFrames();
     const { showError } = useError();
 
-    const [params] = useSearchParams();
-    const videoId = params.get("videoId");
+    const loadingFields = areMetricsLoading ? [ "psnr", "ssim", "vmaf" ] : [];
 
-    useEffect( () => {
+    const fetchFrames = async () => {
         const cachedFrames = sessionStorage.getItem("frames");
         if (cachedFrames) {
             const frames = JSON.parse(cachedFrames);
-            const sizes = frames.map(frame => frame.pkt_size);
             setFrames(frames);
             setIsLoading(false);
             return;
         }
-        const fetchFrames = async () => {
-            try {
-                const resp = await fetch(`${apiUrl}/video/frames/${videoId}/`);
-                await handleApiError(resp);
-                const data = await resp.json();
-                console.log(data.frames)
-                setFrames(data.frames);
-                sessionStorage.setItem("frames", JSON.stringify(data.frames));
-            } catch (err) {
-                showError(err.message, err.statusCode);
-            } finally {
-                setIsLoading(false);
-            }
+        try {
+            const resp = await fetch(`${apiUrl}/video/frames/${videoId}/`);
+            await handleApiError(resp);
+            const data = await resp.json();
+            console.log(data.frames)
+            setFrames(data.frames);
+            sessionStorage.setItem("frames", JSON.stringify(data.frames));
+        } catch (err) {
+            showError(err.message, err.statusCode);
+        } finally {
+            setIsLoading(false);
         }
-        fetchFrames();
+    };
 
-    }, [videoId, setFrames, setSelectedIdx, showError]);
+    const fetchMetrics = async () => {
+        const cachedMetrics = sessionStorage.getItem("frameMetrics");
+        if (cachedMetrics) {
+            const metrics = JSON.parse(cachedMetrics);
+            setFrameMetrics(metrics);
+            setIsLoading(false);
+            setAreMetricsLoading(false);
+            return;
+        }
+        try {
+            let resp = await fetch(`${apiUrl}/metrics/${videoId}/`);
+            await handleApiError(resp);
+            resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/all`);
+            await handleApiError(resp);
+            const metrics = await resp.json();
+            setFrameMetrics(metrics);
+            sessionStorage.setItem("frameMetrics", JSON.stringify(metrics));
+            console.log(metrics);
+        } catch (error) {
+            showError(error.message, error.statusCode);
+        } finally {
+            setAreMetricsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchFrames();
+        fetchMetrics();
+
+        return () => {
+            sessionStorage.removeItem("frames");
+            sessionStorage.removeItem("frameMetrics");
+        }
+    }, [videoId]);
 
     useEffect(() => {
         if (!isPlaying) {
@@ -141,47 +187,51 @@ const FramesBox = () => {
     if (isLoading) {
         return (
             <div className="loading-overlay">
-                <div className="spinner"></div>
+                <Spinner />
             </div>
         );
     }
 
     return (
         <div className="frames-container">
-            <div className="timeline-header">
-                <div className="timeline-controls">
-                    <button className="scroll-button left" onClick={handleMinusTen}>
-                        -10
-                    </button>
-                    <button className="scroll-button left" onClick={handleScrollLeft}>
-                        &lt;
-                    </button>
-                    <button
-                        className={`play-button ${isPlaying ? 'playing' : ''}`}
-                        onClick={() => setIsPlaying(prev => !prev)}
-                    >
-                        {isPlaying ? '⏹ Stop' : '▶ Play'}
-                    </button>
-                    <button className="scroll-button right" onClick={handleScrollRight}>
-                        &gt;
-                    </button>
-                    <button className="scroll-button right" onClick={handlePlusTen}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                <div className="timeline-header">
+                    <div className="timeline-controls">
+                        <button className="scroll-button left" onClick={handleMinusTen}>
+                            -10
+                        </button>
+                        <button className="scroll-button left" onClick={handleScrollLeft}>
+                            &lt;
+                        </button>
+                        <button
+                            className={`play-button ${isPlaying ? 'playing' : ''}`}
+                            onClick={() => setIsPlaying(prev => !prev)}
+                        >
+                            {isPlaying ? '⏹ Stop' : '▶ Play'}
+                        </button>
+                        <button className="scroll-button right" onClick={handleScrollRight}>
+                            &gt;
+                        </button>
+                        <button className="scroll-button right" onClick={handlePlusTen}>
                         +10
-                    </button>
-                    <div className="speed-control">
-                        <label>Speed:</label>
-                        <div className="speed-slider-container">
-                            <input
-                                type="range"
-                                min="1"
-                                max="15"
-                                step="1"
-                                value={fps}
-                                onChange={(e) => setFps(Number(e.target.value))}
-                                className="speed-slider"
-                            />
-                            <div className="speed-value">{fps} FPS</div>
-
+                        </button>
+                        <div className="speed-control">
+                            <label>Speed:</label>
+                            <div className="speed-slider-container">
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="15"
+                                    step="1"
+                                    value={fps}
+                                    onChange={(e) => setFps(Number(e.target.value))}
+                                    className="speed-slider"
+                                />
+                                <div className="speed-value">{fps} FPS</div>
+                            </div>
+                        </div>
+                        <div className="frame-counter">
+                        {selectedIdx + 1} / {frames.length}
                         </div>
                     </div>
                     <button className="scroll-button right" onClick={handleNextIFrame}>
@@ -191,8 +241,8 @@ const FramesBox = () => {
                         {selectedIdx + 1} / {frames.length}
                     </div>
                 </div>
+                <IndicatorConfig loadingFields={loadingFields} />
             </div>
-
             <div className="timeline-content">
                 <div className="scrollable-frameBox" ref={containerRef}>
                     {frames.map((frame, idx) => (
@@ -205,6 +255,7 @@ const FramesBox = () => {
                             >
                                 {frame.type}
                             </div>
+                            { indicator !== "none" && <IndicatorBlock frameNumber={idx} /> }
                         </div>
                     ))}
                 </div>

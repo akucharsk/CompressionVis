@@ -465,6 +465,23 @@ class FrameMetricView(APIView):
         }
         return Response(resp, status=status.HTTP_200_OK)
 
+class AllFramesMetricsView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not all([ video.psnr_mean, video.ssim_mean, video.vmaf_mean ]):
+            return Response({"message": "Metrics not yet available"}, status=status.HTTP_202_ACCEPTED)
+
+        frames = models.FrameMetadata.objects.filter(video=video)
+        frame_metrics = frames.values("psnr_score", "ssim_score", "vmaf_score")
+        for metric in frame_metrics:
+            metric["psnr_score"] = round(metric["psnr_score"], 2)
+            metric["ssim_score"] = round(metric["ssim_score"], 2)
+            metric["vmaf_score"] = round(metric["vmaf_score"], 2)
+        return Response(frame_metrics, status=status.HTTP_200_OK)
+
 class ParametersView(APIView):
     def get(self, request, video_id):
         try:
