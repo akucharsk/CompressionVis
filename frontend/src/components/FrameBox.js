@@ -5,7 +5,6 @@ import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
 import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
-import Select, { components } from "react-select";
 import Spinner from "./Spinner";
 import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
@@ -20,7 +19,7 @@ const FramesBox = () => {
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
 
-    const [params, setParams] = useSearchParams();
+    const [params] = useSearchParams();
     const videoId = params.get("videoId");
     const indicator = params.get("indicator") || "none";
 

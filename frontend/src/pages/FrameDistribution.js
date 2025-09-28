@@ -5,12 +5,10 @@ import Frame from "../components/frameDistribution/Frame";
 import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
 import FramesBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
-import {useNavigate, useSearchParams} from "react-router-dom";
 
 const FramesDistribution = () => {
     const { frames,  selectedIdx, } = useFrames();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
-    const [searchParams] = useSearchParams();
 
     return (
         <div className="distribution-container">
