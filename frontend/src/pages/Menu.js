@@ -19,6 +19,7 @@ function Menu() {
 
     useEffect(() => {
         sessionStorage.removeItem('frames');
+        sessionStorage.removeItem('frameMetrics');
     }, []);
 
     const handleCompress = async (retries) => {
@@ -59,15 +60,19 @@ function Menu() {
                     showError("Failed to acquire compressed video ID. Please try again later!");
                     return;
                 }
-                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS));
-                return handleCompress(retries - 1);
+                console.log(`Didn't receive compressed video metadata. Retrying in ${DEFAULT_RETRY_TIMEOUT_MS}...`, { retriesLeft: retries - 1 });
+                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
+                handleCompress(retries - 1);
+                return;
+            } else if (!resp.ok) {
+                const data = await resp.text();
+                throw new Error(`${resp.status}: ${data}`);
             }
 
             await handleApiError(resp);
 
             const data = await resp.json();
             const videoId = data.videoId;
-
             if (!videoId) {
                 showError("Invalid data received. " + data?.message);
                 return;

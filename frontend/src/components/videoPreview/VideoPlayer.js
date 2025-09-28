@@ -26,7 +26,6 @@ const VideoPlayer = () => {
                     headers: { Range: "bytes=0-" },
                     signal: controller.signal,
                 });
-
                 await handleApiError(response);
 
                 const blob = await response.blob();

@@ -44,6 +44,8 @@ h1,h2,h3 {
     border-top: 6px solid var(--netflix-red);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 @keyframes spin {

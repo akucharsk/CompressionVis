@@ -21,9 +21,17 @@ const VideoSelect = () => {
 
     useEffect(() => {
         const controller = new AbortController();
-        fetch(`${apiUrl}/video/example/`, { signal: controller.signal })
-            .then((res) => res.json())
-            .then((data) => {
+        const fetchExample = async () => {
+            let data;
+            try {
+                const resp = await fetch(`${apiUrl}/video/example/`, { signal: controller.signal });
+                data = await resp.json();
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
+            }
+            
+            try {
                 const formatted = data["videoIds"].map((item) => ({
                     id: item.id,
                     name: item.title,
@@ -38,14 +46,13 @@ const VideoSelect = () => {
                     videoId: randomVideo.id,
                     videoName: randomVideo.name
                 }));
-            })
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode);
-            });
-
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                showError(error.message, error.statusCode);
+            }
+        }
+        fetchExample();
         return () => controller.abort();
-
     }, [showError, setParameters]);
 
     const handleFileChange = (file) => {
