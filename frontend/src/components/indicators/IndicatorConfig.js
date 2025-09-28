@@ -7,7 +7,7 @@ import { SlArrowDownCircle, SlArrowUpCircle } from "react-icons/sl";
 export default function IndicatorConfig({ loadingFields }) {
     const [ searchParams, setSearchParams ] = useSearchParams();
 
-    const options = { ...INDICATOR_OPTIONS };
+    const options = JSON.parse(JSON.stringify(INDICATOR_OPTIONS));
     loadingFields.forEach(field => {
         options[field].isLoading = true;
     });
@@ -15,7 +15,8 @@ export default function IndicatorConfig({ loadingFields }) {
 
     const Option = (props) => {
         const { data } = props;
-        data.isDisabled = data.isLoading;
+        if (data.isLoading)
+            data.isDisabled = true;
         return (
             <components.Option {...props}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: "5px" }}>
@@ -56,7 +57,6 @@ export default function IndicatorConfig({ loadingFields }) {
         singleValue: (styles) => ({ ...styles, color: "white" }),
         menu: (styles) => ({ ...styles, backgroundColor: "var(--background-second)" })
     }
-
     return (
         <div className="indicator-config">
             <span className="indicator-config-heading">Indicator</span>

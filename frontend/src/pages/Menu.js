@@ -19,6 +19,7 @@ function Menu() {
 
     useEffect(() => {
         sessionStorage.removeItem('frames');
+        sessionStorage.removeItem('frameMetrics');
     }, []);
 
     const handleCompress = async (retries) => {

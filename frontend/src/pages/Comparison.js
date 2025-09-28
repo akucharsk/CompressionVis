@@ -24,40 +24,6 @@ const Comparison = () => {
 
     const videoId = parseInt(params.get("videoId"));
 
-    useEffect(() => {
-        const controller = new AbortController();
-        const fetchVideoMetrics = async () => {
-            try {
-                const resp = await fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal });
-                await handleApiError(resp);
-                const data = await resp.json();
-                setVideoMetrics(data.videoMetrics);
-            } catch (error) {
-                if (error.name === "AbortError") return;
-                showError(error.message, error.statusCode);
-            }
-        }
-        fetchVideoMetrics();
-        return () => controller.abort();
-    }, [videoId, showError]);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        const fetchFrameMetrics = async () => {
-            try {
-                const resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal });
-                await handleApiError(resp);
-                const data = await resp.json();
-                setFrameMetrics(data);
-            } catch (error) {
-                if (error.name === "AbortError") return;
-                showError(error.message, error.statusCode);
-            }
-        }
-        fetchFrameMetrics();
-        return () => controller.abort();
-    }, [videoId, selectedIdx, videoMetrics, showError]);
-
     const leftRef = useRef(null);
     const rightRef = useRef(null);
 

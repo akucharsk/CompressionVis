@@ -46,7 +46,6 @@ const FramesBox = () => {
             const resp = await fetch(`${apiUrl}/video/frames/${videoId}/`);
             await handleApiError(resp);
             const data = await resp.json();
-            console.log(data.frames)
             setFrames(data.frames);
             sessionStorage.setItem("frames", JSON.stringify(data.frames));
         } catch (err) {
@@ -73,7 +72,6 @@ const FramesBox = () => {
             const metrics = await resp.json();
             setFrameMetrics(metrics);
             sessionStorage.setItem("frameMetrics", JSON.stringify(metrics));
-            console.log(metrics);
         } catch (error) {
             showError(error.message, error.statusCode);
         } finally {
@@ -84,11 +82,6 @@ const FramesBox = () => {
     useEffect(() => {
         fetchFrames();
         fetchMetrics();
-
-        return () => {
-            sessionStorage.removeItem("frames");
-            sessionStorage.removeItem("frameMetrics");
-        }
     }, [videoId]);
 
     useEffect(() => {
