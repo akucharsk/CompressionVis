@@ -22,6 +22,8 @@ from . import models
 from . import serializers
 
 from utils.camel import camelize, decamelize
+from zipfile import ZipFile
+from io import BytesIO
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -375,6 +377,46 @@ class FrameView(APIView):
         return FileResponse(
             open(frame, 'rb'),
             content_type="image/png",
+            status=status.HTTP_200_OK
+        )
+
+class BufferingFramesView(APIView):
+    def get(self, request, video_id, frame_number):
+        # Is filtering by video_id sufficient or filter by video in Video.model for checking if frames are recently creating
+        try:
+            buffer_size = int(request.GET.get("buffer_size"))
+            if buffer_size <= 1:
+                raise ValueError
+        except ValueError:
+            return Response(
+                {"message": "Invalid type of buffer_size"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            frames = models.FrameMetadata.objects.filter(
+                video__id=video_id,
+                frame_number__gte=frame_number,
+                frame_number__lt=frame_number + buffer_size
+            )
+        except models.FrameMetadata.DoesNotExist:
+            return Response(
+                {"message": "Frames not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        buffer = BytesIO()
+
+        with ZipFile(buffer, "w") as zipped_frames:
+            for frame_path in list(frames):
+                frame = finders.find(os.path.join("static", *frame_path.image_url.split("/")))
+
+                if frame:
+                    zipped_frames.write(filename=frame, arcname=frame_path.image_url[-1])
+
+        buffer.seek(0)
+        return Response(
+            buffer,
             status=status.HTTP_200_OK
         )
 
