@@ -409,14 +409,18 @@ class BufferingFramesView(APIView):
 
         with ZipFile(buffer, "w") as zipped_frames:
             for frame_path in list(frames):
-                frame = finders.find(os.path.join("static", *frame_path.image_url.split("/")))
+                frame = finders.find(frame_path.image_url)
 
                 if frame:
-                    zipped_frames.write(filename=frame, arcname=frame_path.image_url[-1])
+                    zipped_frames.write(frame, arcname=os.path.basename(frame))
 
         buffer.seek(0)
-        return Response(
+
+        return FileResponse(
             buffer,
+            as_attachment=True,
+            filename=f"frames_{video_id}.zip",
+            content_type="application/zip",
             status=status.HTTP_200_OK
         )
 

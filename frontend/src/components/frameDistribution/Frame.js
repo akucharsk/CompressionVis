@@ -74,6 +74,8 @@ const Frame = ({ frames, selectedIdx }) => {
                     )}
                 </div>
             )}
+            <img src="" alt="Lol1"/>
+            <img src="" alt="Lol2"/>
         </div>
     )
 };
