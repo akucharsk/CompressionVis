@@ -46,9 +46,6 @@ const FrameByFrameNav = ({frames, selectedIdx, setSelectedIdx, isPlaying, setIsP
             <button className="scroll-button right" onClick={handleNextIFrame}>
                 Next I-Frame
             </button>
-            <div className="frame-counter">
-                {selectedIdx + 1} / {frames.length}
-            </div>
         </>
     )
 }

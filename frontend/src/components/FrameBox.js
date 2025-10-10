@@ -11,9 +11,9 @@ import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 const FramesBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlaying }) => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
-    const [playSpeed] = useState(1);
+    // const [playSpeed] = useState(1);
     const containerRef = useRef(null);
-    const playIntervalRef = useRef(null);
+    // const playIntervalRef = useRef(null);
     // const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
     const { showError } = useError();
 
@@ -126,6 +126,9 @@ const FramesBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlay
                     className={presentationMode === "video" ? "active" : ""}
                 >
                     Video
+                </div>
+                <div className="frame-counter">
+                    {selectedIdx + 1} / {frames.length}
                 </div>
             </div>
             <div className="timeline-header">
