@@ -5,11 +5,14 @@ import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
 import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
+import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
+import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 
 const FramesBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [presentationMode, setPresentationMode] = useState("frames");
     const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
@@ -102,35 +105,6 @@ const FramesBox = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [frames.length, setSelectedIdx]);
 
-    const handleScrollLeft = () => {
-        setSelectedIdx(prev => Math.max(0, prev - 1));
-    };
-
-    const handleScrollRight = () => {
-        setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
-    };
-
-    const handleMinusTen = () => {
-        setSelectedIdx(prev => Math.max(0, prev - 10));
-    }
-
-    const handlePlusTen = () => {
-        setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
-    }
-
-    const handleNextIFrame = () => {
-        if (frames.length === 0) return;
-        const iFrames = frames
-            .map((frame, idx) => ({ frame, idx }))
-            .filter(({ frame }) => frame.type === "I")
-            .map(({ idx }) => idx);
-
-        if (iFrames.length === 0) return;
-        const currentPos = iFrames.indexOf(selectedIdx);
-        const nextPos = (currentPos + 1) % iFrames.length;
-        setSelectedIdx(iFrames[nextPos]);
-    }
-
     if (isLoading) {
         return (
             <div className="loading-overlay">
@@ -141,48 +115,30 @@ const FramesBox = () => {
 
     return (
         <div className="frames-container">
+            <div className="mode-nav">
+                <div onClick={() => {setPresentationMode("frames")}}>
+                    Frames
+                </div>
+                <div onClick={() => {setPresentationMode("video")}}>
+                    Video
+                </div>
+            </div>
             <div className="timeline-header">
                 <div className="timeline-controls">
-                    <button className="scroll-button left" onClick={handleMinusTen}>
-                        -10
-                    </button>
-                    <button className="scroll-button left" onClick={handleScrollLeft}>
-                        &lt;
-                    </button>
-                    <button
-                        className={`play-button ${isPlaying ? 'playing' : ''}`}
-                        onClick={() => setIsPlaying(prev => !prev)}
+                    {presentationMode === "frames" ? 
+                    <FrameByFrameNav
+                        frames={frames}
+                        selectedIdx={selectedIdx}
+                        setSelectedIdx={setSelectedIdx}
+                        isPlaying={isPlaying}
+                        setIsPlaying={setIsPlaying}
                     >
-                        {isPlaying ? '⏹ Stop' : '▶ Play'}
-                    </button>
-                    <button className="scroll-button right" onClick={handleScrollRight}>
-                        &gt;
-                    </button>
-                    <button className="scroll-button right" onClick={handlePlusTen}>
-                        +10
-                    </button>
-                    <div className="speed-control">
-                        <label>Speed:</label>
-                        <div className="speed-slider-container">
-                            <input
-                                type="range"
-                                min="1"
-                                max="15"
-                                step="1"
-                                value={fps}
-                                onChange={(e) => setFps(Number(e.target.value))}
-                                className="speed-slider"
-                            />
-                            <div className="speed-value">{fps} FPS</div>
-
-                        </div>
-                    </div>
-                    <button className="scroll-button right" onClick={handleNextIFrame}>
-                        Next I-Frame
-                    </button>
-                    <div className="frame-counter">
-                        {selectedIdx + 1} / {frames.length}
-                    </div>
+                    </FrameByFrameNav> :
+                    <PlayCompressedVideoNav
+                        isPlaying={isPlaying}
+                        setIsPlaying={setIsPlaying}
+                    >
+                    </PlayCompressedVideoNav>}
                 </div>
             </div>
 
