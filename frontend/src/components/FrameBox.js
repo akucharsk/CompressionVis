@@ -8,10 +8,9 @@ import {useError} from "../context/ErrorContext";
 import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
 import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 
-const FramesBox = ({ presentationMode, setPresentationMode }) => {
+const FramesBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlaying }) => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
-    const [isPlaying, setIsPlaying] = useState(false);
     const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);

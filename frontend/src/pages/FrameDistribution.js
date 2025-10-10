@@ -9,7 +9,7 @@ import {useNavigate, useSearchParams} from "react-router-dom";
 import Video from '../components/frameDistribution/Video';
 
 const FramesDistribution = () => {
-    const { frames,  selectedIdx, } = useFrames();
+    const { frames,  selectedIdx, setSelectedIdx } = useFrames();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [presentationMode, setPresentationMode] = useState("frames");
     const [isPlaying, setIsPlaying] = useState(false);
@@ -44,6 +44,8 @@ const FramesDistribution = () => {
                         setIsPlaying={setIsPlaying}
                         videoUrl={videoUrl}
                         setVideoUrl={setVideoUrl}
+                        setSelectedIdx={setSelectedIdx}
+                        frames={frames}
                     />
                 )}
                 <MacroblockInfo

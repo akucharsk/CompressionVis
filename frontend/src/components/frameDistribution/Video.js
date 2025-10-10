@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { apiUrl } from "../../utils/urls";
 
-const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl }) => {
+const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl, setSelectedIdx, frames }) => {
     const videoRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -27,6 +27,27 @@ const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl }) => {
         else video.pause();
     }, [isPlaying]);
 
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (!frames || frames.length === 0) return;
+
+        const handleTimeUpdate = () => {
+            const currentTime = video.currentTime;
+            let closestIdx = 0;
+            for (let i = 0; i < frames.length; i++) {
+                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                    closestIdx = i;
+                    break;
+                }
+            }
+            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+        };
+
+        video.addEventListener("timeupdate", handleTimeUpdate);
+        return () => video.removeEventListener("timeupdate", handleTimeUpdate);
+        }, [frames, setSelectedIdx, videoUrl]);
 
     return (
         <div className="video-player-container">
@@ -38,8 +59,7 @@ const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl }) => {
                     src={videoUrl}
                     onEnded={() => setIsPlaying(false)}
                     className="compressed-video"
-                    // controls={false}
-                    controls
+                    // controls
                 />
             )}
         </div>
