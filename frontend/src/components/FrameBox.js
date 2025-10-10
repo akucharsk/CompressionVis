@@ -8,15 +8,14 @@ import {useError} from "../context/ErrorContext";
 import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
 import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 
-const FramesBox = () => {
+const FramesBox = ({ presentationMode, setPresentationMode }) => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [presentationMode, setPresentationMode] = useState("frames");
     const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     const playIntervalRef = useRef(null);
-    const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+    // const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
     const { showError } = useError();
 
     const [params] = useSearchParams();
@@ -42,34 +41,34 @@ const FramesBox = () => {
 
     }, [videoId, setFrames, setSelectedIdx, showError]);
 
-    useEffect(() => {
-        if (!isPlaying) {
-            if (playIntervalRef.current) {
-                clearInterval(playIntervalRef.current);
-                playIntervalRef.current = null;
-            }
-            return;
-        }
+    // useEffect(() => {
+    //     if (!isPlaying) {
+    //         if (playIntervalRef.current) {
+    //             clearInterval(playIntervalRef.current);
+    //             playIntervalRef.current = null;
+    //         }
+    //         return;
+    //     }
 
-        const interval = 1000 / fps;
+    //     const interval = 1000 / fps;
 
-        playIntervalRef.current = setInterval(() => {
-            setSelectedIdx(prev => {
-                if (prev < frames.length - 1) {
-                    return prev + 1;
-                } else {
-                    setIsPlaying(false);
-                    return prev;
-                }
-            });
-        }, interval);
+    //     playIntervalRef.current = setInterval(() => {
+    //         setSelectedIdx(prev => {
+    //             if (prev < frames.length - 1) {
+    //                 return prev + 1;
+    //             } else {
+    //                 setIsPlaying(false);
+    //                 return prev;
+    //             }
+    //         });
+    //     }, interval);
 
-        return () => {
-            if (playIntervalRef.current) {
-                clearInterval(playIntervalRef.current);
-            }
-        };
-    }, [isPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
+    //     return () => {
+    //         if (playIntervalRef.current) {
+    //             clearInterval(playIntervalRef.current);
+    //         }
+    //     };
+    // }, [isPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -95,10 +94,11 @@ const FramesBox = () => {
                 setSelectedIdx(prev => Math.max(0, prev - 1));
             } else if (e.key === 'ArrowRight') {
                 setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                setIsPlaying(prev => !prev);
-            }
+            } 
+            // else if (e.key === ' ') {
+            //     e.preventDefault();
+            //     setIsPlaying(prev => !prev);
+            // }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -116,10 +116,16 @@ const FramesBox = () => {
     return (
         <div className="frames-container">
             <div className="mode-nav">
-                <div onClick={() => {setPresentationMode("frames")}}>
+                <div
+                    onClick={() => setPresentationMode("frames")}
+                    className={presentationMode === "frames" ? "active" : ""}
+                >
                     Frames
                 </div>
-                <div onClick={() => {setPresentationMode("video")}}>
+                <div
+                    onClick={() => setPresentationMode("video")}
+                    className={presentationMode === "video" ? "active" : ""}
+                >
                     Video
                 </div>
             </div>

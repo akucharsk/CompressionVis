@@ -76,6 +76,53 @@ class VideoView(APIView):
         models.Video.objects.filter(id=video_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class CompressedVideoView(APIView):
+    # def get(self, request, video_id):
+    #     try:
+    #         video = models.Video.objects.get(id=video_id)
+    #     except models.Video.DoesNotExist:
+    #         return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    #     # 🔹 Szukamy w static/compressed_videos
+    #     video_file = finders.find(os.path.join("compressed_videos", video.filename))
+
+    #     if not video_file or not os.path.exists(video_file):
+    #         return Response({"message": f"Compressed video file not found for id={video_id}"}, status=status.HTTP_404_NOT_FOUND)
+
+    #     # 🔹 Obsługa Range header (dla częściowego streamingu)
+    #     range_header = request.headers.get('Range')
+    #     if not range_header:
+    #         return Response({"message": "Range header required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     serializer = serializers.VideoSerializer(
+    #         data={"video_url": video_file, "range_header": range_header}
+    #     )
+    #     if not serializer.is_valid():
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     return StreamingHttpResponse(
+    #         streaming_content=serializer.validated_data.get("video_iterator")(),
+    #         status=status.HTTP_206_PARTIAL_CONTENT,
+    #         content_type="video/mp4",  # poprawny MIME type
+    #     )
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # 🔹 Szukamy w static/compressed_videos
+        video_file = finders.find(os.path.join("compressed_videos", video.filename))
+
+        if not video_file or not os.path.exists(video_file):
+            return Response({"message": f"Compressed video file not found for id={video_id}"}, status=status.HTTP_404_NOT_FOUND)
+
+        # 🔹 Zwracamy cały plik (bez wymogu Range)
+        response = FileResponse(open(video_file, "rb"), content_type="video/mp4")
+        response["Content-Disposition"] = f'inline; filename="{video.filename}"'
+        return response
+
+
 class CompressionView(APIView):
 
     def post(self, request):

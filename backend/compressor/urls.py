@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('video/compress/', views.CompressionView.as_view(), name='compress'),
     path('video/<int:video_id>/', views.VideoView.as_view(), name='video'),
+    path('compressed_video/<int:video_id>/', views.CompressedVideoView.as_view(), name='compressed_video'),
     path('video/frames/<int:video_id>/', views.CompressionFramesView.as_view(), name='video_frames'),
     path('video/example/', views.ExampleVideosView.as_view(), name='example_videos'),
     path('video/thumbnail/<int:video_id>/', views.ThumbnailView.as_view(), name='thumbnail'),
