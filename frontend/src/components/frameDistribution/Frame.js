@@ -75,7 +75,7 @@ const Frame = ({ frames, selectedIdx }) => {
                 </div>
             )}
         </div>
-    )
+    );
 };
 
 export default Frame;
