@@ -1,4 +1,4 @@
-const FrameByFrameNav = ({frames, selectedIdx, setSelectedIdx, isPlaying, setIsPlaying}) => {
+const FrameByFrameNav = ({ frames, selectedIdx, setSelectedIdx }) => {
 
     const handleScrollLeft = () => {
         setSelectedIdx(prev => Math.max(0, prev - 1));

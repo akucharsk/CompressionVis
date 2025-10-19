@@ -7,9 +7,12 @@ import FrameBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
 import {useNavigate, useSearchParams} from "react-router-dom";
 import Video from '../components/frameDistribution/Video';
+import { useDisplayMode } from '../context/DisplayModeContext';
 
 const FramesDistribution = () => {
     const { frames,  selectedIdx, setSelectedIdx } = useFrames();
+    const { displayMode, setDisplayMode } = useDisplayMode();
+
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     // const [presentationMode, setPresentationMode] = useState("frames");
     // const [isPlaying, setIsPlaying] = useState(false);
@@ -32,7 +35,7 @@ const FramesDistribution = () => {
                 // setIsPlaying={setIsPlaying}
             />
             <div className="main-frame-container">
-                {presentationMode === "frames" ? (
+                {displayMode === "frames" ? (
                     <Frame
                         selectedIdx={selectedIdx}
                         frames={frames}

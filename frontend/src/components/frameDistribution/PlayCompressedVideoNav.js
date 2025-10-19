@@ -1,4 +1,8 @@
-const PlayCompressedVideoNav = ({isPlaying, setIsPlaying}) => {
+import { useVideoPlaying } from "../../context/VideoPlayingContext";
+
+const PlayCompressedVideoNav = () => {
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+
     return (
         <>
             <button
@@ -8,10 +12,10 @@ const PlayCompressedVideoNav = ({isPlaying, setIsPlaying}) => {
                 ⏮
             </button>
             <button
-                className={`play-button ${isPlaying ? 'playing' : ''}`}
-                onClick={() => setIsPlaying(prev => !prev)}
+                className={`play-button ${isVideoPlaying ? 'playing' : ''}`}
+                onClick={() => setIsVideoPlaying(prev => !prev)}
             >
-                {isPlaying ? '⏹ Stop' : '▶ Play'}
+                {isVideoPlaying ? '⏹ Stop' : '▶ Play'}
             </button>
             <button
                 className={`play-button `}

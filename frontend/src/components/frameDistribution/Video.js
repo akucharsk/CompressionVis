@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { apiUrl } from "../../utils/urls";
+import { useVideoPlaying } from "../../context/VideoPlayingContext";
 
-const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl, setSelectedIdx, frames }) => {
+const Video = ({ videoId, videoUrl, setVideoUrl, setSelectedIdx, frames }) => {
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    
     const videoRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -23,9 +26,9 @@ const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl, setSel
         const video = videoRef.current;
         if (!video) return;
 
-        if (isPlaying) video.play().catch(() => {});
+        if (isVideoPlaying) video.play().catch(() => {});
         else video.pause();
-    }, [isPlaying]);
+    }, [isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -57,7 +60,7 @@ const Video = ({ videoId, isPlaying, setIsPlaying, videoUrl, setVideoUrl, setSel
                 <video
                     ref={videoRef}
                     src={videoUrl}
-                    onEnded={() => setIsPlaying(false)}
+                    onEnded={() => setIsVideoPlaying(false)}
                     className="compressed-video"
                     // controls
                 />

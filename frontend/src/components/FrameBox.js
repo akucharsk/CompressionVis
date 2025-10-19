@@ -7,9 +7,14 @@ import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
 import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
 import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
+import { useDisplayMode } from "../context/DisplayModeContext";
+import { useVideoPlaying } from "../context/VideoPlayingContext";
 
-const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlaying }) => {
+const FrameBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
+    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    
     const [isLoading, setIsLoading] = useState(true);
     // const [playSpeed] = useState(1);
     const containerRef = useRef(null);
@@ -41,7 +46,7 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
     }, [videoId, setFrames, setSelectedIdx, showError]);
 
     // useEffect(() => {
-    //     if (!isPlaying) {
+    //     if (!isVideoPlaying) {
     //         if (playIntervalRef.current) {
     //             clearInterval(playIntervalRef.current);
     //             playIntervalRef.current = null;
@@ -56,7 +61,7 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
     //             if (prev < frames.length - 1) {
     //                 return prev + 1;
     //             } else {
-    //                 setIsPlaying(false);
+    //                 setIsVideoPlaying(false);
     //                 return prev;
     //             }
     //         });
@@ -67,7 +72,7 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
     //             clearInterval(playIntervalRef.current);
     //         }
     //     };
-    // }, [isPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
+    // }, [isVideoPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -83,9 +88,9 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
 
         if (frameLeft < containerLeft || frameLeft + frameWidth > containerLeft + containerWidth) {
             const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
-            container.scrollTo({ left: targetScroll, behavior: isPlaying ? 'auto' : 'smooth' });
+            container.scrollTo({ left: targetScroll, behavior: isVideoPlaying ? 'auto' : 'smooth' });
         }
-    }, [selectedIdx, isPlaying]);
+    }, [selectedIdx, isVideoPlaying]);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -96,7 +101,7 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
             } 
             // else if (e.key === ' ') {
             //     e.preventDefault();
-            //     setIsPlaying(prev => !prev);
+            //     setIsVideoPlaying(prev => !prev);
             // }
         };
 
@@ -116,14 +121,14 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
         <div className="frames-container">
             <div className="mode-nav">
                 <div
-                    onClick={() => setPresentationMode("frames")}
-                    className={presentationMode === "frames" ? "active" : ""}
+                    onClick={() => setDisplayMode("frames")}
+                    className={displayMode === "frames" ? "active" : ""}
                 >
                     Frames
                 </div>
                 <div
-                    onClick={() => setPresentationMode("video")}
-                    className={presentationMode === "video" ? "active" : ""}
+                    onClick={() => setDisplayMode("video")}
+                    className={displayMode === "video" ? "active" : ""}
                 >
                     Video
                 </div>
@@ -133,20 +138,14 @@ const FrameBox = ({ presentationMode, setPresentationMode, isPlaying, setIsPlayi
             </div>
             <div className="timeline-header">
                 <div className="timeline-controls">
-                    {presentationMode === "frames" ? 
+                    {displayMode === "frames" ? 
                     <FrameByFrameNav
                         frames={frames}
                         selectedIdx={selectedIdx}
                         setSelectedIdx={setSelectedIdx}
-                        isPlaying={isPlaying}
-                        setIsPlaying={setIsPlaying}
                     >
                     </FrameByFrameNav> :
-                    <PlayCompressedVideoNav
-                        isPlaying={isPlaying}
-                        setIsPlaying={setIsPlaying}
-                    >
-                    </PlayCompressedVideoNav>}
+                    <PlayCompressedVideoNav />}
                 </div>
             </div>
 

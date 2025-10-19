@@ -1,8 +1,8 @@
-import { createContext } from "react";
+import { createContext, useContext, useState } from "react";
 
 const DisplayModeContext = createContext();
 
-export const useDisplayMode = useContext(DisplayModeContext);
+export const useDisplayMode = () => useContext(DisplayModeContext);
 
 export const DisplayModeProvider = ({children}) => {
     const [displayMode, setDisplayMode] = useState("frames");

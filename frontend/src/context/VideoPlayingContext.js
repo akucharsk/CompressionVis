@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useContext, useState } from "react";
 
 const VideoPlayingContext = createContext(null);
 
@@ -8,7 +8,7 @@ export const VideoPlayingProvider = ({ children }) => {
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
     return (
-        <VideoPlayingContext.Provider values={{
+        <VideoPlayingContext.Provider value={{
             isVideoPlaying,
             setIsVideoPlaying
         }}>
