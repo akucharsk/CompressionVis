@@ -7,6 +7,8 @@ import Menu from './pages/Menu';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
+import { DisplayModeProvider } from './context/DisplayModeContext';
+import { VideoPlayingProvider } from './context/VideoPlayingContext';
 
 function Layout() {
   const location = useLocation();
@@ -16,14 +18,18 @@ function Layout() {
       <ErrorProvider>
           <SettingsProvider>
               <FramesProvider>
-              {!hideNavbar && <NavigationTabs />}
-              <Routes>
-                  <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="/" element={<Menu />} />
-                  <Route path="/compress" element={<FramesDistribution />} />
-                  <Route path="/comparison" element={<Comparison />} />
-                  <Route path="/quiz" element={<Quiz />} />
-              </Routes>
+                <DisplayModeProvider>
+                  <VideoPlayingProvider>
+                    {!hideNavbar && <NavigationTabs />}
+                    <Routes>
+                        <Route path="*" element={<Navigate to="/" />} />
+                        <Route path="/" element={<Menu />} />
+                        <Route path="/compress" element={<FramesDistribution />} />
+                        <Route path="/comparison" element={<Comparison />} />
+                        <Route path="/quiz" element={<Quiz />} />
+                    </Routes>
+                  </VideoPlayingProvider>
+                </DisplayModeProvider>
               </FramesProvider>
           </SettingsProvider>
       </ErrorProvider>
