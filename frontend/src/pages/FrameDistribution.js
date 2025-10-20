@@ -5,10 +5,15 @@ import Frame from "../components/frameDistribution/Frame";
 import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
 import FramesBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
+import { useSearchParams } from 'react-router-dom';
 
 const FramesDistribution = () => {
-    const { frames,  selectedIdx, } = useFrames();
+    const { frames, selectedIdx } = useFrames();
+    const [searchParams] = useSearchParams();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+    const videoId = searchParams.get("videoId");
+    console.log({ frames });
 
     return (
         <div className="distribution-container">

@@ -1,11 +1,13 @@
 import { useSearchParams } from "react-router-dom";
 import { useFrames } from "../../context/FramesContext";
+import { useMetrics } from "../../context/MetricsContext";
 
 export default function IndicatorBlock({ frameNumber }) {
-  const { frames, frameMetrics, sizeRange } = useFrames();
+  const { frames, sizeRange } = useFrames();
   const [ searchParams ] = useSearchParams();
 
   const indicator = searchParams.get("indicator") || "none";
+  const { frameMetrics } = useMetrics();
 
   const indicatorRanges = {
     size: sizeRange,
@@ -18,13 +20,13 @@ export default function IndicatorBlock({ frameNumber }) {
     switch (indicator) {
         case "none":
         case "size":
-            return frames[frameNumber].pkt_size
+            return frames?.[frameNumber].pkt_size
         case "psnr":
-            return frameMetrics[frameNumber].psnr_score
+            return frameMetrics?.metrics?.[frameNumber].psnr_score
         case "vmaf":
-            return frameMetrics[frameNumber].vmaf_score
+            return frameMetrics?.metrics?.[frameNumber].vmaf_score
         case "ssim":
-            return frameMetrics[frameNumber].ssim_score
+            return frameMetrics?.metrics?.[frameNumber].ssim_score
         default:
     };
   };

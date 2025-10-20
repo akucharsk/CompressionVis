@@ -1,17 +1,16 @@
 import React from "react";
 import "../../styles/components/comparison/Images.css";
 
-const ImageBlockSelect = ({ types, selectedType, setSelectedType, ref }) => {
+const ImageBlockSelect = ({ types, selectedType, setSelectedType, imageRef }) => {
     const handleChange = (e) => {
         setSelectedType(e.target.value);
     };
-    
     return (
         <>
             <div className="image-block">
                 <img
                     alt="Image"
-                    ref={ref}
+                    ref={imageRef}
                 >
                 </img>
                 <div className="compression-type">
