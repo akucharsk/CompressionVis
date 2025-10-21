@@ -38,9 +38,12 @@ export const FramesProvider = ({ children }) => {
         retry: defaultRetryPolicy
     });
 
+    framesQuery.isPending = framesQuery.isPending || framesQuery.data?.message === "processing";
+
     const frames = framesQuery.data?.frames || [];
-    const min = Math.min.apply(Array, frames);
-    const max = Math.max.apply(Array, frames);
+    const frameSizes = frames.map(frame => frame.pkt_size);
+    const min = Math.min.apply(Array, frameSizes);
+    const max = Math.max.apply(Array, frameSizes);
 
     const sizeRange = { min, max };
 

@@ -18,12 +18,16 @@ export const MetricsProvider = ({ children }) => {
     retry: defaultRetryPolicy
   });
 
+  videoMetricsQuery.isPending = videoMetricsQuery.isPending || videoMetricsQuery.data?.message === "processing";
+
   const frameMetricsQuery = useQuery({
     queryKey: [ "metrics", videoId, "all" ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy
   });
+
+  frameMetricsQuery.isPending = frameMetricsQuery.isPending || frameMetricsQuery.data?.message === "processing";
 
   return (
     <MetricsContext.Provider value={{ videoMetricsQuery, frameMetricsQuery }}>

@@ -22,11 +22,11 @@ export default function IndicatorBlock({ frameNumber }) {
         case "size":
             return frames?.[frameNumber].pkt_size
         case "psnr":
-            return frameMetricsQuery?.data?.metrics?.[frameNumber].psnr_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].PSNR
         case "vmaf":
-            return frameMetricsQuery?.data?.metrics?.[frameNumber].vmaf_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].VMAF
         case "ssim":
-            return frameMetricsQuery?.data?.metrics?.[frameNumber].ssim_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].SSIM
         default:
     };
   };
