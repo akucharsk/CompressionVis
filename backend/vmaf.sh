@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ffmpeg -i "static/original_videos/$1.y4m" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$1.y4m" >&2
-ffmpeg -i "static/compressed_videos/$2.mp4" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$2.y4m" >&2
+ffmpeg -i "static/original_videos/$1.y4m" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$1.y4m"
+ffmpeg -i "static/compressed_videos/$2.mp4" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$2.y4m"
 
 vmaf \
   --reference "static/temp/$1.y4m" \

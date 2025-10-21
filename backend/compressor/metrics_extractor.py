@@ -25,7 +25,6 @@ class MetricsExtractor:
             process = subprocess.Popen([
                 "bash", "vmaf.sh",
                 original_video_name, video_name, scale,
-                "2>/dev/null"
             ])
             process.wait()
             with open(f"{video_name}.json") as f:

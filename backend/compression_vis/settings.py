@@ -131,19 +131,3 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# # Redis configuration
-#
-# REDIS_HOST = os.getenv('REDIS_HOST')
-# REDIS_PORT = int(os.getenv('REDIS_PORT'))
-# REDIS_DB = int(os.getenv('REDIS_DB'))
-#
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}',
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#         }
-#     }
-# }
