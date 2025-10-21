@@ -7,6 +7,5 @@ export function defaultRetryPolicy(failureCount, error) {
 }
 
 export function defaultRefetchIntervalPolicy(query) {
-  console.log({message: query?.state?.data?.message})
   return query?.state?.data?.message === "processing" ? DEFAULT_RETRY_TIMEOUT_MS : false;
 }

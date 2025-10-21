@@ -38,13 +38,11 @@ const Comparison = () => {
             rightRef.current.src = processedImageUrl;
     }
 
-    const { frameMetrics, videoMetrics } = useMetrics();
+    const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
 
     useEffect(() => {
         fetchImagesForComparison();
     }, [videoId, selectedIdx]);
-
-    console.log({ leftRef, rightRef })
 
     return (
         <div className="comparison">
@@ -64,11 +62,11 @@ const Comparison = () => {
                     <Parameters/>
                     <ImageDetails
                         type={"Video metrics"}
-                        details={videoMetrics.data?.metrics || {}}
+                        details={videoMetricsQuery.data?.metrics || {}}
                     />
                     <ImageDetails
                         type={"Frame metrics"}
-                        details={frameMetrics.data?.metrics?.[selectedIdx] || {}}
+                        details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
                     />
                 </div>
             </div>

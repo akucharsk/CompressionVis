@@ -7,7 +7,7 @@ export default function IndicatorBlock({ frameNumber }) {
   const [ searchParams ] = useSearchParams();
 
   const indicator = searchParams.get("indicator") || "none";
-  const { frameMetrics } = useMetrics();
+  const { frameMetricsQuery } = useMetrics();
 
   const indicatorRanges = {
     size: sizeRange,
@@ -22,11 +22,11 @@ export default function IndicatorBlock({ frameNumber }) {
         case "size":
             return frames?.[frameNumber].pkt_size
         case "psnr":
-            return frameMetrics?.metrics?.[frameNumber].psnr_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].psnr_score
         case "vmaf":
-            return frameMetrics?.metrics?.[frameNumber].vmaf_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].vmaf_score
         case "ssim":
-            return frameMetrics?.metrics?.[frameNumber].ssim_score
+            return frameMetricsQuery?.data?.metrics?.[frameNumber].ssim_score
         default:
     };
   };

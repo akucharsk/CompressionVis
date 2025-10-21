@@ -23,9 +23,9 @@ const FramesBox = () => {
         setSelectedIdx,
     } = useFrames();
 
-    const { videoMetrics } = useMetrics();
+    const { videoMetricsQuery } = useMetrics();
 
-    const loadingFields = videoMetrics.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
+    const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
 
     useEffect(() => {
         if (!containerRef.current) return;

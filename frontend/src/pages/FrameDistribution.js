@@ -13,7 +13,6 @@ const FramesDistribution = () => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     const videoId = searchParams.get("videoId");
-    console.log({ frames });
 
     return (
         <div className="distribution-container">

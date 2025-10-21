@@ -11,27 +11,25 @@ export const MetricsProvider = ({ children }) => {
   const [ searchParams ] = useSearchParams();
   const videoId = searchParams.get("videoId");
 
-  const videoMetrics = useQuery({
+  const videoMetricsQuery = useQuery({
     queryKey: [ "metrics", videoId ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/${videoId}`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy
   });
 
-  const frameMetrics = useQuery({
+  const frameMetricsQuery = useQuery({
     queryKey: [ "metrics", videoId, "all" ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy
   });
 
-  console.log({ frameMetrics, videoMetrics });
-
   return (
-    <MetricsContext.Provider value={{ videoMetrics, frameMetrics }}>
+    <MetricsContext.Provider value={{ videoMetricsQuery, frameMetricsQuery }}>
       { children }
     </MetricsContext.Provider>
-  )
+  );
 }
 
 export const useMetrics = () => {
