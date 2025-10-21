@@ -1,14 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrames } from "../context/FramesContext";
-import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
-import {handleApiError} from "../utils/errorHandler";
-import {useError} from "../context/ErrorContext";
 import Spinner from "./Spinner";
 import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
-import { useApi } from "../hooks/use-api";
 import { useMetrics } from "../context/MetricsContext";
 
 const FramesBox = () => {
@@ -18,16 +14,15 @@ const FramesBox = () => {
     const containerRef = useRef(null);
 
     const [searchParams] = useSearchParams();
-    const videoId = searchParams.get("videoId");
     const indicator = searchParams.get("indicator") || "none";
 
     const {
         frames,
+        framesQuery,
         selectedIdx,
         setSelectedIdx,
     } = useFrames();
 
-    const framesApi = useApi(`${apiUrl}/video/frames/${videoId}/`);
     const { videoMetrics } = useMetrics();
 
     const loadingFields = videoMetrics.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
@@ -96,15 +91,12 @@ const FramesBox = () => {
         setSelectedIdx(iFrames[nextPos]);
     }
 
-    if (framesApi.isPending) {
-        console.log({ framesApi });
+    if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
                 <Spinner />
             </div>
         );
-    } else {
-        console.log({ data: framesApi.data });
     }
 
     return (
@@ -160,7 +152,7 @@ const FramesBox = () => {
             </div>
             <div className="timeline-content">
                 <div className="scrollable-frameBox" ref={containerRef}>
-                    {framesApi.data?.frames?.map((frame, idx) => (
+                    {frames?.map((frame, idx) => (
                         <div key={idx} className="frame-container">
                             <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
                             <div

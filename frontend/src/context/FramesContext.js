@@ -31,25 +31,21 @@ export const FramesProvider = ({ children }) => {
         }
     }
 
-    const {
-        data,
-        isPending: areFramesLoading,
-        error: framesFetchError
-    } = useQuery({
+    const framesQuery = useQuery({
         queryKey: [ "frames", videoId ],
         queryFn: async () => genericFetch(`${apiUrl}/video/frames/${videoId}`),
         refetchInterval: defaultRefetchIntervalPolicy,
         retry: defaultRetryPolicy
     });
 
-    const frames = data?.frames || [];
+    const frames = framesQuery.data?.frames || [];
     const min = Math.min.apply(Array, frames);
     const max = Math.max.apply(Array, frames);
 
     const sizeRange = { min, max };
 
     return (
-        <FramesContext.Provider value={{ selectedIdx, setSelectedIdx, frames, areFramesLoading, framesFetchError, sizeRange }}>
+        <FramesContext.Provider value={{ selectedIdx, setSelectedIdx, frames, framesQuery, sizeRange }}>
             { children }
         </FramesContext.Provider>
     );
