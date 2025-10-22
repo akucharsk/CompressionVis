@@ -6,7 +6,7 @@ import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
 import FrameBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
 import {useNavigate, useSearchParams} from "react-router-dom";
-import VideoPlayerForAnalysis from '../components/frameDistribution/Video';
+import VideoPlayerForAnalysis from '../components/frameDistribution/VideoPlayerForAnalysis';
 import { useDisplayMode } from '../context/DisplayModeContext';
 
 const FramesDistribution = () => {
@@ -16,7 +16,7 @@ const FramesDistribution = () => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     // const [presentationMode, setPresentationMode] = useState("frames");
     // const [isPlaying, setIsPlaying] = useState(false);
-    const [videoUrl, setVideoUrl] = useState(null);
+    // const [videoUrl, setVideoUrl] = useState(null);
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -38,8 +38,8 @@ const FramesDistribution = () => {
                 ) : (
                     <VideoPlayerForAnalysis
                         videoId={videoId}
-                        videoUrl={videoUrl}
-                        setVideoUrl={setVideoUrl}
+                        // videoUrl={videoUrl}
+                        // setVideoUrl={setVideoUrl}
                     />
                 )}
                 <MacroblockInfo

@@ -3,52 +3,82 @@ import { apiUrl } from "../../utils/urls";
 import { useVideoPlaying } from "../../context/VideoPlayingContext";
 import { useFrames } from "../../context/FramesContext";
 import { useSettings } from "../../context/SettingsContext";
+import { useError } from "../../context/ErrorContext";
+import { handleApiError } from "../../utils/errorHandler";
 
-const VideoPlayerForAnalysis = ({ videoId, videoUrl, setVideoUrl }) => {
-    const { parameters } = useSettings();
-
-    const urlRef = useRef();
+const VideoPlayerForAnalysis = ({ videoId }) => {
     const videoRef = useRef();
+    const urlRef = useRef();
 
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { setSelectedIdx, frames } = useFrames();
+    const { showError } = useError();
     
     const [isLoading, setIsLoading] = useState(false);
+    const [videoUrl, setVideoUrl] = useState(null);
 
-    useEffect(() => {
-        if (!parameters.videoLink) return;
+    // useEffect(() => {
+    //     if (!parameters.videoLink) return;
         
-        const controller = new AbortController();
+    //     const controller = new AbortController();
 
-        const fetchVideo = () => {
-            try {
-                if (urlRef.current) {
-                    URL.revokeObjectURL(urlRef.current);
-                }
+    //     const fetchVideo = () => {
+    //         try {
+    //             if (urlRef.current) {
+    //                 URL.revokeObjectURL(urlRef.current);
+    //             }
 
-                const response = await fetch(parameters
+    //             const response = await fetch(parameters
 
-                )
-            }
-            fetch()
-            .catch()
-            .then
-        }
-    }, [])
+    //             )
+    //         }
+    //         fetch()
+    //         .catch()
+    //         .then
+    //     }
+    // }, [])
 
     useEffect(() => {
         if (!videoUrl) {
-            setIsLoading(true);
-            fetch(`${apiUrl}/video/${videoId}/`)
-                .then(res => res.blob())
-                .then(blob => {
+            const controller = new AbortController();
+
+            const fetchVideo = async () => {
+                try {
+                    if (urlRef.current) {
+                        URL.revokeObjectURL(urlRef.current);
+                    }
+
+                    const response = await fetch(`${apiUrl}/video/${videoId}/`, {
+                        headers: { Range: "bytes=0-"},
+                        signal: controller.signal
+                    })
+
+                    await handleApiError(response);
+
+                    const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
+                    urlRef.current = url;
                     setVideoUrl(url);
-                })
-                .catch(err => console.error("Error while video download", err))
-                .finally(() => setIsLoading(false));
+                } catch (error) {
+                    if (error.name === "AbortError") return;
+                    showError(error.message, error.statusCode);
+                } finally {
+                    setIsLoading(false);
+                }
+            };           
+            setIsLoading(true);
+            
+            fetchVideo();
+
+            return () => {
+                controller.abort();
+                if (urlRef.current) {
+                    URL.revokeObjectURL(urlRef.current);
+                    urlRef.current = null;
+                }
+            }
         }
-    }, [videoUrl, videoId, setVideoUrl]);
+    }, [videoId, showError]);
 
     useEffect(() => {
         const video = videoRef.current;

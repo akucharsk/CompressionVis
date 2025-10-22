@@ -14,11 +14,12 @@ import Parameters from "../components/Parameters";
 import {useError} from "../context/ErrorContext";
 import {handleApiError} from "../utils/errorHandler";
 import { useDisplayMode } from "../context/DisplayModeContext";
-import VideoPlayerForAnalysis from "../components/frameDistribution/Video";
+import VideoPlayerForAnalysis from "../components/frameDistribution/VideoPlayerForAnalysis";
+import { useSettings } from "../context/SettingsContext";
 
 const Comparison = () => {
     const { selectedIdx } = useFrames();
-    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { displayMode } = useDisplayMode();
 
     const [selectedType, setSelectedType] = useState("H.265");
     const [params] = useSearchParams();
@@ -26,7 +27,8 @@ const Comparison = () => {
     const [frameMetrics, setFrameMetrics] = useState({});
     const {showError} = useError();
 
-    const videoId = parseInt(params.get("videoId"));
+    const videoId = params.get("videoId");
+    const originalVideoId = params.get("originalVideoId");
 
     useEffect(() => {
         const controller = new AbortController();
@@ -109,9 +111,10 @@ const Comparison = () => {
                     </>) : (
                     <>
                     <VideoPlayerForAnalysis
-
+                        videoId={originalVideoId}
                     />
-                    <VideoPlayerForAnalysis 
+                    <VideoPlayerForAnalysis
+                        videoId={videoId} 
                     />
                     </>
                     )}
