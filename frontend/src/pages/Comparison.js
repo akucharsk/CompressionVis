@@ -15,7 +15,6 @@ import {useError} from "../context/ErrorContext";
 import {handleApiError} from "../utils/errorHandler";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import VideoPlayerForAnalysis from "../components/frameDistribution/VideoPlayerForAnalysis";
-import { useSettings } from "../context/SettingsContext";
 
 const Comparison = () => {
     const { selectedIdx } = useFrames();
@@ -61,36 +60,41 @@ const Comparison = () => {
 
     useEffect(() => {
         const controller = new AbortController();
-        fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-            controller
-        )
-            .then(url => {
-                if (rightRef.current)
-                    rightRef.current.src = url;
-            })
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
 
-        fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
-            controller
-        )
-            .then(url => {
-                if (leftRef.current)
-                    leftRef.current.src = url;
-            })
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
+        const fetchBothImages = async () => {
+            fetchImage(
+                MAX_RETRIES,
+                `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
+                controller
+            )
+                .then(url => {
+                    if (rightRef.current)
+                        rightRef.current.src = url;
+                })
+                .catch(err => {
+                    if (err.name === "AbortError") return;
+                    showError(err.message, err.statusCode)
+                });
+
+            fetchImage(
+                MAX_RETRIES,
+                `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
+                controller
+            )
+                .then(url => {
+                    if (leftRef.current)
+                        leftRef.current.src = url;
+                })
+                .catch(err => {
+                    if (err.name === "AbortError") return;
+                    showError(err.message, err.statusCode)
+                });
+        };
+
+        fetchBothImages();
 
         return () => controller.abort();
-    }, [videoId, selectedIdx, showError]);
+    }, [videoId, selectedIdx, showError, displayMode]);
 
     return (
         <div className="comparison">

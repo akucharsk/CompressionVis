@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { apiUrl } from "../../utils/urls";
 import { useVideoPlaying } from "../../context/VideoPlayingContext";
 import { useFrames } from "../../context/FramesContext";
-import { useSettings } from "../../context/SettingsContext";
 import { useError } from "../../context/ErrorContext";
 import { handleApiError } from "../../utils/errorHandler";
 
@@ -16,27 +15,6 @@ const VideoPlayerForAnalysis = ({ videoId }) => {
     
     const [isLoading, setIsLoading] = useState(false);
     const [videoUrl, setVideoUrl] = useState(null);
-
-    // useEffect(() => {
-    //     if (!parameters.videoLink) return;
-        
-    //     const controller = new AbortController();
-
-    //     const fetchVideo = () => {
-    //         try {
-    //             if (urlRef.current) {
-    //                 URL.revokeObjectURL(urlRef.current);
-    //             }
-
-    //             const response = await fetch(parameters
-
-    //             )
-    //         }
-    //         fetch()
-    //         .catch()
-    //         .then
-    //     }
-    // }, [])
 
     useEffect(() => {
         if (!videoUrl) {
@@ -120,7 +98,6 @@ const VideoPlayerForAnalysis = ({ videoId }) => {
                     src={videoUrl}
                     onEnded={() => setIsVideoPlaying(false)}
                     className="compressed-video"
-                    // controls
                 />
             )}
         </div>

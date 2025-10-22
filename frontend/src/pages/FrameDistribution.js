@@ -14,17 +14,10 @@ const FramesDistribution = () => {
     const { displayMode, setDisplayMode } = useDisplayMode();
 
     const [showHistoryModal, setShowHistoryModal] = useState(false);
-    // const [presentationMode, setPresentationMode] = useState("frames");
-    // const [isPlaying, setIsPlaying] = useState(false);
-    // const [videoUrl, setVideoUrl] = useState(null);
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     const videoId = searchParams.get("videoId");
-
-    // if (!compressedUrl) {
-    //     navigate("/404");
-    // }
 
     return (
         <div className="distribution-container">
@@ -38,8 +31,6 @@ const FramesDistribution = () => {
                 ) : (
                     <VideoPlayerForAnalysis
                         videoId={videoId}
-                        // videoUrl={videoUrl}
-                        // setVideoUrl={setVideoUrl}
                     />
                 )}
                 <MacroblockInfo
