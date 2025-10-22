@@ -1,17 +1,45 @@
 import { useEffect, useRef, useState } from "react";
 import { apiUrl } from "../../utils/urls";
 import { useVideoPlaying } from "../../context/VideoPlayingContext";
+import { useFrames } from "../../context/FramesContext";
+import { useSettings } from "../../context/SettingsContext";
 
-const Video = ({ videoId, videoUrl, setVideoUrl, setSelectedIdx, frames }) => {
+const VideoPlayerForAnalysis = ({ videoId, videoUrl, setVideoUrl }) => {
+    const { parameters } = useSettings();
+
+    const urlRef = useRef();
+    const videoRef = useRef();
+
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { setSelectedIdx, frames } = useFrames();
     
-    const videoRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!parameters.videoLink) return;
+        
+        const controller = new AbortController();
+
+        const fetchVideo = () => {
+            try {
+                if (urlRef.current) {
+                    URL.revokeObjectURL(urlRef.current);
+                }
+
+                const response = await fetch(parameters
+
+                )
+            }
+            fetch()
+            .catch()
+            .then
+        }
+    }, [])
 
     useEffect(() => {
         if (!videoUrl) {
             setIsLoading(true);
-            fetch(`${apiUrl}/compressed_video/${videoId}/`)
+            fetch(`${apiUrl}/video/${videoId}/`)
                 .then(res => res.blob())
                 .then(blob => {
                     const url = URL.createObjectURL(blob);
@@ -69,4 +97,4 @@ const Video = ({ videoId, videoUrl, setVideoUrl, setSelectedIdx, frames }) => {
     );
 }
 
-export default Video;
+export default VideoPlayerForAnalysis;

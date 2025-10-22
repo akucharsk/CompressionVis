@@ -13,10 +13,14 @@ import {MAX_RETRIES} from "../utils/constants";
 import Parameters from "../components/Parameters";
 import {useError} from "../context/ErrorContext";
 import {handleApiError} from "../utils/errorHandler";
+import { useDisplayMode } from "../context/DisplayModeContext";
+import VideoPlayerForAnalysis from "../components/frameDistribution/Video";
 
 const Comparison = () => {
-    const [selectedType, setSelectedType] = useState("H.265");
     const { selectedIdx } = useFrames();
+    const { displayMode, setDisplayMode } = useDisplayMode();
+
+    const [selectedType, setSelectedType] = useState("H.265");
     const [params] = useSearchParams();
     const [videoMetrics, setVideoMetrics] = useState({});
     const [frameMetrics, setFrameMetrics] = useState({});
@@ -90,16 +94,28 @@ const Comparison = () => {
         <div className="comparison">
             <FrameBox/>
             <div className="comparison-container">
-                <ImageBlockConst
-                    type={"Original"}
-                    ref={leftRef}
-                />
-                <ImageBlockSelect 
-                    types={["H.264"]}
-                    selectedType={selectedType}
-                    setSelectedType={setSelectedType}
-                    ref={rightRef}
-                />
+                {displayMode === "frames" ? (
+                    <>
+                    <ImageBlockConst
+                        type={"Original"}
+                        ref={leftRef}
+                    />
+                    <ImageBlockSelect 
+                        types={["H.264"]}
+                        selectedType={selectedType}
+                        setSelectedType={setSelectedType}
+                        ref={rightRef}
+                    />
+                    </>) : (
+                    <>
+                    <VideoPlayerForAnalysis
+
+                    />
+                    <VideoPlayerForAnalysis 
+                    />
+                    </>
+                    )}
+                
                 <div className="description">
                     <Parameters/>
                     <ImageDetails

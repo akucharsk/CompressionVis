@@ -42,16 +42,21 @@ class VideoView(APIView):
         video_file = finders.find(os.path.join("videos", video.filename))
 
         if not video_file:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            video_file = finders.find(os.path.join("compressed_videos", video.filename))
+
+            if not video_file:
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
         range_header = request.headers.get('Range')
         if not range_header:
+            print(1)
             return Response({"message": "Range header required"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = serializers.VideoSerializer(data={"video_url": video_file, "range_header": range_header})
         if not serializer.is_valid():
+            print(2)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        print(3)
         response = StreamingHttpResponse(
             streaming_content=serializer.validated_data.get("video_iterator")(),
             status=status.HTTP_206_PARTIAL_CONTENT,
@@ -76,7 +81,7 @@ class VideoView(APIView):
         models.Video.objects.filter(id=video_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class CompressedVideoView(APIView):
+# class CompressedVideoView(APIView):
     # def get(self, request, video_id):
     #     try:
     #         video = models.Video.objects.get(id=video_id)
@@ -105,22 +110,22 @@ class CompressedVideoView(APIView):
     #         status=status.HTTP_206_PARTIAL_CONTENT,
     #         content_type="video/mp4",  # poprawny MIME type
     #     )
-    def get(self, request, video_id):
-        try:
-            video = models.Video.objects.get(id=video_id)
-        except models.Video.DoesNotExist:
-            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+    # def get(self, request, video_id):
+    #     try:
+    #         video = models.Video.objects.get(id=video_id)
+    #     except models.Video.DoesNotExist:
+    #         return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # 🔹 Szukamy w static/compressed_videos
-        video_file = finders.find(os.path.join("compressed_videos", video.filename))
+    #     # 🔹 Szukamy w static/compressed_videos
+    #     video_file = finders.find(os.path.join("compressed_videos", video.filename))
 
-        if not video_file or not os.path.exists(video_file):
-            return Response({"message": f"Compressed video file not found for id={video_id}"}, status=status.HTTP_404_NOT_FOUND)
+    #     if not video_file or not os.path.exists(video_file):
+    #         return Response({"message": f"Compressed video file not found for id={video_id}"}, status=status.HTTP_404_NOT_FOUND)
 
-        # 🔹 Zwracamy cały plik (bez wymogu Range)
-        response = FileResponse(open(video_file, "rb"), content_type="video/mp4")
-        response["Content-Disposition"] = f'inline; filename="{video.filename}"'
-        return response
+    #     # 🔹 Zwracamy cały plik (bez wymogu Range)
+    #     response = FileResponse(open(video_file, "rb"), content_type="video/mp4")
+    #     response["Content-Disposition"] = f'inline; filename="{video.filename}"'
+    #     return response
 
 
 class CompressionView(APIView):
@@ -427,49 +432,49 @@ class FrameView(APIView):
             status=status.HTTP_200_OK
         )
 
-class BufferingFramesView(APIView):
-    def get(self, request, video_id, frame_number):
-        # Is filtering by video_id sufficient or filter by video in Video.model for checking if frames are recently creating
-        try:
-            buffer_size = int(request.GET.get("buffer_size"))
-            if buffer_size <= 1:
-                raise ValueError
-        except ValueError:
-            return Response(
-                {"message": "Invalid type of buffer_size"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+# class BufferingFramesView(APIView):
+#     def get(self, request, video_id, frame_number):
+#         # Is filtering by video_id sufficient or filter by video in Video.model for checking if frames are recently creating
+#         try:
+#             buffer_size = int(request.GET.get("buffer_size"))
+#             if buffer_size <= 1:
+#                 raise ValueError
+#         except ValueError:
+#             return Response(
+#                 {"message": "Invalid type of buffer_size"},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
 
-        try:
-            frames = models.FrameMetadata.objects.filter(
-                video__id=video_id,
-                frame_number__gte=frame_number,
-                frame_number__lt=frame_number + buffer_size
-            )
-        except models.FrameMetadata.DoesNotExist:
-            return Response(
-                {"message": "Frames not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+#         try:
+#             frames = models.FrameMetadata.objects.filter(
+#                 video__id=video_id,
+#                 frame_number__gte=frame_number,
+#                 frame_number__lt=frame_number + buffer_size
+#             )
+#         except models.FrameMetadata.DoesNotExist:
+#             return Response(
+#                 {"message": "Frames not found"},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
         
-        buffer = BytesIO()
+#         buffer = BytesIO()
 
-        with ZipFile(buffer, "w") as zipped_frames:
-            for frame_path in list(frames):
-                frame = finders.find(frame_path.image_url)
+#         with ZipFile(buffer, "w") as zipped_frames:
+#             for frame_path in list(frames):
+#                 frame = finders.find(frame_path.image_url)
 
-                if frame:
-                    zipped_frames.write(frame, arcname=os.path.basename(frame))
+#                 if frame:
+#                     zipped_frames.write(frame, arcname=os.path.basename(frame))
 
-        buffer.seek(0)
+#         buffer.seek(0)
 
-        return FileResponse(
-            buffer,
-            as_attachment=True,
-            filename=f"frames_{video_id}.zip",
-            content_type="application/zip",
-            status=status.HTTP_200_OK
-        )
+#         return FileResponse(
+#             buffer,
+#             as_attachment=True,
+#             filename=f"frames_{video_id}.zip",
+#             content_type="application/zip",
+#             status=status.HTTP_200_OK
+#         )
 
 class MetricView(APIView):
     def get(self, request, video_id):
