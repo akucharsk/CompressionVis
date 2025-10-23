@@ -79,9 +79,22 @@ const FramesBox = () => {
         }
     }
 
+    const extractMacroBlockInfo = async () => {
+        try {
+            let resp = await fetch(`${apiUrl}/macroblocks/${videoId}`);
+            await handleApiError(resp);
+            const data = await resp.json();
+            console.log(data);
+        }
+        catch (error) {
+            showError(error.message, error.statusCode);
+        }
+    }
+
     useEffect(() => {
         fetchFrames();
         fetchMetrics();
+        extractMacroBlockInfo();
     }, [videoId]);
 
     useEffect(() => {

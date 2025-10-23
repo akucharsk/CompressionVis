@@ -7,3 +7,5 @@ djangorestframework
 redis
 django-cors-headers
 django-redis
+
+motion-vector-extractor
