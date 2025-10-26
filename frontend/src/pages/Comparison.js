@@ -1,74 +1,76 @@
 import FrameBox from "../components/FrameBox";
-import {useEffect, useRef, useState} from "react";
-import ImageBlockConst from "../components/comparison/ImageBlockConst";
-import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
-import ImageDetails from "../components/comparison/ImageDetails";
+import {useRef, useState} from "react";
 import './../styles/pages/Comparison.css';
-
 import {useFrames} from "../context/FramesContext";
-import {apiUrl} from "../utils/urls";
-import {useMatch, useSearchParams} from "react-router-dom";
-import {fetchImage} from "../api/fetchImage";
-import {MAX_RETRIES} from "../utils/constants";
-import Parameters from "../components/Parameters";
 import { useMetrics } from "../context/MetricsContext";
+import ImageBlock from "../components/comparison/ImageBlock";
 
 const Comparison = () => {
-    const [selectedType, setSelectedType] = useState("H.265");
-    const { selectedIdx } = useFrames();
-    const [params] = useSearchParams();
-
-    const videoId = parseInt(params.get("videoId"));
-
+    const { selectedIdx, setSelectedIdx, frames } = useFrames();
     const leftRef = useRef(null);
     const rightRef = useRef(null);
-
-    const fetchImagesForComparison = async () => {
-        const processedImageUrl = await fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-        );
-        const originalImageUrl = await fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
-        );
-        if (leftRef.current)
-            leftRef.current.src = originalImageUrl;
-        if (rightRef.current)
-            rightRef.current.src = processedImageUrl;
-    }
-
+    const [fullscreenSide, setFullscreenSide] = useState(null);
     const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
 
-    useEffect(() => {
-        fetchImagesForComparison();
-    }, [videoId, selectedIdx]);
+    const getCompressionParams = () => {
+        // const data = videoMetricsQuery?.data || {};
+        //
+        // const candidates = ["compressionParams", "parameters", "params", "config", "encoding", "settings"];
+        // for (const key of candidates) {
+        //     if (data[key] && typeof data[key] === 'object') return data[key];
+        // }
+        // const knownFields = ["crf", "preset", "bandwidth", "bitrate", "aq_mode", "aq_strength", "gop_size", "bf"];
+        // const found = {};
+        // for (const k of knownFields) {
+        //     if (data[k] !== undefined) found[k] = data[k];
+        // }
+        // return Object.keys(found).length > 0 ? found : {};
+    }
+
+    const compressionParamsForProcessed = {
+        ...getCompressionParams(),
+    };
+
+    const switchFullscreen = (direction) => {
+        if (direction === 'left' || direction === 'right') {
+            setFullscreenSide(direction);
+            return;
+        }
+        setFullscreenSide(prev => (prev === 'left' ? 'right' : 'left'));
+
+    };
 
     return (
         <div className="comparison">
             <FrameBox/>
             <div className="comparison-container">
-                <ImageBlockConst
-                    type={"Original"}
+                <ImageBlock
                     imageRef={leftRef}
+                    selectedIdx={selectedIdx}
+                    detailType={"Original Frame metrics"}
+                    details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
+                    onPrev={() => setSelectedIdx(prev => Math.max(0, prev - 1))}
+                    onNext={() => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1))}
+                    isFullscreen={fullscreenSide === 'left'}
+                    onOpenFullscreen={() => setFullscreenSide('left')}
+                    onCloseFullscreen={() => setFullscreenSide(null)}
+                    onSwitchFullscreen={switchFullscreen}
                 />
-                <ImageBlockSelect 
-                    types={["H.264"]}
-                    selectedType={selectedType}
-                    setSelectedType={setSelectedType}
+
+                <ImageBlock
+                    isConst={false}
+                    selectedIdx={selectedIdx}
                     imageRef={rightRef}
+                    detailType={"Processed Frame metrics"}
+                    details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
+                    compressionParams={compressionParamsForProcessed}
+                    onPrev={() => setSelectedIdx(prev => Math.max(0, prev - 1))}
+                    onNext={() => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1))}
+                    isFullscreen={fullscreenSide === 'right'}
+                    onOpenFullscreen={() => setFullscreenSide('right')}
+                    onCloseFullscreen={() => setFullscreenSide(null)}
+                    onSwitchFullscreen={switchFullscreen}
                 />
-                <div className="description">
-                    <Parameters/>
-                    <ImageDetails
-                        type={"Video metrics"}
-                        details={videoMetricsQuery.data?.metrics || {}}
-                    />
-                    <ImageDetails
-                        type={"Frame metrics"}
-                        details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
-                    />
-                </div>
             </div>
         </div>
     );

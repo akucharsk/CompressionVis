@@ -13,7 +13,8 @@
 
 .comparison-container {
   display: flex;
-  justify-content: center;
+  flex-direction: row; /* stack ImageBlock components vertically */
+  align-items: center;    /* center each row */
   border-radius: 8px;
   gap: 1em;
 }
@@ -29,18 +30,10 @@
   gap: 1em;
 }
 
-.image-details {
-  flex: 2;
-  width: 70%;
-  background-color: var(--background-second);
-  padding: 8px;
-  border-radius:10px;
-  border: 1px solid var(--border-color);
-  margin: 0 auto;
-}
+/* Let ImageBlock / Images.css handle .image-details; avoid overriding here */
 
-.image-details p {
-  font-size: 1em;
-  margin: 1em;
-  color: var(--font-color);
+/* Responsive: ensure container stays comfortable on small screens */
+@media (max-width: 900px) {
+  .comparison { padding: 12px; width: 100%; }
+  .comparison-container { gap: 0.8em; }
 }
