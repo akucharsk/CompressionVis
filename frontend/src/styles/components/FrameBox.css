@@ -298,6 +298,7 @@
     padding: 0.5rem;
     gap: 0.5rem;
     border-radius: 4px;
+    background-color: var(--background-second);
 }
 
 .indicator-option:hover {
