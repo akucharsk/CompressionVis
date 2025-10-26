@@ -14,22 +14,17 @@ from django.db import IntegrityError
 import os
 import subprocess
 import json
-import redis
 import shutil
 
 from utils.psnr import weighted_psnr_420
 from . import models
 from . import serializers
+from .frames_extractor import FramesExtractor
 
 from utils.camel import camelize, decamelize
+from .metrics_extractor import MetricsExtractor
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
-
-REDIS = redis.Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    db=settings.REDIS_DB,
-)
 
 class VideoView(APIView):
     def get(self, request, video_id):
@@ -128,7 +123,7 @@ class CompressionView(APIView):
             if video.is_compressed:
                 resp_status = status.HTTP_200_OK
             else:
-                resp_status = status.HTTP_202_PROCESSING
+                resp_status = status.HTTP_202_ACCEPTED
             resp["video_id"] = video.id
             return Response(camelize(resp), status=resp_status)
         except models.Video.DoesNotExist:
@@ -186,6 +181,13 @@ class CompressionView(APIView):
         video.is_compressed = True
         video.save()
         resp['is_compressed'] = True
+
+        frames_extractor = FramesExtractor(video)
+        frames_extractor.start_extraction_job()
+
+        metrics_extractor = MetricsExtractor(video)
+        metrics_extractor.start_extraction_job()
+
         return Response(camelize(resp), status=status.HTTP_200_OK)
 
 class CompressionFramesView(APIView):
@@ -202,103 +204,19 @@ class CompressionFramesView(APIView):
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        file_name = os.path.basename(video_file)
-        video_name = os.path.splitext(file_name)[0]
-        frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
-
-        frames = models.FrameMetadata.objects.filter(video__id=video_id)
-        if frames.exists():
-            info = serializers.FrameSerializer(instance=frames, many=True).data
-
-            return Response({"frames": info}, status=status.HTTP_200_OK)
-
         if video.frames_extraction_in_progress:
             return Response(
-                {"message": "Frame extraction in progress"},
+                {"message": "processing"},
                 status=status.HTTP_202_ACCEPTED
             )
 
-        os.makedirs(frames_dir, exist_ok=True)
+        frames = models.FrameMetadata.objects.filter(video__id=video_id)
+        if not frames.exists():
+            return Response({"message": "Frames extractor encountered an error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        video.frames_extraction_in_progress = True
-        video.save()
+        info = serializers.FrameSerializer(instance=frames, many=True).data
 
-        info = self.get_frame_info(video_file, video)
-        frames_serializer = serializers.CreateFramesSerializer(data={"frames": info})
-
-        if not frames_serializer.is_valid():
-            return Response(frames_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        try:
-            frames_serializer.save()
-        except IntegrityError:
-            frames = models.FrameMetadata.objects.filter(video__id=video_id)
-            info = serializers.FrameSerializer(instance=frames, many=True).data
-            video.frames_extraction_in_progress = False
-            video.frames_extraction_completed = True
-            video.save()
-            return Response({"frames": info}, status=status.HTTP_200_OK)
-
-        data = frames_serializer.validated_data['frames']
-
-        self.extract_frames(video_file, frames_dir, video)
-
-        return Response({"frames": data}, status=status.HTTP_200_OK)
-
-    @staticmethod
-    def get_frame_info(video_path, video):
-        result = subprocess.run([
-            "ffprobe",
-            "-show_frames",
-            "-select_streams", "v",
-            "-print_format", "json",
-            video_path
-        ], capture_output=True, text=True)
-
-        data = json.loads(result.stdout)
-
-        frames = []
-        i = 0
-        frames_dir = video.filename.split(".")[0]
-
-        for frame in data.get("frames", []):
-            pict_type = frame.get("pict_type")
-            if pict_type in ["I", "P", "B"]:
-                frames.append({
-                    "frame_number": i,
-                    "type": pict_type,
-                    "pts_time": frame.get("pts_time"),
-                    "video_id": video.id,
-                    "image_url": f"frames/{frames_dir}/frame_{i}.png",
-                    "pkt_size": frame.get("pkt_size"),
-                })
-                i += 1
-
-        return frames
-
-    @staticmethod
-    def extract_frames(video_path, video_dir, video):
-        def extract_and_update_status():
-            try:
-                os.makedirs(video_dir, exist_ok=True)
-                process = subprocess.Popen([
-                    "ffmpeg", "-i", video_path,
-                    "-frame_pts", "true",
-                    f"{video_dir}/frame_%d.png"
-                ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                process.wait()
-
-                video.frames_extraction_completed = True
-            except Exception as e:
-                print(f"Error during frame extraction: {e}")
-            finally:
-                video.frames_extraction_in_progress = False
-                video.save()
-
-        thread = threading.Thread(target=extract_and_update_status)
-        thread.daemon = True
-        thread.start()
-
+        return Response({"frames": info}, status=status.HTTP_200_OK)
 
 class ExampleVideosView(APIView):
     def get(self, request):
@@ -368,7 +286,7 @@ class FrameView(APIView):
                 )
 
             return Response(
-                {"message": "Frame extraction not started"},
+                {"message": "processing"},
                 status=status.HTTP_202_ACCEPTED
             )
 
@@ -379,74 +297,37 @@ class FrameView(APIView):
         )
 
 class MetricView(APIView):
+    @staticmethod
+    def wrap_metrics(metrics, fields=("psnr_mean", "ssim_mean", "vmaf_mean")):
+        metric_scores = list(map(lambda field: getattr(metrics, field), fields))
+        if all(metric_scores):
+            [psnr, ssim, vmaf] = metric_scores
+            return {
+                "metrics": {
+                    "VMAF": round(vmaf, 2),
+                    "SSIM": round(ssim, 2),
+                    "PSNR": round(psnr, 2),
+                }
+            }
+
+        return None
+
     def get(self, request, video_id):
         try:
             video = models.Video.objects.get(id=video_id)
-            metrics = video.vmaf_mean, video.psnr_mean, video.ssim_mean
-            if all(map(lambda m: m is not None, metrics)):
-                return Response(camelize({"video_metrics": {
-                    "VMAF": round(video.vmaf_mean, 2),
-                    "SSIM": round(video.ssim_mean, 2),
-                    "PSNR": round(video.psnr_mean, 2),
-                }}), status=status.HTTP_200_OK)
-
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        original = video.original
-        if video.width * video.height > original.width * original.height:
-            scale = f"{original.width}:{original.height}"
-        else:
-            scale = f"{video.width}:{video.height}"
+        try:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        subprocess.run([
-            "bash", "vmaf.sh",
-            original.filename, video.filename, scale
-        ])
-        with open("result.json", "r") as f:
-            metric_info = json.load(f)
+        wrapped_metrics = self.wrap_metrics(metrics)
+        if wrapped_metrics:
+            return Response(wrapped_metrics, status=status.HTTP_200_OK)
 
-        pooled_metrics = metric_info["pooled_metrics"]
-        frame_metrics = metric_info["frames"]
-        frame_metrics = {
-            data["frameNum"]: data["metrics"] for data in frame_metrics
-        }
-        frames = models.FrameMetadata.objects.filter(video=video)
-        for frame in frames:
-            frame.vmaf_score = frame_metrics[frame.frame_number]["vmaf"]
-            frame.ssim_score = frame_metrics[frame.frame_number]["float_ssim"]
-            psnr_scores = {
-                "psnr_y": frame_metrics[frame.frame_number]["psnr_y"],
-                "psnr_cr": frame_metrics[frame.frame_number]["psnr_cr"],
-                "psnr_cb": frame_metrics[frame.frame_number]["psnr_cb"],
-            }
-            frame.psnr_score = weighted_psnr_420(**psnr_scores)
-
-        models.FrameMetadata.objects.bulk_update(
-            frames,
-            fields=["vmaf_score", "psnr_score", "ssim_score"]
-        )
-
-        vid_psnr_scores = {
-            "psnr_y": pooled_metrics["psnr_y"]["mean"],
-            "psnr_cr": pooled_metrics["psnr_cr"]["mean"],
-            "psnr_cb": pooled_metrics["psnr_cb"]["mean"],
-        }
-
-        result = {
-            "video_metrics": {
-                "VMAF": round(pooled_metrics["vmaf"]["mean"], 2),
-                "SSIM": round(pooled_metrics["float_ssim"]["mean"], 2),
-                "PSNR": round(weighted_psnr_420(**vid_psnr_scores), 2)
-            }
-        }
-
-        video.psnr_mean = result["video_metrics"]["PSNR"]
-        video.ssim_mean = result["video_metrics"]["SSIM"]
-        video.vmaf_mean = result["video_metrics"]["VMAF"]
-        video.save()
-
-        return Response(camelize(result), status=status.HTTP_200_OK)
+        return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
 class FrameMetricView(APIView):
     def get(self, request, video_id, frame_number):
@@ -456,31 +337,33 @@ class FrameMetricView(APIView):
                 frame_number=frame_number
             )
         except models.FrameMetadata.DoesNotExist:
-            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        resp = {
-            "VMAF": round(frame.vmaf_score, 2),
-            "SSIM": round(frame.ssim_score, 2),
-            "PSNR": round(frame.psnr_score, 2),
-        }
+        resp = MetricView.wrap_metrics(frame, fields=("psnr_score", "ssim_score", "vmaf_score"))
         return Response(resp, status=status.HTTP_200_OK)
 
 class AllFramesMetricsView(APIView):
     def get(self, request, video_id):
         try:
             video = models.Video.objects.get(id=video_id)
+            metrics = models.VideoMetrics.objects.get(video=video)
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-        if not all([ video.psnr_mean, video.ssim_mean, video.vmaf_mean ]):
-            return Response({"message": "Metrics not yet available"}, status=status.HTTP_202_ACCEPTED)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not MetricView.wrap_metrics(metrics):
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
         frames = models.FrameMetadata.objects.filter(video=video)
         frame_metrics = frames.values("psnr_score", "ssim_score", "vmaf_score")
         for metric in frame_metrics:
-            metric["psnr_score"] = round(metric["psnr_score"], 2)
-            metric["ssim_score"] = round(metric["ssim_score"], 2)
-            metric["vmaf_score"] = round(metric["vmaf_score"], 2)
-        return Response(frame_metrics, status=status.HTTP_200_OK)
+            for score in ["psnr_score", "ssim_score", "vmaf_score"]:
+                name = score.split("_")[0]
+                metric[name.upper()] = round(metric[score], 2)
+                del metric[score]
+
+        return Response({"metrics": frame_metrics}, status=status.HTTP_200_OK)
 
 class ParametersView(APIView):
     def get(self, request, video_id):

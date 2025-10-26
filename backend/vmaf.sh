@@ -1,15 +1,15 @@
 #!/bin/bash
 
-ffmpeg -i "static/videos/$1" -pix_fmt yuv420p -vf "scale=$3" "static/temp/reference.y4m"
-ffmpeg -i "static/compressed_videos/$2" -pix_fmt yuv420p -vf "scale=$3" "static/temp/distorted.y4m"
+ffmpeg -i "static/original_videos/$1.y4m" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$1.y4m"
+ffmpeg -i "static/compressed_videos/$2.mp4" -pix_fmt yuv420p -vf "scale=$3" "static/temp/$2.y4m"
 
 vmaf \
-  --reference "static/temp/reference.y4m" \
-  --distorted "static/temp/distorted.y4m" \
-  --output result.json \
+  --reference "static/temp/$1.y4m" \
+  --distorted "static/temp/$2.y4m" \
+  --output "$2.json" \
   --json \
   --feature psnr \
   --feature float_ssim \
   --model path=/vmaf/model/vmaf_v0.6.1.json
 
-rm -rf static/temp/*
+rm -f "static/temp/$2.y4m" "static/temp/$1.y4m"

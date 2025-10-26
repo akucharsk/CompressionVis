@@ -60,7 +60,6 @@ function Menu() {
                     showError("Failed to acquire compressed video ID. Please try again later!");
                     return;
                 }
-                console.log(`Didn't receive compressed video metadata. Retrying in ${DEFAULT_RETRY_TIMEOUT_MS}...`, { retriesLeft: retries - 1 });
                 await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
                 handleCompress(retries - 1);
                 return;

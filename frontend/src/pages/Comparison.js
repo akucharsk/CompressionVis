@@ -7,43 +7,21 @@ import './../styles/pages/Comparison.css';
 
 import {useFrames} from "../context/FramesContext";
 import {apiUrl} from "../utils/urls";
-import {useSearchParams} from "react-router-dom";
+import {useMatch, useSearchParams} from "react-router-dom";
 import {fetchImage} from "../api/fetchImage";
 import {MAX_RETRIES} from "../utils/constants";
 import Parameters from "../components/Parameters";
-import {useError} from "../context/ErrorContext";
-import {handleApiError} from "../utils/errorHandler";
+import { useMetrics } from "../context/MetricsContext";
 
 const Comparison = () => {
     const [selectedType, setSelectedType] = useState("H.265");
     const { selectedIdx } = useFrames();
     const [params] = useSearchParams();
-    const [videoMetrics, setVideoMetrics] = useState({});
-    const [frameMetrics, setFrameMetrics] = useState({});
-    const {showError} = useError();
 
     const videoId = parseInt(params.get("videoId"));
 
     const leftRef = useRef(null);
     const rightRef = useRef(null);
-
-    const fetchMetrics = async () => {
-        let resp;
-        try {
-            resp = await fetch(`${apiUrl}/metrics/${videoId}`);
-            const data = await resp.json();
-            setVideoMetrics(data.videoMetrics);
-        } catch (error) {
-            if (error.name === "AbortError") return;
-            showError(error.message, error.statusCode);
-        }
-    };
-
-    const fetchMetricsForFrame = async () => {
-        const resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`);
-        const data = await resp.json();
-        setFrameMetrics(data);
-    };
 
     const fetchImagesForComparison = async () => {
         const processedImageUrl = await fetchImage(
@@ -60,13 +38,7 @@ const Comparison = () => {
             rightRef.current.src = processedImageUrl;
     }
 
-    useEffect(() => {
-        fetchMetrics();
-    }, [videoId]);
-
-    useEffect(() => {
-        fetchMetricsForFrame();
-    }, [videoId, selectedIdx, videoMetrics]);
+    const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
 
     useEffect(() => {
         fetchImagesForComparison();
@@ -78,23 +50,23 @@ const Comparison = () => {
             <div className="comparison-container">
                 <ImageBlockConst
                     type={"Original"}
-                    ref={leftRef}
+                    imageRef={leftRef}
                 />
                 <ImageBlockSelect 
                     types={["H.264"]}
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
-                    ref={rightRef}
+                    imageRef={rightRef}
                 />
                 <div className="description">
                     <Parameters/>
                     <ImageDetails
                         type={"Video metrics"}
-                        details={videoMetrics}
+                        details={videoMetricsQuery.data?.metrics || {}}
                     />
                     <ImageDetails
                         type={"Frame metrics"}
-                        details={frameMetrics}
+                        details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
                     />
                 </div>
             </div>

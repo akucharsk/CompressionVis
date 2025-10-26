@@ -1,117 +1,31 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrames } from "../context/FramesContext";
-import {apiUrl} from "../utils/urls";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
-import {handleApiError} from "../utils/errorHandler";
-import {useError} from "../context/ErrorContext";
 import Spinner from "./Spinner";
 import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
+import { useMetrics } from "../context/MetricsContext";
 
 const FramesBox = () => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [areMetricsLoading, setAreMetricsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [playSpeed] = useState(1);
     const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
 
     const containerRef = useRef(null);
-    const playIntervalRef = useRef(null);
 
-    const [params] = useSearchParams();
-    const videoId = params.get("videoId");
-    const indicator = params.get("indicator") || "none";
+    const [searchParams] = useSearchParams();
+    const indicator = searchParams.get("indicator") || "none";
 
     const {
         frames,
-        setFrames,
+        framesQuery,
         selectedIdx,
         setSelectedIdx,
-        setFrameMetrics
     } = useFrames();
-    const { showError } = useError();
 
-    const loadingFields = areMetricsLoading ? [ "psnr", "ssim", "vmaf" ] : [];
+    const { videoMetricsQuery } = useMetrics();
 
-    const fetchFrames = async () => {
-        const cachedFrames = sessionStorage.getItem("frames");
-        if (cachedFrames) {
-            const frames = JSON.parse(cachedFrames);
-            setFrames(frames);
-            setIsLoading(false);
-            return;
-        }
-        try {
-            const resp = await fetch(`${apiUrl}/video/frames/${videoId}/`);
-            await handleApiError(resp);
-            const data = await resp.json();
-            setFrames(data.frames);
-            sessionStorage.setItem("frames", JSON.stringify(data.frames));
-        } catch (err) {
-            showError(err.message, err.statusCode);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchMetrics = async () => {
-        const cachedMetrics = sessionStorage.getItem("frameMetrics");
-        if (cachedMetrics) {
-            const metrics = JSON.parse(cachedMetrics);
-            setFrameMetrics(metrics);
-            setIsLoading(false);
-            setAreMetricsLoading(false);
-            return;
-        }
-        try {
-            let resp = await fetch(`${apiUrl}/metrics/${videoId}/`);
-            await handleApiError(resp);
-            resp = await fetch(`${apiUrl}/metrics/frame/${videoId}/all`);
-            await handleApiError(resp);
-            const metrics = await resp.json();
-            setFrameMetrics(metrics);
-            sessionStorage.setItem("frameMetrics", JSON.stringify(metrics));
-        } catch (error) {
-            showError(error.message, error.statusCode);
-        } finally {
-            setAreMetricsLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        fetchFrames();
-        fetchMetrics();
-    }, [videoId]);
-
-    useEffect(() => {
-        if (!isPlaying) {
-            if (playIntervalRef.current) {
-                clearInterval(playIntervalRef.current);
-                playIntervalRef.current = null;
-            }
-            return;
-        }
-
-        const interval = 1000 / fps;
-
-        playIntervalRef.current = setInterval(() => {
-            setSelectedIdx(prev => {
-                if (prev < frames.length - 1) {
-                    return prev + 1;
-                } else {
-                    setIsPlaying(false);
-                    return prev;
-                }
-            });
-        }, interval);
-
-        return () => {
-            if (playIntervalRef.current) {
-                clearInterval(playIntervalRef.current);
-            }
-        };
-    }, [isPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
+    const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -134,9 +48,10 @@ const FramesBox = () => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'ArrowLeft') {
+                
                 setSelectedIdx(prev => Math.max(0, prev - 1));
             } else if (e.key === 'ArrowRight') {
-                setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
+                setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 1)));
             } else if (e.key === ' ') {
                 e.preventDefault();
                 setIsPlaying(prev => !prev);
@@ -152,7 +67,7 @@ const FramesBox = () => {
     };
 
     const handleScrollRight = () => {
-        setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
+        setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 1)));
     };
 
     const handleMinusTen = () => {
@@ -160,7 +75,7 @@ const FramesBox = () => {
     }
 
     const handlePlusTen = () => {
-        setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
+        setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 10)));
     }
 
     const handleNextIFrame = () => {
@@ -176,7 +91,7 @@ const FramesBox = () => {
         setSelectedIdx(iFrames[nextPos]);
     }
 
-    if (isLoading) {
+    if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
                 <Spinner />
@@ -237,7 +152,7 @@ const FramesBox = () => {
             </div>
             <div className="timeline-content">
                 <div className="scrollable-frameBox" ref={containerRef}>
-                    {frames.map((frame, idx) => (
+                    {frames?.map((frame, idx) => (
                         <div key={idx} className="frame-container">
                             <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
                             <div

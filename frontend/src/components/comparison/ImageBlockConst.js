@@ -1,14 +1,14 @@
 import React from "react";
 import "../../styles/components/comparison/Images.css";
 
-const ImageBlockConst = ({ type, ref }) => {
+const ImageBlockConst = ({ type, imageRef }) => {
     return (
         <>
             <div className="image-block">
                 <div >
                     <img 
                         alt="Image"
-                        ref={ref}
+                        ref={imageRef}
                     >
                     </img>
                 </div>

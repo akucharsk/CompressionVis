@@ -29,12 +29,15 @@ class Video(models.Model):
     frames_extraction_in_progress = models.BooleanField(default=False)
     frames_extraction_completed = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ('filename',)
+
+class VideoMetrics(models.Model):
+    video = models.OneToOneField(Video, on_delete=models.CASCADE)
+
     vmaf_mean = models.FloatField(default=None, null=True)
     psnr_mean = models.FloatField(default=None, null=True)
     ssim_mean = models.FloatField(default=None, null=True)
-
-    class Meta:
-        ordering = ('filename',)
 
 class FrameMetadata(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
