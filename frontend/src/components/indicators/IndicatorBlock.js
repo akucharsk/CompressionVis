@@ -19,7 +19,7 @@ export default function IndicatorBlock({ indicator, frameNumber }) {
     return <></>;
   }
 
-  const colors = indicator === "size" ? ["#00ff00", "#ffff00", "#ff0000"] : ["#ff0000", "#ffff00", "#00ff00"]
+  const colors = indicator === "size" ? ["#00aa00", "#ffff00", "#ff0000"] : ["#ff0000", "#ffff00", "#00aa00"]
   const scale = chroma(colors).domain([range.min, range.max]);
 
   const value = {
