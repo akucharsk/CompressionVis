@@ -6,6 +6,7 @@ import Spinner from "./Spinner";
 import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
 import { useMetrics } from "../context/MetricsContext";
+import { INDICATOR_OPTIONS } from "../utils/constants";
 
 const FramesBox = () => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -14,7 +15,7 @@ const FramesBox = () => {
     const containerRef = useRef(null);
 
     const [searchParams] = useSearchParams();
-    const indicator = searchParams.get("indicator") || "none";
+    const indicators = searchParams.get("indicators")?.split(",")?.filter(indicator => indicator in INDICATOR_OPTIONS) || [];
 
     const {
         frames,
@@ -151,6 +152,13 @@ const FramesBox = () => {
                 <IndicatorConfig loadingFields={loadingFields} />
             </div>
             <div className="timeline-content">
+                <div className="indicator-labels">
+                    {[...indicators].reverse().map((indicator, i) => (
+                        <div key={i} className="indicator-label">
+                            {indicator.toUpperCase()}
+                        </div>
+                    ))}
+                </div>
                 <div className="scrollable-frameBox" ref={containerRef}>
                     {frames?.map((frame, idx) => (
                         <div key={idx} className="frame-container">
@@ -162,7 +170,9 @@ const FramesBox = () => {
                             >
                                 {frame.type}
                             </div>
-                            { indicator !== "none" && <IndicatorBlock frameNumber={idx} /> }
+                            { indicators.map((indicator, i) => (
+                                <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
+                            )) }
                         </div>
                     ))}
                 </div>

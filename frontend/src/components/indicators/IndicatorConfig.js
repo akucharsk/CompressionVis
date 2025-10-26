@@ -11,7 +11,7 @@ export default function IndicatorConfig({ loadingFields }) {
     loadingFields.forEach(field => {
         options[field].isLoading = true;
     });
-    const indicator = searchParams.get("indicator") || "none";
+    const indicators = searchParams.get("indicators")?.split(",")?.filter(indicator => indicator in INDICATOR_OPTIONS) || [];
 
     const Option = (props) => {
         const { data } = props;
@@ -58,21 +58,22 @@ export default function IndicatorConfig({ loadingFields }) {
         menu: (styles) => ({ ...styles, backgroundColor: "var(--background-second)" })
     }
     return (
-        <div className="indicator-config">
-            <span className="indicator-config-heading">Indicator</span>
+        <div className="indicators-config">
+            <span className="indicators-config-heading">indicators</span>
             <Select 
-                value={options[indicator]}
+                value={indicators.map(key => options[key])}
                 options={Object.values(options)}
                 onChange={(newValue) => {
                     if (newValue.isDisabled)
                         return;
                     setSearchParams(prev => {
-                        newValue.value === "none" ? prev.delete("indicator") : prev.set("indicator", newValue.value);
+                        prev.set("indicators", newValue.map(({ value }) => value).filter(value => value !== "none").join(","));
                         return prev;
                     })
                 }}
                 components={{ Option, DropdownIndicator }}
                 styles={indicatorConfigStyles}
+                isMulti
             />
         </div>
     );
