@@ -67,7 +67,7 @@ export default function IndicatorConfig({ loadingFields }) {
                     if (newValue.isDisabled)
                         return;
                     setSearchParams(prev => {
-                        prev.set("indicators", newValue.map(({ value }) => value).filter(value => value !== "none").join(","));
+                        prev.set("indicators", newValue.map(({ value }) => value).filter(value => value in INDICATOR_OPTIONS).join(","));
                         return prev;
                     })
                 }}
