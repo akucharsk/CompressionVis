@@ -14,7 +14,7 @@
 .comparison-container {
   display: flex;
   flex-direction: row; /* stack ImageBlock components vertically */
-  align-items: center;    /* center each row */
+  align-items: start;    /* center each row */
   border-radius: 8px;
   gap: 1em;
 }

@@ -8,11 +8,9 @@ import { useSettings } from "../../context/SettingsContext";
 const ImageBlock = ({
                         isConst = true,
                         selectedIdx = 0,
-                        metrics = {},
                         navigation = {},
                         fullscreen = {},
                     }) => {
-    const [collapsed] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const { imgSrc, compressedIds, fetchImagesForComparison } = useComparisonImage(isConst, selectedIdx);
     const { parameters } = useSettings();
@@ -42,7 +40,7 @@ const ImageBlock = ({
     };
 
     return (
-        <div className={`image-block ${collapsed ? "collapsed" : ""}`}>
+        <div className="image-block">
             <div className="image-block-content">
                 {isConst ? (
                     <div className="static-name">Active param</div>
@@ -64,7 +62,6 @@ const ImageBlock = ({
 
                 <ImageDetails
                     isOriginalChosen={isOriginalChosen}
-                    compressionParams={metrics.compressionParams || {}}
                     selectedIdx={selectedIdx}
                 />
 
