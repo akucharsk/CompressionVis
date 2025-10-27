@@ -1,25 +1,29 @@
 import React from "react";
+import { useMetrics } from "../../context/MetricsContext";
 
 const formatValue = (value) => {
-    if (value === null) return 'null';
-    if (value === undefined) return 'undefined';
-    if (typeof value === 'object') {
+    if (value === null) return "null";
+    if (value === undefined) return "undefined";
+    if (typeof value === "number") return value.toFixed(3);
+    if (typeof value === "object") {
         try {
             return JSON.stringify(value, null, 2);
-        } catch (e) {
+        } catch {
             return String(value);
         }
     }
     return String(value);
-}
+};
 
-const ImageDetails = ({ type, details = {}, compressionParams = {} }) => {
-    const renderEntries = (obj) => {
-        return Object.entries(obj).map(([key, value], idx) => {
-            const isObject = typeof value === 'object' && value !== null;
+const renderEntries = (obj) => {
+    return Object.entries(obj || {})
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value], idx) => {
             const formatted = formatValue(value);
+            const isObject = typeof value === "object" && value !== null;
+
             return (
-                <div className="detail-row" key={`d-${idx}`}>
+                <div className="detail-row" key={`entry-${idx}`}>
                     <div className="detail-key">{key}</div>
                     <div className="detail-value">
                         {isObject ? (
@@ -31,25 +35,62 @@ const ImageDetails = ({ type, details = {}, compressionParams = {} }) => {
                 </div>
             );
         });
+};
+
+
+const ImageDetails = ({
+                          isOriginalChosen = false,
+                          compressionParams = {},
+                          selectedIdx = 0,
+                      }) => {
+    const { videoMetricsQuery, frameMetricsQuery } = useMetrics();
+
+    if (videoMetricsQuery.error || frameMetricsQuery.error)
+        return <p>Error loading metrics</p>;
+
+    const videoData = videoMetricsQuery.data || {};
+    const videoMetrics = videoData.metrics || videoData || {};
+
+    const rawFrames = frameMetricsQuery.data;
+    const frameMetrics =
+        rawFrames?.metrics ||
+        rawFrames?.frames ||
+        (Array.isArray(rawFrames) ? rawFrames : null);
+
+    const selectedFrame =
+        Array.isArray(frameMetrics) && frameMetrics.length > selectedIdx
+            ? frameMetrics[selectedIdx]
+            : null;
+    const maxMetricsValues = {
+        PSNR: "100 (Max Score)",
+        SSIM: "1   (Max Score)",
+        VMAF: "100 (Max Score)"
     }
 
     return (
         <div className="image-details">
-            <h3>{type}</h3>
-            {Object.keys(details).length > 0 ? (
-                renderEntries(details)
+            <h3>Video Metrics</h3>
+            {isOriginalChosen ? (
+                renderEntries(maxMetricsValues)
             ) : (
-                <p>No data</p>
+                renderEntries(videoMetrics)
             )}
 
-            {compressionParams && Object.keys(compressionParams).length > 0 && (
-                <div className="compression-params" style={{marginTop: '10px'}}>
-                    <h4>Compression parameters</h4>
-                    {renderEntries(compressionParams)}
-                </div>
+            <h3>Frame Metrics</h3>
+            {isOriginalChosen ? (
+                renderEntries(maxMetricsValues)
+            ) : (
+                renderEntries(selectedFrame)
             )}
+
+            {/*{isOriginalChosen ? (*/}
+            {/*    <div className="static-name">DEF</div>*/}
+            {/*) : (*/}
+            {/*    renderEntries(compressionParams)*/}
+            {/*)}*/}
+
         </div>
-    )
-}
+    );
+};
 
 export default ImageDetails;

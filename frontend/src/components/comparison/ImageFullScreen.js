@@ -1,7 +1,7 @@
 import React from "react";
 import "../../styles/components/comparison/Images.css";
 
-const ImageFullScreen = ({ imageSrc, detailType, onPrev, onNext, onSwitchFullscreen, onClose }) => {
+const ImageFullScreen = ({ imageSrc, onPrev, onNext, onSwitchFullscreen, onClose }) => {
     return (
         <div className="image-fullscreen" role="dialog" aria-modal="true" onClick={() => onClose && onClose()}>
             {onSwitchFullscreen ? (
@@ -9,7 +9,6 @@ const ImageFullScreen = ({ imageSrc, detailType, onPrev, onNext, onSwitchFullscr
                     <button className="fs-nav fs-nav-left" onClick={(e) => { e.stopPropagation(); onSwitchFullscreen('left'); }} aria-label="Previous image">‹</button>
                     <img
                         src={imageSrc}
-                        alt={detailType}
                         className="image-fullscreen-img"
                         onClick={(e) => e.stopPropagation()}
                     />
@@ -22,7 +21,6 @@ const ImageFullScreen = ({ imageSrc, detailType, onPrev, onNext, onSwitchFullscr
                     )}
                     <img
                         src={imageSrc}
-                        alt={detailType}
                         className="image-fullscreen-img"
                         onClick={(e) => e.stopPropagation()}
                     />
