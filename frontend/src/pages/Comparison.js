@@ -8,11 +8,6 @@ import ImageBlock from "../components/comparison/ImageBlock";
 const Comparison = () => {
     const { selectedIdx, setSelectedIdx, frames } = useFrames();
     const [fullscreenSide, setFullscreenSide] = useState(null);
-    const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
-
-    const getCompressionParams = () => {
-        return {};
-    };
 
     const switchFullscreen = (direction) => {
         setFullscreenSide(prev => {
@@ -33,22 +28,12 @@ const Comparison = () => {
         onNext: () => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1)),
     });
 
-    const metricsLeft = {
-        details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
-    };
-
-    const metricsRight = {
-        details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
-        compressionParams: getCompressionParams(),
-    };
-
     return (
         <div className="comparison">
             <FrameBox />
             <div className="comparison-container">
                 <ImageBlock
                     selectedIdx={selectedIdx}
-                    metrics={metricsLeft}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "left",
@@ -61,7 +46,6 @@ const Comparison = () => {
                 <ImageBlock
                     isConst={false}
                     selectedIdx={selectedIdx}
-                    metrics={metricsRight}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "right",

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useMetrics } from "../../context/MetricsContext";
+import { useSettings } from "../../context/SettingsContext";
 
 const formatValue = (value) => {
     if (value === null) return "null";
@@ -37,13 +38,13 @@ const renderEntries = (obj) => {
         });
 };
 
-
 const ImageDetails = ({
                           isOriginalChosen = false,
-                          compressionParams = {},
                           selectedIdx = 0,
                       }) => {
     const { videoMetricsQuery, frameMetricsQuery } = useMetrics();
+    const { parameters } = useSettings();
+    const [showCompression, setShowCompression] = useState(false);
 
     if (videoMetricsQuery.error || frameMetricsQuery.error)
         return <p>Error loading metrics</p>;
@@ -64,33 +65,43 @@ const ImageDetails = ({
     const maxMetricsValues = {
         PSNR: "100 (Max Score)",
         SSIM: "1   (Max Score)",
-        VMAF: "100 (Max Score)"
-    }
+        VMAF: "100 (Max Score)",
+    };
 
     return (
         <div className="image-details">
             <h3>Video Metrics</h3>
-            {isOriginalChosen ? (
-                renderEntries(maxMetricsValues)
-            ) : (
-                renderEntries(videoMetrics)
-            )}
+            {isOriginalChosen
+                ? renderEntries(maxMetricsValues)
+                : renderEntries(videoMetrics)}
 
             <h3>Frame Metrics</h3>
-            {isOriginalChosen ? (
-                renderEntries(maxMetricsValues)
-            ) : (
-                renderEntries(selectedFrame)
-            )}
+            {isOriginalChosen
+                ? renderEntries(maxMetricsValues)
+                : renderEntries(selectedFrame)}
 
-            {/*{isOriginalChosen ? (*/}
-            {/*    <div className="static-name">DEF</div>*/}
-            {/*) : (*/}
-            {/*    renderEntries(compressionParams)*/}
-            {/*)}*/}
+            {!isOriginalChosen &&
+            <h3
+                className="collapsible-header"
+                onClick={() => setShowCompression((prev) => !prev)}
+                style={{cursor: "pointer"}}
+            >
+                Compression Parameters
+                <span style={{fontSize: "0.9rem", opacity: 0.6}}>
+                    {showCompression ? "▲" : "▼"}
+                </span>
+            </h3>
+            }
 
+            {!isOriginalChosen && showCompression && (
+                <div className="compression-section">
+                    {renderEntries(parameters)}
+                </div>
+            )
+            }
         </div>
-    );
+    )
+        ;
 };
 
 export default ImageDetails;
