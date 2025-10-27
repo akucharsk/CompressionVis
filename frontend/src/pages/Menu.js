@@ -10,6 +10,7 @@ import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
 import {STATUS} from "../utils/enums/status";
 import {useError} from "../context/ErrorContext";
 import {handleApiError} from "../utils/errorHandler";
+import {addVideoIdToCache} from "../utils/videoIdsCache";
 
 function Menu() {
     const navigate = useNavigate();
@@ -83,6 +84,7 @@ function Menu() {
                     resultingSize: data.resultingSize,
                 }));
             }
+            addVideoIdToCache(parameters.videoId, videoId);
 
             navigate(`/compress?videoId=${videoId}`);
         } catch (error) {

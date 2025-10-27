@@ -1,74 +1,59 @@
 import FrameBox from "../components/FrameBox";
-import {useEffect, useRef, useState} from "react";
-import ImageBlockConst from "../components/comparison/ImageBlockConst";
-import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
-import ImageDetails from "../components/comparison/ImageDetails";
-import './../styles/pages/Comparison.css';
-
-import {useFrames} from "../context/FramesContext";
-import {apiUrl} from "../utils/urls";
-import {useMatch, useSearchParams} from "react-router-dom";
-import {fetchImage} from "../api/fetchImage";
-import {MAX_RETRIES} from "../utils/constants";
-import Parameters from "../components/Parameters";
+import { useState } from "react";
+import "../styles/pages/Comparison.css";
+import { useFrames } from "../context/FramesContext";
 import { useMetrics } from "../context/MetricsContext";
+import ImageBlock from "../components/comparison/ImageBlock";
 
 const Comparison = () => {
-    const [selectedType, setSelectedType] = useState("H.265");
-    const { selectedIdx } = useFrames();
-    const [params] = useSearchParams();
+    const { selectedIdx, setSelectedIdx, frames } = useFrames();
+    const [fullscreenSide, setFullscreenSide] = useState(null);
 
-    const videoId = parseInt(params.get("videoId"));
+    const switchFullscreen = (direction) => {
+        setFullscreenSide(prev => {
+            if (direction === 'left' || direction === 'right') {
+                if (prev === direction) {
+                    return direction === 'left' ? 'right' : 'left';
+                }
+                return direction;
+            }
 
-    const leftRef = useRef(null);
-    const rightRef = useRef(null);
+            return prev === 'left' ? 'right' : 'left';
+        });
+    };
 
-    const fetchImagesForComparison = async () => {
-        const processedImageUrl = await fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-        );
-        const originalImageUrl = await fetchImage(
-            MAX_RETRIES,
-            `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
-        );
-        if (leftRef.current)
-            leftRef.current.src = originalImageUrl;
-        if (rightRef.current)
-            rightRef.current.src = processedImageUrl;
-    }
 
-    const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
-
-    useEffect(() => {
-        fetchImagesForComparison();
-    }, [videoId, selectedIdx]);
+    const makeNavigation = () => ({
+        onPrev: () => setSelectedIdx(prev => Math.max(0, prev - 1)),
+        onNext: () => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1)),
+    });
 
     return (
         <div className="comparison">
-            <FrameBox/>
+            <FrameBox />
             <div className="comparison-container">
-                <ImageBlockConst
-                    type={"Original"}
-                    imageRef={leftRef}
+                <ImageBlock
+                    selectedIdx={selectedIdx}
+                    navigation={makeNavigation()}
+                    fullscreen={{
+                        is: fullscreenSide === "left",
+                        onOpen: () => setFullscreenSide("left"),
+                        onClose: () => setFullscreenSide(null),
+                        onSwitch: switchFullscreen,
+                    }}
                 />
-                <ImageBlockSelect 
-                    types={["H.264"]}
-                    selectedType={selectedType}
-                    setSelectedType={setSelectedType}
-                    imageRef={rightRef}
+
+                <ImageBlock
+                    isConst={false}
+                    selectedIdx={selectedIdx}
+                    navigation={makeNavigation()}
+                    fullscreen={{
+                        is: fullscreenSide === "right",
+                        onOpen: () => setFullscreenSide("right"),
+                        onClose: () => setFullscreenSide(null),
+                        onSwitch: switchFullscreen,
+                    }}
                 />
-                <div className="description">
-                    <Parameters/>
-                    <ImageDetails
-                        type={"Video metrics"}
-                        details={videoMetricsQuery.data?.metrics || {}}
-                    />
-                    <ImageDetails
-                        type={"Frame metrics"}
-                        details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
-                    />
-                </div>
             </div>
         </div>
     );
