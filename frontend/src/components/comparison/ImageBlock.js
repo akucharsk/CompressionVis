@@ -17,6 +17,7 @@ const ImageBlock = ({
     const { imgSrc, compressedIds, fetchImagesForComparison } = useComparisonImage(isConst, selectedIdx);
     const { parameters } = useSettings();
     const originalVideoId = parameters.videoId;
+    let isOriginalChosen = !isConst;
 
     useEffect(() => {
         if (typeof fullscreen.is === "boolean") {
@@ -26,6 +27,7 @@ const ImageBlock = ({
 
     const handleSelectChange = (e) => {
         const val = parseInt(e.target.value);
+        isOriginalChosen = val === originalVideoId;
         fetchImagesForComparison(val === -1, val);
     };
 
@@ -61,16 +63,16 @@ const ImageBlock = ({
                 />
 
                 <ImageDetails
-                    type={metrics.type}
-                    details={metrics.details}
-                    compressionParams={metrics.compressionParams}
+                    isOriginalChosen={isOriginalChosen}
+                    compressionParams={metrics.compressionParams || {}}
+                    selectedIdx={selectedIdx}
                 />
+
             </div>
 
             {isFullscreen && (
                 <ImageFullScreen
                     imageSrc={imgSrc}
-                    detailType={metrics.type}
                     onPrev={navigation.onPrev}
                     onNext={navigation.onNext}
                     onSwitchFullscreen={fullscreen.onSwitch}

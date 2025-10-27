@@ -34,12 +34,10 @@ const Comparison = () => {
     });
 
     const metricsLeft = {
-        type: "Original Frame metrics",
         details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
     };
 
     const metricsRight = {
-        type: "Processed Frame metrics",
         details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
         compressionParams: getCompressionParams(),
     };
