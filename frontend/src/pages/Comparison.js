@@ -1,75 +1,76 @@
 import FrameBox from "../components/FrameBox";
-import {useRef, useState} from "react";
-import './../styles/pages/Comparison.css';
-import {useFrames} from "../context/FramesContext";
+import { useState } from "react";
+import "../styles/pages/Comparison.css";
+import { useFrames } from "../context/FramesContext";
 import { useMetrics } from "../context/MetricsContext";
 import ImageBlock from "../components/comparison/ImageBlock";
 
 const Comparison = () => {
     const { selectedIdx, setSelectedIdx, frames } = useFrames();
-    const leftRef = useRef(null);
-    const rightRef = useRef(null);
     const [fullscreenSide, setFullscreenSide] = useState(null);
     const { frameMetricsQuery, videoMetricsQuery } = useMetrics();
 
     const getCompressionParams = () => {
-        // const data = videoMetricsQuery?.data || {};
-        //
-        // const candidates = ["compressionParams", "parameters", "params", "config", "encoding", "settings"];
-        // for (const key of candidates) {
-        //     if (data[key] && typeof data[key] === 'object') return data[key];
-        // }
-        // const knownFields = ["crf", "preset", "bandwidth", "bitrate", "aq_mode", "aq_strength", "gop_size", "bf"];
-        // const found = {};
-        // for (const k of knownFields) {
-        //     if (data[k] !== undefined) found[k] = data[k];
-        // }
-        // return Object.keys(found).length > 0 ? found : {};
-    }
-
-    const compressionParamsForProcessed = {
-        ...getCompressionParams(),
+        return {};
     };
 
     const switchFullscreen = (direction) => {
-        if (direction === 'left' || direction === 'right') {
-            setFullscreenSide(direction);
-            return;
-        }
-        setFullscreenSide(prev => (prev === 'left' ? 'right' : 'left'));
+        setFullscreenSide(prev => {
+            if (direction === 'left' || direction === 'right') {
+                if (prev === direction) {
+                    return direction === 'left' ? 'right' : 'left';
+                }
+                return direction;
+            }
 
+            return prev === 'left' ? 'right' : 'left';
+        });
+    };
+
+
+    const makeNavigation = () => ({
+        onPrev: () => setSelectedIdx(prev => Math.max(0, prev - 1)),
+        onNext: () => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1)),
+    });
+
+    const metricsLeft = {
+        type: "Original Frame metrics",
+        details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
+    };
+
+    const metricsRight = {
+        type: "Processed Frame metrics",
+        details: frameMetricsQuery.data?.metrics?.[selectedIdx] || {},
+        compressionParams: getCompressionParams(),
     };
 
     return (
         <div className="comparison">
-            <FrameBox/>
+            <FrameBox />
             <div className="comparison-container">
                 <ImageBlock
-                    imageRef={leftRef}
                     selectedIdx={selectedIdx}
-                    detailType={"Original Frame metrics"}
-                    details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
-                    onPrev={() => setSelectedIdx(prev => Math.max(0, prev - 1))}
-                    onNext={() => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1))}
-                    isFullscreen={fullscreenSide === 'left'}
-                    onOpenFullscreen={() => setFullscreenSide('left')}
-                    onCloseFullscreen={() => setFullscreenSide(null)}
-                    onSwitchFullscreen={switchFullscreen}
+                    metrics={metricsLeft}
+                    navigation={makeNavigation()}
+                    fullscreen={{
+                        is: fullscreenSide === "left",
+                        onOpen: () => setFullscreenSide("left"),
+                        onClose: () => setFullscreenSide(null),
+                        onSwitch: switchFullscreen,
+                    }}
                 />
 
                 <ImageBlock
                     isConst={false}
                     selectedIdx={selectedIdx}
-                    imageRef={rightRef}
-                    detailType={"Processed Frame metrics"}
-                    details={frameMetricsQuery.data?.metrics?.[selectedIdx] || {}}
-                    compressionParams={compressionParamsForProcessed}
-                    onPrev={() => setSelectedIdx(prev => Math.max(0, prev - 1))}
-                    onNext={() => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1))}
-                    isFullscreen={fullscreenSide === 'right'}
-                    onOpenFullscreen={() => setFullscreenSide('right')}
-                    onCloseFullscreen={() => setFullscreenSide(null)}
-                    onSwitchFullscreen={switchFullscreen}
+                    metrics={metricsRight}
+                    navigation={makeNavigation()}
+                    fullscreen={{
+                        is: fullscreenSide === "right",
+                        onOpen: () => setFullscreenSide("right"),
+                        onClose: () => setFullscreenSide(null),
+                        onSwitch: switchFullscreen,
+                    }}
                 />
             </div>
         </div>
