@@ -3,6 +3,7 @@ import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
 import { useComparisonImage } from "./useComparisonImage";
+import { useSettings } from "../../context/SettingsContext";
 
 const ImageBlock = ({
                         isConst = true,
@@ -14,6 +15,8 @@ const ImageBlock = ({
     const [collapsed] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const { imgSrc, compressedIds, fetchImagesForComparison } = useComparisonImage(isConst, selectedIdx);
+    const { parameters } = useSettings();
+    const originalVideoId = parameters.videoId;
 
     useEffect(() => {
         if (typeof fullscreen.is === "boolean") {
@@ -43,7 +46,7 @@ const ImageBlock = ({
                     <div className="static-name">Active param</div>
                 ) : (
                     <select onChange={handleSelectChange}>
-                        <option key={-1} value={-1}>Original Video</option>
+                        <option key={-1} value={originalVideoId}>Original Video</option>
                         {compressedIds.map((id, idx) => (
                             <option key={idx} value={id}>ID: {id}</option>
                         ))}
