@@ -7,6 +7,7 @@ import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
 import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
 import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
+import FrameBoxNavigation from "./FrameBoxNavigation";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 
@@ -137,7 +138,7 @@ const FrameBox = () => {
                 </div>
             </div>
             <div className="timeline-header">
-                <div className="timeline-controls">
+                {/* <div className="timeline-controls">
                     {displayMode === "frames" ? 
                     <FrameByFrameNav
                         frames={frames}
@@ -146,7 +147,8 @@ const FrameBox = () => {
                     >
                     </FrameByFrameNav> :
                     <PlayCompressedVideoNav />}
-                </div>
+                </div> */}
+                <FrameBoxNavigation/>
             </div>
 
             <div className="timeline-content">

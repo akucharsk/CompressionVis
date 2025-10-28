@@ -8,6 +8,7 @@ import './../styles/pages/FrameDistribution.css';
 import {useNavigate, useSearchParams} from "react-router-dom";
 import VideoPlayerForAnalysis from '../components/frameDistribution/VideoPlayerForAnalysis';
 import { useDisplayMode } from '../context/DisplayModeContext';
+import ImageVideoBlock from '../components/ImageVideoBlock';
 
 const FramesDistribution = () => {
     const { frames,  selectedIdx, setSelectedIdx } = useFrames();
@@ -23,7 +24,7 @@ const FramesDistribution = () => {
         <div className="distribution-container">
             <FrameBox />
             <div className="main-frame-container">
-                {displayMode === "frames" ? (
+                {/* {displayMode === "frames" ? (
                     <Frame
                         selectedIdx={selectedIdx}
                         frames={frames}
@@ -32,7 +33,8 @@ const FramesDistribution = () => {
                     <VideoPlayerForAnalysis
                         videoId={videoId}
                     />
-                )}
+                )} */}
+                <ImageVideoBlock />
                 <MacroblockInfo
                     selectedIdx={selectedIdx}
                     frames={frames}
