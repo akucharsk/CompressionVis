@@ -7,11 +7,13 @@ import { apiUrl } from "../utils/urls";
 import { handleApiError } from "../utils/errorHandler";
 import { useFrames } from "../context/FramesContext";
 import { MAX_RETRIES } from "../utils/constants";
+import { useVideoPlaying } from "../context/VideoPlayingContext";
 
 const ImageVideoBlock = () => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, selectedIdx, setSelectedIdx } = useFrames();
     const [ params ] = useSearchParams();
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { showError } = useError();
 
     const [imageUrl, setImageUrl] = useState(null);
@@ -25,46 +27,44 @@ const ImageVideoBlock = () => {
 
     const videoId = parseInt(params.get("videoId"));
 
-    useEffect = (() => {
-        if (displayMode === "frame") {
-            if (!selectedIdx === frameNumberRef) {
-                const controller = new AbortController();
+    useEffect(() => {
+        if (!selectedIdx === frameNumberRef) {
+            const controller = new AbortController();
 
-                const loadImage = async () => {
-                    if (urlImageRef.current) {
-                        URL.revokeObjectURL(urlImageRef.current);
-                    }
+            const loadImage = async () => {
+                if (urlImageRef.current) {
+                    URL.revokeObjectURL(urlImageRef.current);
+                }
 
-                    try {
-                        const url = await fetchImage(
-                            MAX_RETRIES,
-                            `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-                            controller
-                        );
+                try {
+                    const url = await fetchImage(
+                        MAX_RETRIES,
+                        `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
+                        controller
+                    );
 
-                        urlImageRef.current = url;
-                        setImageUrl(url);
-                        frameNumberRef.current = selectedIdx;
-                    } catch (error) {
-                        if (error.name === "AbortError") return;
-                        showError(error.message, error.statusCode);
-                    } finally {
-                        setIsLoading(false);
-                    }
-                };
+                    urlImageRef.current = url;
+                    setImageUrl(url);
+                    frameNumberRef.current = selectedIdx;
+                } catch (error) {
+                    if (error.name === "AbortError") return;
+                    showError(error.message, error.statusCode);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
 
-                loadImage();
+            loadImage();
 
-                return () => {
-                    controller.abort();
-                    urlImageRef.current = null;
-                    frameNumberRef.current = 0;
-                }                
-            }
+            return () => {
+                controller.abort();
+                urlImageRef.current = null;
+                frameNumberRef.current = 0;
+            }                
         }
     }, [displayMode, selectedIdx])
 
-    useEffect = (() => {
+    useEffect(() => {
         if (!videoUrl) {
             const controller = new AbortController();
 
@@ -76,7 +76,7 @@ const ImageVideoBlock = () => {
 
                     const response = await fetch(`${apiUrl}/video/${videoId}/`, {
                         headers: { Range: "bytes=0-" },
-                        signal: controller
+                        signal: controller.signal
                     })
 
                     await handleApiError(response);
@@ -106,12 +106,57 @@ const ImageVideoBlock = () => {
         }
     }, [videoId, showError])
 
+    useEffect(() => {
+        const video = videoRef.current;
+        
+        if (!video) return;
+
+        if (isVideoPlaying) {
+            video.play().catch(() => {});
+        }
+        else video.pause();
+
+    }, [isVideoPlaying])
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !frames.length) return;
+
+        let animationFrameId;
+
+        const updateFrame = () => {
+            const currentTime = video.currentTime;
+            let closestIdx = 0;
+
+            for (let i = 0; i < frames.length; i++) {
+                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                    closestIdx = i;
+                    break;
+                }
+            }
+
+            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+
+            if (!video.paused && !video.ended) {
+                animationFrameId = requestAnimationFrame(updateFrame);
+            }
+        };
+
+        if (isVideoPlaying) {
+            animationFrameId = requestAnimationFrame(updateFrame);
+        }
+
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [videoUrl, frames, isVideoPlaying]);
+
+
     return (
         <div className="left-section">
             {isLoading === false && displayMode === "frames" ? (
                 <img 
                     src={imageUrl}
-                    alt={`Frame ${currentFrameIdx !== null ? currentFrameIdx : selectedIdx} (${frames[selectedIdx].type})`}
+                    // alt={`Frame ${currentFrameIdx !== null ? currentFrameIdx : selectedIdx} (${frames[selectedIdx].type})`}
                 />
             ) : isLoading === false && displayMode === "video" ? (
                 <video
