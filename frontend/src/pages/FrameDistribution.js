@@ -2,17 +2,29 @@ import React, { useState } from 'react';
 import { useFrames } from "../context/FramesContext";
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
 import Frame from "../components/frameDistribution/Frame";
-import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
+import SidePanel from "../components/frameDistribution/SidePanel";
 import FramesBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
-import { useSearchParams } from 'react-router-dom';
 
 const FramesDistribution = () => {
     const { frames, selectedIdx } = useFrames();
-    const [searchParams] = useSearchParams();
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showGrid, setShowGrid] = useState(false);
+    const [showVectors, setShowVectors] = useState(false);
+    const [visibleCategories, setVisibleCategories] = useState({
+        intra: true,
+        inter: true,
+        skip: true,
+        direct: true
+    });
 
-    const videoId = searchParams.get("videoId");
+    const toggleCategory = (category) => {
+        setVisibleCategories(prev => ({
+            ...prev,
+            [category]: !prev[category]
+        }));
+    };
+
 
     return (
         <div className="distribution-container">
@@ -21,11 +33,19 @@ const FramesDistribution = () => {
                 <Frame
                     selectedIdx={selectedIdx}
                     frames={frames}
+                    showGrid={showGrid}
+                    showVectors={showVectors}
+                    visibleCategories={visibleCategories}
                 />
-                <MacroblockInfo
+                <SidePanel
                     selectedIdx={selectedIdx}
                     frames={frames}
-                    handleOnClick={setShowHistoryModal}
+                    setShowVectors={setShowVectors}
+                    setShowGrid={setShowGrid}
+                    showVectors={showVectors}
+                    showGrid={showGrid}
+                    visibleCategories={visibleCategories}
+                    toggleCategory={toggleCategory}
                 />
             </div>
             {showHistoryModal && (

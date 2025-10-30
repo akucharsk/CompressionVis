@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import re
@@ -12,7 +13,7 @@ from compressor.models import Video as VideoModel
 
 
 class MacroBlockView(APIView):
-    def get(self, request, video_id):
+    def post(self, request, video_id):
         try:
             video = VideoModel.objects.get(id=video_id)
         except VideoModel.DoesNotExist:
@@ -53,20 +54,9 @@ class MacroBlockView(APIView):
         os.makedirs(output_folder_vectors, exist_ok=True)
 
         self._extract_vectors(video_path, output_folder_vectors)
-
         self._split_blocks(all_info, output_folder_types)
-        video_name = os.path.splitext(video.filename)[0]
-        output_url_types = f"/static/macroblocks/{video_name}"
-        output_url_vectors = f"/static/macroblocks/{video_name}"
 
-        return Response(
-            {
-                "message": "Macroblock blocks extracted",
-                "output_folder_types": output_url_types,
-                "output_folder_vectors": output_url_vectors
-            },
-            status=status.HTTP_200_OK
-        )
+        return Response({"message": "Macroblocks extraction started successfully."}, status=status.HTTP_200_OK)
 
     def _extract_vectors(self, video_path: str, output_folder: str):
         cap = VideoCap()

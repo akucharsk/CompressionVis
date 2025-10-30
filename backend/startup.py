@@ -1,4 +1,4 @@
-from compressor import models  # zmień 'yourapp' na nazwę swojej aplikacji Django
+from compressor import models
 import os
 import sys
 import shutil
@@ -13,6 +13,16 @@ for file in os.listdir(os.path.join("static", "compressed_videos")):
 for file in os.listdir(os.path.join("static", "frames")):
     if file not in reserved_frame_dirs:
         shutil.rmtree(os.path.join("static", "frames", file))
+
+folder = os.path.join("static", "macroblocks")
+
+for name in os.listdir(folder):
+    path = os.path.join(folder, name)
+
+    if os.path.isfile(path) or os.path.islink(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
 
 video_titles = {
     "example1.y4m": "Witcher 3",

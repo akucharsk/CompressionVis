@@ -1,53 +1,25 @@
-import React from "react";
 import '../../styles/components/distribution/Macroblock.css';
-import Parameters from "../Parameters";
 
-const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
-    const handleHighlightClick = () => {
-        alert("Highlighting macroblocks is not implemented yet.");
-    };
-
+const MacroblockInfo = ({ selectedBlock, setSelectedBlock }) => {
+    if (!selectedBlock) return null;
 
     return (
-        <div className="right-section">
-            <Parameters />
-            <div className="frame-info">
-                <h3>Frame Information</h3>
-                <p>Frame: {selectedIdx}</p>
-                <p>Type: {frames[selectedIdx]?.type}</p>
-                <p>PTS time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
-                <p>Frame size: {Intl.NumberFormat('pl-PL').format(frames[selectedIdx]?.pkt_size)}B</p>
-            </div>
-
-            <div className="macroblock-box">
-                <h3>Macroblock Information</h3>
-                {frames.length > 0 && selectedIdx < frames.length && (
-                    <>
-                        <div className="macroblock-placeholder">
-                            <p>Macroblock visualization would appear here</p>
-                        </div>
-                        <div className="macroblock-info">
-                            <p>Type: {frames[selectedIdx].type}</p>
-                            <p>Time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
-                        </div>
-                    </>
-                )}
-
-            </div>
-            <div className="frame-preview-right">
-                <button
-                    className="highlight-macroblock"
-                    onClick={handleHighlightClick}
-                >
-                    Highlight macroblocks
-                </button>
-                <button
-                    className="history-button"
-                    onClick={() => handleOnClick(true)}
-                >
-                    Show macroblock history
-                </button>
-            </div>
+        <div className="macroblock-info-box">
+            <h4>Macroblock details</h4>
+            <p><strong>Type:</strong> {selectedBlock.type || 'N/A'}</p>
+            <p><strong>Position:</strong> ({selectedBlock.x ?? 'N/A'}, {selectedBlock.y ?? 'N/A'})</p>
+            <p><strong>Size:</strong> {selectedBlock.width ?? 'N/A'}x{selectedBlock.height ?? 'N/A'}</p>
+            <p><strong>Ffmpeg type:</strong> {selectedBlock.ftype ?? 'N/A'}</p>
+            <p><strong>Reference frame:</strong> {selectedBlock.source ?? 'N/A'}</p>
+            {selectedBlock.src_x !== undefined && (
+                <p><strong>Source:</strong> ({selectedBlock.src_x}, {selectedBlock.src_y})</p>
+            )}
+            <button
+                className="macroblock-close-btn"
+                onClick={() => setSelectedBlock && setSelectedBlock(null)}
+            >
+                Close
+            </button>
         </div>
     );
 };

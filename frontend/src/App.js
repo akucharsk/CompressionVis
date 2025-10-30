@@ -9,6 +9,7 @@ import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
+import {MacroblocksProvider} from "./context/MacroblocksContext";
 
 function Layout() {
   const location = useLocation();
@@ -21,14 +22,16 @@ function Layout() {
           <SettingsProvider>
             <FramesProvider>
               <MetricsProvider>
-                {!hideNavbar && <NavigationTabs />}
-                <Routes>
-                  <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="/" element={<Menu />} />
-                  <Route path="/compress" element={<FramesDistribution />} />
-                  <Route path="/comparison" element={<Comparison />} />
-                  <Route path="/quiz" element={<Quiz />} />
-                </Routes>
+                <MacroblocksProvider>
+                  {!hideNavbar && <NavigationTabs />}
+                    <Routes>
+                      <Route path="*" element={<Navigate to="/" />} />
+                      <Route path="/" element={<Menu />} />
+                      <Route path="/compress" element={<FramesDistribution />} />
+                      <Route path="/comparison" element={<Comparison />} />
+                      <Route path="/quiz" element={<Quiz />} />
+                    </Routes>
+                </MacroblocksProvider>
               </MetricsProvider>
             </FramesProvider>
           </SettingsProvider>

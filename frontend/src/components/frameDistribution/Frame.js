@@ -5,27 +5,21 @@ import {apiUrl} from "../../utils/urls";
 import {fetchImage} from "../../api/fetchImage";
 import './../../styles/components/distribution/Frame.css';
 import {useError} from "../../context/ErrorContext";
-import {handleApiError} from "../../utils/errorHandler";
+import {useMacroblocks} from "../../context/MacroblocksContext";
+import MacroblockInfo from "./MacroblockInfo";
 
-const Frame = ({ frames, selectedIdx }) => {
+const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }) => {
     const [imageUrl, setImageUrl] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [blocks, setBlocks] = useState([]);
-    const [showVectors, setShowVectors] = useState(false);
     const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
     const [params] = useSearchParams();
     const videoId = parseInt(params.get("videoId"));
-    const [showGrid, setShowGrid] = useState(false);
     const [selectedBlock, setSelectedBlock] = useState(null);
-    const [visibleCategories, setVisibleCategories] = useState({
-        intra: true,
-        inter: true,
-        skip: true,
-        direct: true
-    });
     const { showError } = useError();
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
+    const { frameMacroBlocksQuery } = useMacroblocks();
 
     useEffect(() => {
         if (selectedIdx === null) {
@@ -72,22 +66,12 @@ const Frame = ({ frames, selectedIdx }) => {
         };
     }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl]);
 
+
     useEffect(() => {
-        if (selectedIdx === null) return;
-
-        const loadBlocks = async () => {
-            try {
-                const response = await fetch(`${apiUrl}/macroblocks/grid/${videoId}/${selectedIdx}`)
-                await handleApiError(response);
-                const data = await response.json();
-                setBlocks(data.blocks);
-            } catch (err) {
-                showError(err);
-            }
+        if (frameMacroBlocksQuery.data?.blocks) {
+            setBlocks(frameMacroBlocksQuery.data.blocks);
         }
-
-        loadBlocks();
-    }, [selectedIdx, videoId]);
+    }, [frameMacroBlocksQuery.data])
 
     const getCategoryColor = (blockType) => {
         switch(blockType) {
@@ -180,12 +164,6 @@ const Frame = ({ frames, selectedIdx }) => {
         }
     }, [showGrid, showVectors, blocks, imageUrl, selectedBlock, visibleCategories]);
 
-    const toggleCategory = (category) => {
-        setVisibleCategories(prev => ({
-            ...prev,
-            [category]: !prev[category]
-        }));
-    };
 
     return (
         <div className="left-section">
@@ -219,64 +197,7 @@ const Frame = ({ frames, selectedIdx }) => {
                 </div>
             )}
 
-            <div style={{ marginTop: "10px" }}>
-                <button onClick={() => setShowGrid(!showGrid)}>
-                    {showGrid ? "Hide grid" : "Show grid"}
-                </button>
-                <button onClick={() => setShowVectors(!showVectors)} style={{ marginLeft: "10px" }}>
-                    {showVectors ? "Hide vectors" : "Show vectors"}
-                </button>
-            </div>
-
-            <div style={{ marginTop: "10px" }}>
-                <label style={{ marginRight: "10px" }}>
-                    <input
-                        type="checkbox"
-                        checked={visibleCategories.intra}
-                        onChange={() => toggleCategory('intra')}
-                    />
-                    <span style={{ color: 'rgb(255, 0, 0)' }}> Intra</span>
-                </label>
-                <label style={{ marginRight: "10px" }}>
-                    <input
-                        type="checkbox"
-                        checked={visibleCategories.inter}
-                        onChange={() => toggleCategory('inter')}
-                    />
-                    <span style={{ color: 'rgb(0, 255, 0)' }}> Inter</span>
-                </label>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={visibleCategories.skip}
-                        onChange={() => toggleCategory('skip')}
-                    />
-                    <span style={{ color: 'rgb(0, 0, 255)' }}> Skip</span>
-                </label>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={visibleCategories.direct}
-                        onChange={() => toggleCategory('direct')}
-                    />
-                    <span style={{ color: 'rgb(0, 255, 255)' }}> Direct</span>
-                </label>
-            </div>
-
-            {selectedBlock && (
-                <div style={{ marginTop: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
-                    <h4>Macroblock details</h4>
-                    <p><strong>Type:</strong> {selectedBlock.type || 'N/A'}</p>
-                    <p><strong>Positon:</strong> ({selectedBlock.x}, {selectedBlock.y})</p>
-                    <p><strong>Size:</strong> {selectedBlock.width}x{selectedBlock.height}</p>
-                    <p><strong>Ffmpeg type:</strong> {selectedBlock.ftype}</p>
-                    <p><strong>Reference frame:</strong> {selectedBlock.source}</p>
-                    {selectedBlock.src_x !== undefined && (
-                        <p><strong>Source:</strong> ({selectedBlock.src_x}, {selectedBlock.src_y})</p>
-                    )}
-                    <button onClick={() => setSelectedBlock(null)}>Close</button>
-                </div>
-            )}
+            <MacroblockInfo selectedBlock={selectedBlock} />
         </div>
     );
 };

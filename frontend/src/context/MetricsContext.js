@@ -15,7 +15,8 @@ export const MetricsProvider = ({ children }) => {
     queryKey: [ "metrics", videoId ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/${videoId}`),
     refetchInterval: defaultRefetchIntervalPolicy,
-    retry: defaultRetryPolicy
+    retry: defaultRetryPolicy,
+    enabled: !!videoId
   });
 
   videoMetricsQuery.isPending = videoMetricsQuery.isPending || videoMetricsQuery.data?.message === "processing";
@@ -24,7 +25,8 @@ export const MetricsProvider = ({ children }) => {
     queryKey: [ "metrics", videoId, "all" ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all`),
     refetchInterval: defaultRefetchIntervalPolicy,
-    retry: defaultRetryPolicy
+    retry: defaultRetryPolicy,
+    enabled: !!videoId
   });
 
   frameMetricsQuery.isPending = frameMetricsQuery.isPending || frameMetricsQuery.data?.message === "processing";
