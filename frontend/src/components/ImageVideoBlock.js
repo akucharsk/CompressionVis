@@ -24,11 +24,14 @@ const ImageVideoBlock = () => {
     const urlImageRef = useRef(null);
     const frameNumberRef = useRef(0);
     const videoRef = useRef(null);
+    const isSynchronizedVideo = useRef(false);
 
     const videoId = parseInt(params.get("videoId"));
 
     useEffect(() => {
-        if (!selectedIdx === frameNumberRef) {
+
+        if (!(selectedIdx === frameNumberRef.current)) {
+
             const controller = new AbortController();
 
             const loadImage = async () => {
@@ -59,7 +62,6 @@ const ImageVideoBlock = () => {
             return () => {
                 controller.abort();
                 urlImageRef.current = null;
-                frameNumberRef.current = 0;
             }                
         }
     }, [displayMode, selectedIdx])
@@ -111,8 +113,12 @@ const ImageVideoBlock = () => {
         
         if (!video) return;
 
+        if (!isSynchronizedVideo.current) {
+            video.currentTime = frames[selectedIdx].pts_time;
+            isSynchronizedVideo.current = true;
+        }
+
         if (isVideoPlaying) {
-            // console.log(frames[selectedIdx].pts_time)
             video.play().catch(() => {});
         }
         else video.pause();
@@ -122,7 +128,7 @@ const ImageVideoBlock = () => {
     useEffect(() => {
         const video = videoRef.current;
 
-        if (!video) return;
+        if (!video) {return;}
         if (!isVideoPlaying) {
             video.currentTime=frames[selectedIdx].pts_time;
         }

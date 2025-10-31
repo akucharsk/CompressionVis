@@ -1,9 +1,11 @@
+import { useDisplayMode } from "../context/DisplayModeContext";
 import { useFrames } from "../context/FramesContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 
 const FrameBoxNavigation = () => {
     const { frames, selectedIdx, setSelectedIdx } = useFrames();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { displayMode, setDisplayMode } = useDisplayMode();
 
     const handleScrollLeft = () => {
         setSelectedIdx(prev => Math.max(0, prev - 1));
@@ -29,12 +31,24 @@ const FrameBoxNavigation = () => {
             <button className="scroll-button left" onClick={handleScrollLeft}>
                 &lt;
             </button>
-            <button
-                className={`play-button ${isVideoPlaying ? 'playing' : ''}`}
-                onClick={() => setIsVideoPlaying(prev => !prev)}
-            >
-                {isVideoPlaying ? '⏹ Stop' : '▶ Play'}
-            </button>
+            {isVideoPlaying ? 
+                <button 
+                    className="play-button playing"
+                    onClick={() => {
+                        setIsVideoPlaying(false);
+                    }}    
+                > 
+                ⏹
+                </button> : 
+                <button 
+                    className="play-button "
+                    onClick={() => {
+                        setIsVideoPlaying(true);
+                        setDisplayMode("video");
+                    }}
+                >
+                ▶
+                </button>}
             <button className="scroll-button right" onClick={handleScrollRight}>
                 &gt;
             </button>

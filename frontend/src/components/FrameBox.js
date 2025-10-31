@@ -331,7 +331,10 @@ const FrameBox = () => {
                             <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
                             <div
                                 className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                                onClick={() => setSelectedIdx(idx)}
+                                onClick={() => {
+                                    setSelectedIdx(idx);
+                                    setDisplayMode("frames");
+                                }}
                                 title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
                             >
                                 {frame.type}
