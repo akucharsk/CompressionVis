@@ -112,11 +112,22 @@ const ImageVideoBlock = () => {
         if (!video) return;
 
         if (isVideoPlaying) {
+            // console.log(frames[selectedIdx].pts_time)
             video.play().catch(() => {});
         }
         else video.pause();
 
-    }, [isVideoPlaying])
+    }, [selectedIdx, isVideoPlaying])
+
+    useEffect(() => {
+        const video = videoRef.current;
+
+        if (!video) return;
+        if (!isVideoPlaying) {
+            video.currentTime=frames[selectedIdx].pts_time;
+        }
+    
+    }, [selectedIdx])
 
     useEffect(() => {
         const video = videoRef.current;

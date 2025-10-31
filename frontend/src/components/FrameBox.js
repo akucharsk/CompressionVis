@@ -20,7 +20,9 @@ const FrameBox = () => {
     // const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     // const playIntervalRef = useRef(null);
-    // const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+    const [fps, setFps] = useState(30); // domyślnie np. 5 FPS
+    // const animationIdRef = useRef(null);
+
     const { showError } = useError();
 
     const [params] = useSearchParams();
@@ -75,6 +77,158 @@ const FrameBox = () => {
     //     };
     // }, [isVideoPlaying, frames.length, playSpeed, fps, setSelectedIdx]);
 
+    // const followFrame = () => {
+    //     if (!containerRef.current) return;
+
+    //     const container = containerRef.current;
+    //     const selectedFrame = container.children[selectedIdx];
+    //     if (!selectedFrame) return;
+
+    //     const containerLeft = container.scrollLeft;
+    //     const containerWidth = container.clientWidth;
+    //     const frameLeft = selectedFrame.offsetLeft;
+    //     const frameWidth = selectedFrame.offsetWidth;
+
+    //     if (frameLeft < containerLeft || frameLeft + frameWidth > containerLeft + containerWidth) {
+    //         const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
+    //         // container.scrollTo({ left: targetScroll, behavior: isVideoPlaying ? 'auto' : 'smooth' });
+    //         container.scrollTo({ left: targetScroll, behavior: 'auto' });
+    //     }
+
+    //     requestAnimationFrame(followFrame);
+    // };
+
+    // const followFrame = () => {
+    //     if (!containerRef.current) return;
+
+    //     const container = containerRef.current;
+    //     const selectedFrame = container.children[selectedIdx];
+    //     if (!selectedFrame) return;
+
+    //     const containerLeft = container.scrollLeft;
+    //     const containerWidth = container.clientWidth;
+    //     const frameLeft = selectedFrame.offsetLeft;
+    //     const frameWidth = selectedFrame.offsetWidth;
+
+    //     if (frameLeft < containerLeft || frameLeft + frameWidth > containerLeft + containerWidth) {
+    //         const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
+    //         container.scrollTo({ left: targetScroll, behavior: 'auto' });
+    //     }
+
+    //     if (isVideoPlaying) requestAnimationFrame(followFrame);
+    // };
+
+    // useEffect(() => {
+    //     if (isVideoPlaying) {
+    //         const container = containerRef.current;
+    //         if (!container) return;
+            
+    //         let animationId;
+
+    //         const scroll = () => {
+    //             container.scrollLeft += fps / 60 * container.children[selectedIdx].width;
+    //             animationId = requestAnimationFrame(scroll);
+    //         }
+
+    //         animationId = requestAnimationFrame(scroll);
+
+    //     } else {
+            
+    //     }
+    // }, [isVideoPlaying])
+
+    // useEffect(() => {
+    //     const container = containerRef.current;
+    //     if (!container) return;
+
+    //     let move = container.children[selectedIdx].offsetWidth * 60 / fps; // px na tick
+    //     let animationId;
+
+    //     const scroll = () => {
+    //         container.scrollLeft += move;
+    //         animationId = requestAnimationFrame(scroll);
+    //     };
+    //     console.log(move);
+    //     if (isVideoPlaying) {
+    //         animationId = requestAnimationFrame(scroll);
+    //     }
+
+    //     return () => cancelAnimationFrame(animationId);
+    // }, [isVideoPlaying]);
+
+    // LAST
+    // useEffect(() => {
+    //     const container = containerRef.current;
+    //     if (!container) return;
+
+    //     let move = container.children[selectedIdx].offsetWidth * 60 / fps; // px na tick
+    //     let animationId;
+
+    //     const scroll = () => {
+    //         container.scrollLeft += move;
+    //         animationId = requestAnimationFrame(scroll);
+    //     };
+    //     console.log(move);
+    //     animationId = requestAnimationFrame(scroll);
+        
+
+    //     return () => cancelAnimationFrame(animationId);
+    // }, [isVideoPlaying]);
+
+
+
+    // useEffect(() => {
+    //     let animationFrameId;
+
+    //     const followFrame = () => {
+    //         if (!containerRef.current) return;
+
+    //         const container = containerRef.current;
+    //         const selectedFrame = container.children[selectedIdx];
+    //         if (!selectedFrame) return;
+
+    //         const containerLeft = container.scrollLeft;
+    //         const containerWidth = container.clientWidth;
+    //         const frameLeft = selectedFrame.offsetLeft;
+    //         const frameWidth = selectedFrame.offsetWidth;
+
+    //         if (frameLeft < containerLeft || frameLeft + frameWidth > containerLeft + containerWidth) {
+    //             const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
+    //             container.scrollTo({ left: targetScroll, behavior: 'auto' });
+    //         }
+
+    //         if (isVideoPlaying) {
+    //             animationFrameId = requestAnimationFrame(followFrame);
+    //         }
+    //     };
+
+    //     if (isVideoPlaying) {
+    //         animationFrameId = requestAnimationFrame(followFrame);
+    //     }
+
+    //     return () => {
+    //         if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    //     } 
+    // }, [isVideoPlaying, selectedIdx])
+
+    // useEffect(() => {
+    //     if (!isVideoPlaying) {
+    //         cancelAnimationFrame(animationIdRef.current);
+    //         animationIdRef.current = null;
+    //         return;
+    //     }
+
+    //     const animate = () => {
+    //         followFrame();
+    //         animationIdRef.current = requestAnimationFrame(animate);
+    //     };
+
+    //     animationIdRef.current = requestAnimationFrame(animate);
+
+    //     return () => cancelAnimationFrame(animationIdRef.current);
+    // }, [isVideoPlaying, selectedIdx]);
+
+
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -92,6 +246,25 @@ const FrameBox = () => {
             container.scrollTo({ left: targetScroll, behavior: isVideoPlaying ? 'auto' : 'smooth' });
         }
     }, [selectedIdx, isVideoPlaying]);
+
+    // useEffect(() => {
+    //     let animationFrameId
+    // }, [selectedIdx])
+
+
+    // useEffect(() => {
+    //     if (!animationIdRef.current) {
+    //         animationIdRef.current = requestAnimationFrame(followFrame);
+    //     } else {
+    //         cancelAnimationFrame(animationIdRef.current);
+    //         animationIdRef.current = null;
+    //     }
+    // }, [isVideoPlaying])
+
+    // useEffect(() => {
+    //     const id = requestAnimationFrame(followFrame);
+    //     return () => cancelAnimationFrame(id);
+    // }, [selectedIdx])
 
     useEffect(() => {
         const handleKeyDown = (e) => {
