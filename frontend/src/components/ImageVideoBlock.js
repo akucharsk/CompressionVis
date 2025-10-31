@@ -9,12 +9,14 @@ import { useFrames } from "../context/FramesContext";
 import { MAX_RETRIES } from "../utils/constants";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import FramesDistribution from "../pages/FrameDistribution";
+import { useFps } from "../context/FpsContext";
 
 const ImageVideoBlock = () => {
-    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { displayMode } = useDisplayMode();
     const { frames, selectedIdx, setSelectedIdx } = useFrames();
     const [ params ] = useSearchParams();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { fps } = useFps();
     const { showError } = useError();
 
     const [imageUrl, setImageUrl] = useState(null);
@@ -25,7 +27,6 @@ const ImageVideoBlock = () => {
     const urlImageRef = useRef(null);
     const frameNumberRef = useRef(null);
     const videoRef = useRef(null);
-    const isSynchronizedVideo = useRef(false);
 
     const videoId = parseInt(params.get("videoId"));
 
@@ -109,6 +110,7 @@ const ImageVideoBlock = () => {
         }
     }, [videoId, showError])
 
+    // effect for mounting playbackRate and video moment after setting `video` for displayMode
     useEffect(() => {
         const video = videoRef.current;
         
@@ -135,6 +137,7 @@ const ImageVideoBlock = () => {
         // NAPISAC CHLOPAKOM O TYM SLEDZENIU
 
         if (isVideoPlaying) {
+            video.playbackRate = fps / 30;
             video.currentTime = frames[frameNumberRef.current].pts_time;
             video.play().catch(() => {});
         }
@@ -142,6 +145,7 @@ const ImageVideoBlock = () => {
 
     }, [isVideoPlaying])
 
+    // setting video moment
     useEffect(() => {
         const video = videoRef.current;
 
@@ -155,6 +159,16 @@ const ImageVideoBlock = () => {
     
     }, [selectedIdx])
 
+    // changing video speed
+    useEffect(() => {
+        const video = videoRef.current;
+
+        if (!video) return;
+        video.playbackRate = fps / 30;
+
+    }, [fps])
+
+    // changing selectedIdx during video playing
     useEffect(() => {
         const video = videoRef.current;
         if (!video || !frames.length) return;

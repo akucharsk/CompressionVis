@@ -10,6 +10,7 @@ import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 import FrameBoxNavigation from "./FrameBoxNavigation";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
+import { useFps } from "../context/FpsContext";
 
 const FrameBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
@@ -20,10 +21,11 @@ const FrameBox = () => {
     // const [playSpeed] = useState(1);
     const containerRef = useRef(null);
     // const playIntervalRef = useRef(null);
-    const [fps, setFps] = useState(30); // domyślnie np. 5 FPS
+    // const [fps, setFps] = useState(30); // domyślnie np. 5 FPS
     // const animationIdRef = useRef(null);
 
     const { showError } = useError();
+    const { fps, setFps } = useFps();
 
     const [params] = useSearchParams();
     const videoId = params.get("videoId");
@@ -294,33 +296,26 @@ const FrameBox = () => {
     return (
         <div className="frames-container">
             <div className="mode-nav">
-                <div
-                    onClick={() => setDisplayMode("frames")}
-                    className={displayMode === "frames" ? "active" : ""}
-                >
-                    Frames
-                </div>
-                <div
-                    onClick={() => setDisplayMode("video")}
-                    className={displayMode === "video" ? "active" : ""}
-                >
-                    Video
-                </div>
                 <div className="frame-counter">
                     {selectedIdx + 1} / {frames.length}
                 </div>
             </div>
+            <div className="speed-control">
+                <label>Speed:</label>
+                <div className="speed-slider-container">
+                    <input
+                        type="range"
+                        min="6"
+                        max="30"
+                        step="6"
+                        value={fps}
+                        onChange={(e) => setFps(Number(e.target.value))}
+                        className="speed-slider"
+                    />
+                    <div className="speed-value">{fps} FPS</div>
+                </div>
+            </div>
             <div className="timeline-header">
-                {/* <div className="timeline-controls">
-                    {displayMode === "frames" ? 
-                    <FrameByFrameNav
-                        frames={frames}
-                        selectedIdx={selectedIdx}
-                        setSelectedIdx={setSelectedIdx}
-                    >
-                    </FrameByFrameNav> :
-                    <PlayCompressedVideoNav />}
-                </div> */}
                 <FrameBoxNavigation/>
             </div>
 

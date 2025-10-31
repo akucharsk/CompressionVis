@@ -3,23 +3,28 @@ import { useFrames } from "../context/FramesContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 
 const FrameBoxNavigation = () => {
-    const { frames, selectedIdx, setSelectedIdx } = useFrames();
+    const { frames, setSelectedIdx } = useFrames();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
-    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { setDisplayMode } = useDisplayMode();
 
     const handleScrollLeft = () => {
+        setDisplayMode("frames");
         setSelectedIdx(prev => Math.max(0, prev - 1));
     };
 
     const handleScrollRight = () => {
+        setDisplayMode("frames");
+
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
     };
 
     const handleMinusTen = () => {
+        setDisplayMode("frames");
         setSelectedIdx(prev => Math.max(0, prev - 10));
     };
 
     const handlePlusTen = () => {
+        setDisplayMode("frames");
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
     };
 

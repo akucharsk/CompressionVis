@@ -9,6 +9,7 @@ import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
 import { DisplayModeProvider } from './context/DisplayModeContext';
 import { VideoPlayingProvider } from './context/VideoPlayingContext';
+import { FpsProvider } from './context/FpsContext';
 
 function Layout() {
   const location = useLocation();
@@ -17,20 +18,22 @@ function Layout() {
   return (
       <ErrorProvider>
           <SettingsProvider>
-              <FramesProvider>
-                <DisplayModeProvider>
-                  <VideoPlayingProvider>
-                    {!hideNavbar && <NavigationTabs />}
-                    <Routes>
-                        <Route path="*" element={<Navigate to="/" />} />
-                        <Route path="/" element={<Menu />} />
-                        <Route path="/compress" element={<FramesDistribution />} />
-                        <Route path="/comparison" element={<Comparison />} />
-                        <Route path="/quiz" element={<Quiz />} />
-                    </Routes>
-                  </VideoPlayingProvider>
-                </DisplayModeProvider>
-              </FramesProvider>
+              <FpsProvider>  
+                <FramesProvider>
+                  <DisplayModeProvider>
+                    <VideoPlayingProvider>
+                      {!hideNavbar && <NavigationTabs />}
+                      <Routes>
+                          <Route path="*" element={<Navigate to="/" />} />
+                          <Route path="/" element={<Menu />} />
+                          <Route path="/compress" element={<FramesDistribution />} />
+                          <Route path="/comparison" element={<Comparison />} />
+                          <Route path="/quiz" element={<Quiz />} />
+                      </Routes>
+                    </VideoPlayingProvider>
+                  </DisplayModeProvider>
+                </FramesProvider>
+              </FpsProvider>
           </SettingsProvider>
       </ErrorProvider>
   );
