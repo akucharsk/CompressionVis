@@ -8,6 +8,7 @@ import { handleApiError } from "../utils/errorHandler";
 import { useFrames } from "../context/FramesContext";
 import { MAX_RETRIES } from "../utils/constants";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
+import FramesDistribution from "../pages/FrameDistribution";
 
 const ImageVideoBlock = () => {
     const { displayMode, setDisplayMode } = useDisplayMode();
@@ -22,7 +23,7 @@ const ImageVideoBlock = () => {
 
     const urlVideoRef = useRef(null);
     const urlImageRef = useRef(null);
-    const frameNumberRef = useRef(0);
+    const frameNumberRef = useRef(null);
     const videoRef = useRef(null);
     const isSynchronizedVideo = useRef(false);
 
@@ -113,24 +114,43 @@ const ImageVideoBlock = () => {
         
         if (!video) return;
 
-        if (!isSynchronizedVideo.current) {
-            video.currentTime = frames[selectedIdx].pts_time;
-            isSynchronizedVideo.current = true;
-        }
+        // if (!isSynchronizedVideo.current) {
+        //     video.currentTime = frames[selectedIdx].pts_time;
+        //     isSynchronizedVideo.current = true;
+        // }
+
+        // NAPRAWIĆ KWESTIE TEGO ŻE WIDEO SIE ZATRZYMUJE KLATKE DALEJ NIZ SELECTIDX 
+        // BYC MOZE W REQUESTANIMATIONFRAME DODAJE O JEDNO ZA MALO PRZED ZATRZYMANIEM?
+        
+        // DODAC ZMIANE TRYBU I SYNCHRONIZACJE, TAK ZEBY PO PRZEJSCIU Z KLATEK WIDEO BYLO PUSZCZANE Z ODPOWIEDNIEGO A NIE OD POCZATKU
+
+        // DODAC DO INNYCH PRZYCISKOW ZMIANE TRYBU NA FRAMES
+
+        // DODAC SUWAK
+
+        // DODAC CSSY
+
+        // SPOJRZEC CZY ANTEK NIE PISAL O JAKIMS BUGU NA DC
+
+        // NAPISAC CHLOPAKOM O TYM SLEDZENIU
 
         if (isVideoPlaying) {
+            video.currentTime = frames[frameNumberRef.current].pts_time;
             video.play().catch(() => {});
         }
         else video.pause();
 
-    }, [selectedIdx, isVideoPlaying])
+    }, [isVideoPlaying])
 
     useEffect(() => {
         const video = videoRef.current;
 
-        if (!video) {return;}
-        if (!isVideoPlaying) {
-            video.currentTime=frames[selectedIdx].pts_time;
+        if (!video) {
+            frameNumberRef.current = selectedIdx;            
+        } else {
+            if (!isVideoPlaying) {
+                video.currentTime=frames[selectedIdx].pts_time;
+            }
         }
     
     }, [selectedIdx])
@@ -173,6 +193,7 @@ const ImageVideoBlock = () => {
             {isLoading === false && displayMode === "frames" ? (
                 <img 
                     src={imageUrl}
+                    className={`${selectedIdx}-frameid-${frameNumberRef.current}`}
                     // alt={`Frame ${currentFrameIdx !== null ? currentFrameIdx : selectedIdx} (${frames[selectedIdx].type})`}
                 />
             ) : isLoading === false && displayMode === "video" ? (
