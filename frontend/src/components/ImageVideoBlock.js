@@ -8,7 +8,6 @@ import { handleApiError } from "../utils/errorHandler";
 import { useFrames } from "../context/FramesContext";
 import { MAX_RETRIES } from "../utils/constants";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
-import FramesDistribution from "../pages/FrameDistribution";
 import { useFps } from "../context/FpsContext";
 
 const ImageVideoBlock = () => {
@@ -31,42 +30,33 @@ const ImageVideoBlock = () => {
     const videoId = parseInt(params.get("videoId"));
 
     useEffect(() => {
+    if (!frames.length) return;
+    if (imageUrl && selectedIdx === frameNumberRef.current) return;
 
-        if (!(selectedIdx === frameNumberRef.current)) {
+    const controller = new AbortController();
 
-            const controller = new AbortController();
-
-            const loadImage = async () => {
-                if (urlImageRef.current) {
-                    URL.revokeObjectURL(urlImageRef.current);
-                }
-
-                try {
-                    const url = await fetchImage(
-                        MAX_RETRIES,
-                        `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-                        controller
-                    );
-
-                    urlImageRef.current = url;
-                    setImageUrl(url);
-                    frameNumberRef.current = selectedIdx;
-                } catch (error) {
-                    if (error.name === "AbortError") return;
-                    showError(error.message, error.statusCode);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            loadImage();
-
-            return () => {
-                controller.abort();
-                urlImageRef.current = null;
-            }                
+    const loadImage = async () => {
+        try {
+            const url = await fetchImage(
+                MAX_RETRIES,
+                `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
+                controller
+            );
+            
+            urlImageRef.current = url;
+            setImageUrl(url);
+            frameNumberRef.current = selectedIdx;
+        } catch (error) {
+            if (error.name === "AbortError") return;
+            showError(error.message, error.statusCode);
+        } finally {
+            setIsLoading(false);
         }
-    }, [displayMode, selectedIdx])
+    };
+
+    loadImage();
+    return () => controller.abort();
+}, [displayMode, selectedIdx, frames, imageUrl]);
 
     useEffect(() => {
         if (!videoUrl) {
@@ -121,27 +111,29 @@ const ImageVideoBlock = () => {
         //     isSynchronizedVideo.current = true;
         // }
 
-        // NAPRAWIĆ KWESTIE TEGO ŻE WIDEO SIE ZATRZYMUJE KLATKE DALEJ NIZ SELECTIDX 
-        // BYC MOZE W REQUESTANIMATIONFRAME DODAJE O JEDNO ZA MALO PRZED ZATRZYMANIEM?
-        
-        // DODAC ZMIANE TRYBU I SYNCHRONIZACJE, TAK ZEBY PO PRZEJSCIU Z KLATEK WIDEO BYLO PUSZCZANE Z ODPOWIEDNIEGO A NIE OD POCZATKU
-
-        // DODAC DO INNYCH PRZYCISKOW ZMIANE TRYBU NA FRAMES
-
-        // DODAC SUWAK
-
-        // DODAC CSSY
-
-        // SPOJRZEC CZY ANTEK NIE PISAL O JAKIMS BUGU NA DC
-
-        // NAPISAC CHLOPAKOM O TYM SLEDZENIU
+        // NAPRAWIC CZEMU SIE NIE CHCE OD NOWA DAC
 
         if (isVideoPlaying) {
             video.playbackRate = fps / 30;
             video.currentTime = frames[frameNumberRef.current].pts_time;
             video.play().catch(() => {});
         }
-        else video.pause();
+        else {
+            video.pause();
+            const currentTime = video.currentTime;
+            let closestIdx = 0;
+
+            for (let i = 0; i < frames.length; i++) {
+                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                    closestIdx = i;
+                    break;
+                }
+            }
+
+            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+            frameNumberRef.current = selectedIdx;
+        }
 
     }, [isVideoPlaying])
 
@@ -214,7 +206,10 @@ const ImageVideoBlock = () => {
                 <video
                     ref={videoRef}
                     src={videoUrl}
-                    onEnded={() => setIsVideoPlaying(false)}
+                    onEnded={() => {
+                        setIsVideoPlaying(false);
+                        frameNumberRef.current = 0;
+                    }}
                     className="compressed-video"
                 />
             ) : (<div className="spinner"></div>)}

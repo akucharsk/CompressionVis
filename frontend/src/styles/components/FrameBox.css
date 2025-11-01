@@ -20,7 +20,7 @@
 .timeline-controls {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.0rem;
     flex-wrap: nowrap;
     /* width: 100%; */
 }
@@ -51,7 +51,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 2.0rem;
+    font-size: 2.5rem;
     font-weight: bold;
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -73,6 +73,22 @@
     min-width: 30px;
     min-height: 30px;
     padding: 0;
+    font-size: 1.0rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 10px;
+}
+
+.scroll-button-mini div,h6 {
+    top: 50%;               /* przesuń w dół do połowy wysokości */
+    transform: translateY(+90%);
+    font-size: 0.6rem;
+    margin-top: 5px;
+}
+
+.scroll-button-mini div {
     font-size: 1.0rem;
 }
 
@@ -138,13 +154,14 @@
 
 .speed-slider {
     flex: 1;
-    height: 6px;
+    height: 10px;
     -webkit-appearance: none;
     background: var(--border-color);
-    border-radius: 3px;
+    border-radius: 6px;
     background: linear-gradient(to right, var(--netflix-red) 0%, var(--netflix-red) var(--percent), var(--border-color) var(--percent), var(--border-color) 100%);
     outline: none;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 .speed-slider::-webkit-slider-thumb {
@@ -173,6 +190,20 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.speed-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--netflix-red);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.speed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
 .speed-value {
     font-size: 0.8rem;
     font-weight: 600;
@@ -184,6 +215,7 @@
 
 .frame-counter {
     color: var(--font-color);
+    text-align: center;
     font-size: 0.9rem;
     font-weight: 600;
     background: rgba(0, 0, 0, 0.1);

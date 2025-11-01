@@ -16,16 +16,10 @@ const FrameBox = () => {
     const { frames, setFrames, selectedIdx, setSelectedIdx } = useFrames();
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
-    
-    const [isLoading, setIsLoading] = useState(true);
-    // const [playSpeed] = useState(1);
-    const containerRef = useRef(null);
-    // const playIntervalRef = useRef(null);
-    // const [fps, setFps] = useState(30); // domyślnie np. 5 FPS
-    // const animationIdRef = useRef(null);
-
     const { showError } = useError();
-    const { fps, setFps } = useFps();
+
+    const [isLoading, setIsLoading] = useState(true);
+    const containerRef = useRef(null);
 
     const [params] = useSearchParams();
     const videoId = params.get("videoId");

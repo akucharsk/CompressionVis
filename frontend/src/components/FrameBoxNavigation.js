@@ -44,7 +44,8 @@ const FrameBoxNavigation = () => {
             <div></div>
             <div className="timeline-controls">
                 <button className="scroll-button-mini left" onClick={handleMinusTen}>
-                    -10
+                    <div>&lt;&lt;</div>
+                    <h6>-10</h6>
                 </button>
                 <button className="scroll-button left" onClick={handleScrollLeft}>
                     &lt;
@@ -57,7 +58,16 @@ const FrameBoxNavigation = () => {
                         }}    
                     > 
                     ⏹
-                    </button> : 
+                    </button>
+                : !isVideoPlaying && selectedIdx == frames.length - 1 ?  
+                    <button 
+                        className="play-button "
+                        onClick={() => {
+                            setSelectedIdx(0);
+                        }}
+                    >
+                    ⟳
+                    </button> :    
                     <button 
                         className="play-button "
                         onClick={() => {
@@ -71,7 +81,8 @@ const FrameBoxNavigation = () => {
                     &gt;
                 </button>
                 <button className="scroll-button-mini right " onClick={handlePlusTen}>
-                    +10
+                    <div>&gt;&gt;</div>
+                    <h6>+10</h6>
                 </button>
             </div>
             <div className="timeline-rightbar">
