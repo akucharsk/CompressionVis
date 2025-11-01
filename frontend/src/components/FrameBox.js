@@ -295,30 +295,7 @@ const FrameBox = () => {
 
     return (
         <div className="frames-container">
-            <div className="mode-nav">
-                <div className="frame-counter">
-                    {selectedIdx + 1} / {frames.length}
-                </div>
-            </div>
-            <div className="speed-control">
-                <label>Speed:</label>
-                <div className="speed-slider-container">
-                    <input
-                        type="range"
-                        min="6"
-                        max="30"
-                        step="6"
-                        value={fps}
-                        onChange={(e) => setFps(Number(e.target.value))}
-                        className="speed-slider"
-                    />
-                    <div className="speed-value">{fps} FPS</div>
-                </div>
-            </div>
-            <div className="timeline-header">
-                <FrameBoxNavigation/>
-            </div>
-
+            <FrameBoxNavigation />
             <div className="timeline-content">
                 <div className="scrollable-frameBox" ref={containerRef}>
                     {frames.map((frame, idx) => (
