@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
     "@testing-library/dom": "^10.4.1",
@@ -11,6 +12,7 @@
     "next-themes": "^0.4.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "globals": "^16.5.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",
@@ -25,7 +27,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint 'src/**/*.{js,jsx}'",
+    "lint-fix": "eslint 'src/**/*.{js,jsx}' --fix"
   },
   "eslintConfig": {
     "extends": [
@@ -44,5 +48,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-no-commented-code": "^1.0.10"
   }
 }
