@@ -18,9 +18,7 @@ const ImageBlock = ({
     let isOriginalChosen = !isConst;
 
     useEffect(() => {
-        if (typeof fullscreen.is === "boolean") {
-            setIsFullscreen(fullscreen.is);
-        }
+        setIsFullscreen(fullscreen.is);
     }, [fullscreen.is]);
 
     const handleSelectChange = (e) => {

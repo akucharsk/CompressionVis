@@ -52,18 +52,14 @@ const ImageDetails = ({
     const videoData = videoMetricsQuery.data || {};
     const videoMetrics = videoData.metrics || videoData || {};
 
-    const rawFrames = frameMetricsQuery.data;
-    const frameMetrics =
-        rawFrames?.metrics ||
-        rawFrames?.frames ||
-        (Array.isArray(rawFrames) ? rawFrames : null);
+    const frameMetrics = frameMetricsQuery.data?.metrics;
 
     const selectedFrame =
         Array.isArray(frameMetrics) && frameMetrics.length > selectedIdx
             ? frameMetrics[selectedIdx]
             : null;
     const maxMetricsValues = {
-        PSNR: "100 (Max Score)",
+        PSNR: "---",
         SSIM: "1   (Max Score)",
         VMAF: "100 (Max Score)",
     };
