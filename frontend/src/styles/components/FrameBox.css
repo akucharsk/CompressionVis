@@ -170,6 +170,7 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
 }
 
 .scrollable-frameBox {
@@ -179,7 +180,7 @@
     padding: 0.5rem 0;
     scrollbar-width: thin;
     scrollbar-color: var(--netflix-red) var(--background-second);
-    min-height: 100px;
+    /* min-height: 100px; */
 }
 
 .scrollable-frameBox::-webkit-scrollbar {
@@ -268,10 +269,10 @@
     z-index: -1;
 }
 
-.indicator-config {
+.indicators-config {
     display: flex;
     flex-direction: column;
-    width: 15%;
+    width: fit-content;
     gap: 1rem;
     margin-top: 10px;
     border-radius: 10px;
@@ -280,21 +281,67 @@
     z-index: 2;
 }
 
-.indicator-config-heading {
+.indicators-config-heading {
     font-weight: bold;
     margin: auto;
 }
 
-.indicator-block {
-    color: black;
-    width: 95%;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    margin-top: -4px;
-    padding-top: 6px;
-    padding-bottom: 2px;
+.indicator-options {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.indicator-option {
+    display: flex;
+    justify-content: space-between;
     border: 1px solid black;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-radius: 4px;
+    background-color: var(--background-second);
+}
+
+.indicator-option:hover {
+    background-color: var(--netflix-gray);
+}
+
+.indicator-option:active {
+    background-color: var(--netflix-red);
+}
+
+.indicators-block, .indicator-label {
+    padding: 0.3rem 0;
     font-size: small;
     display: flex;
     justify-content: center;
+    height: 1rem;
+    border: 1px solid black;
+    width: 95%;
+}
+
+.indicators-block {
+    color: black;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.indicator-label {
+    color: white;
+    background-color: gray;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    padding: 0.3rem 0.3rem;
+}
+
+.indicator-labels {
+    display: flex;
+    flex-direction: column-reverse;
+    flex-shrink: 0;
+    align-items: flex-end;
+    font-weight: bold;
+    background: #1e1e1e;
+    padding: 0.5rem 0;
+    padding-left: 1rem;
+    border-radius: 8px;
+    background-color: var(--background-second);
 }
