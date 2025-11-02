@@ -7,14 +7,14 @@ import Menu from './pages/Menu';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
+import {queryClient} from "./utils/queryClient";
 
 function Layout() {
   const location = useLocation();
   const hideNavbar = location.pathname === "/";
-  const queryClient = new QueryClient();
 
   return (
       <ErrorProvider>
