@@ -365,24 +365,6 @@ class AllFramesMetricsView(APIView):
 
         return Response({"metrics": frame_metrics}, status=status.HTTP_200_OK)
 
-class ParametersView(APIView):
-    def get(self, request, video_id):
-        try:
-            video = models.Video.objects.get(id=video_id)
-        except models.Video.DoesNotExist:
-            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        params = {
-            "crf": video.crf,
-            "gop_size": video.gop_size,
-            "b_frames": video.bf,
-            "aq_mode": video.aq_mode,
-            "aq_strength": f"{video.aq_strength:.1f}",
-            "preset": video.preset,
-            "resolution": f"{video.width}x{video.height}"
-        }
-        return Response(camelize(params), status=status.HTTP_200_OK)
-
 class SizeView(APIView):
     def get(self, request, video_id):
         try:
