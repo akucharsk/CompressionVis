@@ -1,12 +1,21 @@
+import Spinner from "../Spinner";
+import {useMacroblocks} from "../../context/MacroblocksContext";
+
 const MacroblockControl = ({setShowGrid, setShowVectors, showGrid, showVectors, toggleCategory, visibleCategories}) => {
+    const { triggerMacroblocksExtraction } = useMacroblocks();
+
     return (
         <div className="frame-preview-right">
             <div className="macroblock-controls-box">
                 <button
                     className="show-macroblock-grid"
                     onClick={() => setShowGrid(!showGrid)}
+                    disabled={!triggerMacroblocksExtraction.isSuccess}
                 >
-                    {showGrid ? "Hide grid" : "Show grid"}
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                        {triggerMacroblocksExtraction.isLoading && <Spinner size={15} />}
+                        {showGrid ? "Hide macroblock grid" : "Show macroblock grid"}
+                    </div>
                 </button>
 
                 <div className={`checkbox-container ${showGrid ? 'expanded' : 'collapsed'}`}>
@@ -51,8 +60,12 @@ const MacroblockControl = ({setShowGrid, setShowVectors, showGrid, showVectors, 
             <button
                 className="show-macroblock-vectors"
                 onClick={() => setShowVectors(!showVectors)}
+                disabled={!triggerMacroblocksExtraction.isSuccess}
             >
-                {showVectors ? "Hide vectors" : "Show vectors"}
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    {triggerMacroblocksExtraction.isLoading && <Spinner size={15} />}
+                    {showVectors ? "Hide motion vectors" : "Show motion vectors"}
+                </div>
             </button>
         </div>
     )

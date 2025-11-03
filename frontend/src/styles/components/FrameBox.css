@@ -14,13 +14,8 @@
     justify-content: flex-start;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-controls {
-    display: flex;
-    align-items: center;
     gap: 1rem;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
 }
 
@@ -50,6 +45,10 @@
 .scroll-button {
     min-width: 40px;
     padding: 0;
+}
+
+.i-frame {
+    min-width:120px;
 }
 
 .play-button:hover, .scroll-button:hover {
@@ -162,6 +161,42 @@
     border-radius: 6px;
     border: 1px solid var(--border-color);
     white-space: nowrap;
+    min-width: 70px;
+    text-align: center;
+}
+
+.frame-counter input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.frame-counter input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.frame-counter input {
+    background: var(--background-second);
+    color: var(--font-color);
+    font: inherit;
+    text-align: center;
+    width: 48px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 4px;
+
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.frame-counter input:hover {
+    border-color: var(--netflix-gray);
+}
+
+.frame-counter input:focus {
+    border-color: var(--netflix-red);
+    box-shadow: 0 0 4px var(--shadow-red);
 }
 
 .timeline-content {
@@ -171,6 +206,8 @@
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: flex;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .scrollable-frameBox {
@@ -181,6 +218,32 @@
     scrollbar-width: thin;
     scrollbar-color: var(--netflix-red) var(--background-second);
     /* min-height: 100px; */
+    transform: rotateX(180deg);
+    flex: 1; /* zajmuje dostępną przestrzeń */
+    min-width: 0; /* pozwala na scroll */
+}
+
+.scrollable-frameBox > * {
+    transform: rotateX(180deg);
+}
+
+.frame-number {
+    font-size: 0.6rem;
+    color: var(--font-color);
+    position: absolute;
+    bottom: 4px;
+}
+
+.frame-type {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.frame-time {
+    font-size: 0.6rem;
+    color: var(--font-color);
+    position: absolute;
+    top: 4px;
 }
 
 .scrollable-frameBox::-webkit-scrollbar {
@@ -216,6 +279,7 @@
 }
 
 .frame {
+    flex-direction: column;
     width: 3.5em;
     height: 3.5em;
     border-radius: 6px;
@@ -230,6 +294,14 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     border: 1px solid var(--netflix-black);
     position: relative;
+}
+
+.frame-container.selected {
+    z-index: 2;
+}
+
+.frame-container:hover {
+    z-index: 1;
 }
 
 .frame.I {
@@ -274,9 +346,9 @@
     flex-direction: column;
     width: fit-content;
     gap: 1rem;
-    margin-top: 10px;
+    margin-top: 0;
     border-radius: 10px;
-    border: 1px solid var(--netflix-gray);
+    border: 1px solid var(--border-color);
     padding: 10px;
     z-index: 2;
 }
@@ -344,4 +416,13 @@
     padding-left: 1rem;
     border-radius: 8px;
     background-color: var(--background-second);
+}
+
+.frames-and-indicator {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    width: 100%;
+    overflow: hidden;
+    align-items: stretch;
 }

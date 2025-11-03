@@ -23,10 +23,14 @@ const FramesBox = () => {
         selectedIdx,
         setSelectedIdx,
     } = useFrames();
-
+    const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
     const { videoMetricsQuery } = useMetrics();
 
     const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
+
+    useEffect(() => {
+        setFrameInput((selectedIdx + 1).toString());
+    }, [selectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -92,6 +96,28 @@ const FramesBox = () => {
         setSelectedIdx(iFrames[nextPos]);
     }
 
+    const handleFrameInputChange = (e) => {
+        const val = e.target.value;
+        if (val === '') {
+            setFrameInput('');
+            return;
+        }
+
+        const num = Number(val);
+        if (!isNaN(num) && num >= 1 && num <= frames.length) {
+            setSelectedIdx(num - 1);
+            setFrameInput(val);
+        } else {
+            setFrameInput(val);
+        }
+    };
+
+    const handleFrameInputBlur = () => {
+        if (frameInput === '') {
+            setFrameInput((selectedIdx + 1).toString());
+        }
+    };
+
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
@@ -104,78 +130,85 @@ const FramesBox = () => {
         <div className="frames-container">
             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                 <div className="timeline-header">
-                    <div className="timeline-controls">
-                        <button className="scroll-button left" onClick={handleMinusTen}>
-                            -10
-                        </button>
-                        <button className="scroll-button left" onClick={handleScrollLeft}>
-                            &lt;
-                        </button>
-                        <button
-                            className={`play-button ${isPlaying ? 'playing' : ''}`}
-                            onClick={() => setIsPlaying(prev => !prev)}
-                        >
-                            {isPlaying ? '⏹ Stop' : '▶ Play'}
-                        </button>
-                        <button className="scroll-button right" onClick={handleScrollRight}>
-                            &gt;
-                        </button>
-                        <button className="scroll-button right" onClick={handlePlusTen}>
-                        +10
-                        </button>
-                        <div className="speed-control">
-                            <label>Speed:</label>
-                            <div className="speed-slider-container">
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="15"
-                                    step="1"
-                                    value={fps}
-                                    onChange={(e) => setFps(Number(e.target.value))}
-                                    className="speed-slider"
-                                />
-                                <div className="speed-value">{fps} FPS</div>
-                            </div>
-                        </div>
-                        <div className="frame-counter">
-                        {selectedIdx + 1} / {frames.length}
+                    <button className="scroll-button left" onClick={handleMinusTen}>
+                        -10
+                    </button>
+                    <button className="scroll-button left" onClick={handleScrollLeft}>
+                        &lt;
+                    </button>
+                    <button
+                        className={`play-button ${isPlaying ? 'playing' : ''}`}
+                        onClick={() => setIsPlaying(prev => !prev)}
+                    >
+                        {isPlaying ? '⏹ Stop' : '▶ Play'}
+                    </button>
+                    <button className="scroll-button right" onClick={handleScrollRight}>
+                        &gt;
+                    </button>
+                    <button className="scroll-button right" onClick={handlePlusTen}>
+                    +10
+                    </button>
+                    <div className="speed-control">
+                        <label>Speed:</label>
+                        <div className="speed-slider-container">
+                            <input
+                                type="range"
+                                min="1"
+                                max="15"
+                                step="1"
+                                value={fps}
+                                onChange={(e) => setFps(Number(e.target.value))}
+                                className="speed-slider"
+                            />
+                            <div className="speed-value">{fps} FPS</div>
                         </div>
                     </div>
-                    <button className="scroll-button right" onClick={handleNextIFrame}>
+                    <div className="frame-counter">
+                        <input
+                            type="number"
+                            min={1}
+                            max={frames.length}
+                            value={frameInput}
+                            onChange={handleFrameInputChange}
+                            onBlur={handleFrameInputBlur}
+                        />
+                        <span> / {frames.length}</span>
+                    </div>
+                    <button className="scroll-button i-frame" onClick={handleNextIFrame}>
                         Next I-Frame
                     </button>
-                    <div className="frame-counter">
-                        {selectedIdx + 1} / {frames.length}
+                </div>
+            </div>
+            <div className="frames-and-indicator">
+                <div className="timeline-content">
+                    <div className="indicator-labels">
+                        {[...indicators].reverse().map((indicator, i) => (
+                            <div key={i} className="indicator-label">
+                                {indicator.toUpperCase()}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="scrollable-frameBox" ref={containerRef}>
+                        {frames?.map((frame, idx) => (
+                            <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
+                                <div
+                                    className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
+                                    onClick={() => setSelectedIdx(idx)}
+                                    title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
+                                >
+                                    <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                                    <div className="frame-type">{frame.type}</div>
+                                    <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
+                                </div>
+                                { indicators.map((indicator, i) => (
+                                    <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
+                                )) }
+                            </div>
+                        ))}
                     </div>
                 </div>
                 <IndicatorConfig loadingFields={loadingFields} />
-            </div>
-            <div className="timeline-content">
-                <div className="indicator-labels">
-                    {[...indicators].reverse().map((indicator, i) => (
-                        <div key={i} className="indicator-label">
-                            {indicator.toUpperCase()}
-                        </div>
-                    ))}
-                </div>
-                <div className="scrollable-frameBox" ref={containerRef}>
-                    {frames?.map((frame, idx) => (
-                        <div key={idx} className="frame-container">
-                            <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
-                            <div
-                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                                onClick={() => setSelectedIdx(idx)}
-                                title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
-                            >
-                                {frame.type}
-                            </div>
-                            { indicators.map((indicator, i) => (
-                                <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
-                            )) }
-                        </div>
-                    ))}
-                </div>
             </div>
         </div>
     );
