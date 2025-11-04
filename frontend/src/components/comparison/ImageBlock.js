@@ -4,6 +4,7 @@ import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
 import { useComparisonImage } from "./useComparisonImage";
 import { useSettings } from "../../context/SettingsContext";
+import Frame from "../frameDistribution/Frame";
 
 const ImageBlock = ({
                         isConst = true,
@@ -50,7 +51,7 @@ const ImageBlock = ({
                         ))}
                     </select>
                 )}
-
+                <Frame />
                 <img
                     alt="Image"
                     className="image-block-img"

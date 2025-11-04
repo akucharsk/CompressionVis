@@ -14,31 +14,35 @@ class VideoSerializer(serializers.Serializer):
 
         video_size = os.path.getsize(video_url)
 
-        byte_split = range_header.split("bytes=")
         try:
-            start = int(byte_split[0])
-        except ValueError:
+            ranges = range_header.split("=")[1].split("-")
+            start = int(ranges[0])
+            end = int(ranges[1]) if ranges[1] else video_size - 1
+        except (IndexError, ValueError):
             start = 0
-
-        try:
-            end = int(byte_split[1])
-        except (ValueError, IndexError):
             end = video_size - 1
 
         if start > end:
             raise serializers.ValidationError('Start of range is too high')
-
+        content_length = end - start + 1
         chunk_size = 4096
         def video_iterator():
             nonlocal start
             with open(video_url, 'rb') as f:
                 f.seek(start)
-                while start <= end:
-                    chunk = f.read(min(chunk_size, end - start))
+                remaining = content_length
+                while remaining > 0:
+                    chunk = f.read(min(chunk_size, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    
                     yield chunk
-                    start += chunk_size
 
+        chunk_size = min(chunk_size, end - start)
         attrs['video_iterator'] = video_iterator
+        attrs["Content-Length"] = content_length
+        attrs["Content-Range"] = f"bytes {start}-{end}/{video_size}"
         return attrs
 
 

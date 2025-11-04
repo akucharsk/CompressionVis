@@ -53,8 +53,11 @@ class VideoView(APIView):
         response = StreamingHttpResponse(
             streaming_content=serializer.validated_data.get("video_iterator")(),
             status=status.HTTP_206_PARTIAL_CONTENT,
-            content_type="media/mp4"
+            content_type="video/mp4"
         )
+        response["Content-Length"] = serializer.validated_data["Content-Length"]
+        response["Content-Range"] = serializer.validated_data["Content-Range"]
+        response["Accept-Ranges"] = "bytes"
         return response
 
     def delete(self, request, video_id):

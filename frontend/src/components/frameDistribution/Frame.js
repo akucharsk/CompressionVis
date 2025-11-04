@@ -5,19 +5,25 @@ import {apiUrl} from "../../utils/urls";
 import {fetchImage} from "../../api/fetchImage";
 import './../../styles/components/distribution/Frame.css';
 import {useError} from "../../context/ErrorContext";
+import { useVideoPlaying } from "../../context/VideoPlayingContext";
+import { useFrames } from "../../context/FramesContext";
 
-const Frame = ({ frames, selectedIdx }) => {
+const Frame = () => {
     const [imageUrl, setImageUrl] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
     const [params] = useSearchParams();
     const videoId = parseInt(params.get("videoId"));
     const { showError } = useError();
+    const { isVideoPlaying } = useVideoPlaying();
+    const { frames, selectedIdx } = useFrames();
 
     useEffect(() => {
         if (selectedIdx === null) {
             setImageUrl(null);
             setCurrentFrameIdx(null);
+            return;
+        }
+        if (isVideoPlaying) {
             return;
         }
 
@@ -29,9 +35,6 @@ const Frame = ({ frames, selectedIdx }) => {
         let isMounted = true;
 
         const loadImage = async () => {
-            if (imageUrl === null) {
-                setIsLoading(true);
-            }
 
             try {
                 const url = await fetchImage(
@@ -47,7 +50,7 @@ const Frame = ({ frames, selectedIdx }) => {
                 if (error.name === "AbortError") return;
                 if (isMounted) showError(error.message, error.statusCode);
             } finally {
-                if (isMounted) setIsLoading(false);
+                
             }
         };
 
@@ -57,13 +60,13 @@ const Frame = ({ frames, selectedIdx }) => {
             controller.abort();
             isMounted = false;
         };
-    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl]);
+    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl, isVideoPlaying]);
 
     return (
         <div className="left-section">
             {frames.length > 0 && selectedIdx < frames.length && (
                 <div className="frame-preview">
-                    {isLoading && imageUrl === null ? (
+                    {imageUrl === null ? (
                         <div className="spinner"></div>
                     ) : imageUrl && (
                         <img
