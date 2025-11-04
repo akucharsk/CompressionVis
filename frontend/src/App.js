@@ -10,6 +10,9 @@ import {ErrorProvider} from "./context/ErrorContext";
 import { DisplayModeProvider } from './context/DisplayModeContext';
 import { VideoPlayingProvider } from './context/VideoPlayingContext';
 import { FpsProvider } from './context/FpsContext';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { MetricsProvider } from './context/MetricsContext';
+import {queryClient} from "./utils/queryClient";
 
 function Layout() {
   const location = useLocation();
@@ -17,9 +20,11 @@ function Layout() {
 
   return (
       <ErrorProvider>
+        <QueryClientProvider client={queryClient}>
           <SettingsProvider>
               <FpsProvider>  
                 <FramesProvider>
+                <MetricsProvider>
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
                       {!hideNavbar && <NavigationTabs />}
@@ -32,9 +37,11 @@ function Layout() {
                       </Routes>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
+                  </MetricsProvider>
                 </FramesProvider>
               </FpsProvider>
           </SettingsProvider>
+        </QueryClientProvider>
       </ErrorProvider>
   );
 }

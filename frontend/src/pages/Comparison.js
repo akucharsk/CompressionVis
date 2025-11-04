@@ -1,6 +1,5 @@
 import FrameBox from "../components/FrameBox";
 import {useEffect, useRef, useState} from "react";
-import ImageBlockConst from "../components/comparison/ImageBlockConst";
 import ImageBlockSelect from "../components/comparison/ImageBlockSelect";
 import ImageDetails from "../components/comparison/ImageDetails";
 import './../styles/pages/Comparison.css';
@@ -15,103 +14,67 @@ import {useError} from "../context/ErrorContext";
 import {handleApiError} from "../utils/errorHandler";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import VideoPlayerForAnalysis from "../components/frameDistribution/VideoPlayerForAnalysis";
+import "../styles/pages/Comparison.css";
+import { useMetrics } from "../context/MetricsContext";
+import ImageBlock from "../components/comparison/ImageBlock";
 
 const Comparison = () => {
-    const { selectedIdx } = useFrames();
     const { displayMode } = useDisplayMode();
 
     const [selectedType, setSelectedType] = useState("H.265");
     const [params] = useSearchParams();
-    const [videoMetrics, setVideoMetrics] = useState({});
-    const [frameMetrics, setFrameMetrics] = useState({});
     const {showError} = useError();
 
     const videoId = params.get("videoId");
     const originalVideoId = params.get("originalVideoId");
+    const { selectedIdx, setSelectedIdx, frames } = useFrames();
+    const [fullscreenSide, setFullscreenSide] = useState(null);
 
-    useEffect(() => {
-        const controller = new AbortController();
-        fetch(`${apiUrl}/metrics/${videoId}`, { signal: controller.signal })
-            .then(handleApiError)
-            .then(res => res.json())
-            .then(data => setVideoMetrics(data["videoMetrics"]))
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
+    const switchFullscreen = (direction) => {
+        setFullscreenSide(prev => {
+            if (direction === 'left' || direction === 'right') {
+                if (prev === direction) {
+                    return direction === 'left' ? 'right' : 'left';
+                }
+                return direction;
+            }
 
-        return () => controller.abort();
-    }, [videoId, showError]);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        fetch(`${apiUrl}/metrics/frame/${videoId}/${selectedIdx}`, { signal: controller.signal })
-            .then(handleApiError)
-            .then(res => res.json())
-            .then(setFrameMetrics)
-            .catch(err => {
-                if (err.name === "AbortError") return;
-                showError(err.message, err.statusCode)
-            });
-    }, [videoId, selectedIdx, videoMetrics, showError]);
-
-    const leftRef = useRef(null);
-    const rightRef = useRef(null);
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        const fetchBothImages = async () => {
-            fetchImage(
-                MAX_RETRIES,
-                `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-                controller
-            )
-                .then(url => {
-                    if (rightRef.current)
-                        rightRef.current.src = url;
-                })
-                .catch(err => {
-                    if (err.name === "AbortError") return;
-                    showError(err.message, err.statusCode)
-                });
-
-            fetchImage(
-                MAX_RETRIES,
-                `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true`,
-                controller
-            )
-                .then(url => {
-                    if (leftRef.current)
-                        leftRef.current.src = url;
-                })
-                .catch(err => {
-                    if (err.name === "AbortError") return;
-                    showError(err.message, err.statusCode)
-                });
-        };
-
-        fetchBothImages();
-
-        return () => controller.abort();
-    }, [videoId, selectedIdx, showError, displayMode]);
+            return prev === 'left' ? 'right' : 'left';
+        });
+    };
+    const makeNavigation = () => ({
+        onPrev: () => setSelectedIdx(prev => Math.max(0, prev - 1)),
+        onNext: () => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1)),
+    });
 
     return (
         <div className="comparison">
-            <FrameBox/>
+            <FrameBox />
             <div className="comparison-container">
                 {displayMode === "frames" ? (
                     <>
-                    <ImageBlockConst
-                        type={"Original"}
-                        ref={leftRef}
-                    />
-                    <ImageBlockSelect 
-                        types={["H.264"]}
-                        selectedType={selectedType}
-                        setSelectedType={setSelectedType}
-                        ref={rightRef}
-                    />
+                        <ImageBlock
+                            selectedIdx={selectedIdx}
+                            navigation={makeNavigation()}
+                            fullscreen={{
+                                is: fullscreenSide === "left",
+                                onOpen: () => setFullscreenSide("left"),
+                                onClose: () => setFullscreenSide(null),
+                                onSwitch: switchFullscreen,
+                            }}
+                        />
+
+                        <ImageBlock
+                            isConst={false}
+                            selectedIdx={selectedIdx}
+                            navigation={makeNavigation()}
+                            fullscreen={{
+                                is: fullscreenSide === "right",
+                                onOpen: () => setFullscreenSide("right"),
+                                onClose: () => setFullscreenSide(null),
+                                onSwitch: switchFullscreen,
+                            }}
+                        />
                     </>) : (
                     <>
                     <VideoPlayerForAnalysis
@@ -122,18 +85,6 @@ const Comparison = () => {
                     />
                     </>
                     )}
-                
-                <div className="description">
-                    <Parameters/>
-                    <ImageDetails
-                        type={"Video metrics"}
-                        details={videoMetrics}
-                    />
-                    <ImageDetails
-                        type={"Frame metrics"}
-                        details={frameMetrics}
-                    />
-                </div>
             </div>
         </div>
     );

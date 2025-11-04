@@ -6,7 +6,6 @@ services:
     container_name: django_app
     volumes:
       - ./backend:/app
-      - ./backend/static:/app/static
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&

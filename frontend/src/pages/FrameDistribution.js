@@ -13,10 +13,8 @@ import ImageVideoBlock from '../components/ImageVideoBlock';
 const FramesDistribution = () => {
     const { frames,  selectedIdx, setSelectedIdx } = useFrames();
     const { displayMode, setDisplayMode } = useDisplayMode();
-
-    const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     const videoId = searchParams.get("videoId");
 
@@ -24,16 +22,7 @@ const FramesDistribution = () => {
         <div className="distribution-container">
             <FrameBox />
             <div className="main-frame-container">
-                {/* {displayMode === "frames" ? (
-                    <Frame
-                        selectedIdx={selectedIdx}
-                        frames={frames}
-                    />
-                ) : (
-                    <VideoPlayerForAnalysis
-                        videoId={videoId}
-                    />
-                )} */}
+
                 <ImageVideoBlock />
                 <MacroblockInfo
                     selectedIdx={selectedIdx}

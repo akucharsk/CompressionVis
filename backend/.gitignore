@@ -11,7 +11,5 @@ venv/
 *.mp4
 *.avi
 *.y4m
-static/frames/*.png
-static/thumbnails/*.png
-static/macroblocks/
+static/*
 result.json
