@@ -51,7 +51,6 @@ const ImageBlock = ({
                         ))}
                     </select>
                 )}
-                <Frame />
                 <img
                     alt="Image"
                     className="image-block-img"
