@@ -35,15 +35,15 @@ class VideoView(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
         range_header = request.headers.get('Range')
+
         if not range_header:
-            print(1)
             return Response({"message": "Range header required"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = serializers.VideoSerializer(data={"video_url": video_file, "range_header": range_header})
-        if not serializer.is_valid():
-            print(2)
+        
+        if not serializer.is_valid():   
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        print(3)
+        
         response = StreamingHttpResponse(
             streaming_content=serializer.validated_data.get("video_iterator")(),
             status=status.HTTP_206_PARTIAL_CONTENT,

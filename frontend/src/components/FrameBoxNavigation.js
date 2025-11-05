@@ -31,6 +31,32 @@ const FrameBoxNavigation = () => {
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
     };
 
+    const handlePlay = () => {
+        setIsVideoPlaying(true);
+        setDisplayMode("video");
+    };
+
+    const handlePause = () => {
+        setIsVideoPlaying(false);
+    };
+
+    const handleRestart = () => {
+        setSelectedIdx(0);
+    };
+
+    const handleNextIFrame = () => {
+        if (frames.length === 0) return;
+        const iFrames = frames
+            .map((frame, idx) => ({ frame, idx }))
+            .filter(({ frame }) => frame.type === "I")
+            .map(({ idx }) => idx);
+
+        if (iFrames.length === 0) return;
+        const currentPos = iFrames.indexOf(selectedIdx);
+        const nextPos = (currentPos + 1) % iFrames.length;
+        setSelectedIdx(iFrames[nextPos]);
+    }
+
     useEffect(() => {
         const min = 6;
         const max = 30;
@@ -41,11 +67,9 @@ const FrameBoxNavigation = () => {
 
     return (
         <div className="timeline-header">
-            <div></div>
             <div className="timeline-controls">
-                <button className="scroll-button-mini left" onClick={handleMinusTen}>
+                <button className="scroll-button left" onClick={handleMinusTen}>
                     <div>&lt;&lt;</div>
-                    <h6>-10</h6>
                 </button>
                 <button className="scroll-button left" onClick={handleScrollLeft}>
                     &lt;
@@ -53,41 +77,33 @@ const FrameBoxNavigation = () => {
                 {isVideoPlaying ? 
                     <button 
                         className="play-button playing"
-                        onClick={() => {
-                            setIsVideoPlaying(false);
-                        }}    
+                        onClick={handlePause}    
                     > 
                     ⏹
                     </button>
                 : !isVideoPlaying && selectedIdx == frames.length - 1 ?  
                     <button 
                         className="play-button "
-                        onClick={() => {
-                            setSelectedIdx(0);
-                        }}
+                        onClick={handleRestart}
                     >
                     ⟳
                     </button> :    
                     <button 
                         className="play-button "
-                        onClick={() => {
-                            setIsVideoPlaying(true);
-                            setDisplayMode("video");
-                        }}
+                        onClick={handlePlay}
                     >
                     ▶
                     </button>}
                 <button className="scroll-button right" onClick={handleScrollRight}>
                     &gt;
                 </button>
-                <button className="scroll-button-mini right " onClick={handlePlusTen}>
+                <button className="scroll-button right " onClick={handlePlusTen}>
                     <div>&gt;&gt;</div>
-                    <h6>+10</h6>
                 </button>
             </div>
             <div className="timeline-rightbar">
                 <div className="frame-counter">
-                    {selectedIdx + 1} / {frames.length}
+                    <p>{selectedIdx + 1} / {frames.length}</p>
                 </div>
                 <div className="speed-control">
                     <div className="speed-description">
@@ -106,9 +122,151 @@ const FrameBoxNavigation = () => {
                         />
                     </div>
                 </div>
+                <button className="scroll-button-mini right" onClick={handleNextIFrame}>
+                    Next I-Frame
+                </button>
             </div>
+            
         </div>
     )
 }
 
 export default FrameBoxNavigation;
+
+
+// import { useEffect } from "react";
+// import { useDisplayMode } from "../context/DisplayModeContext";
+// import { useFps } from "../context/FpsContext";
+// import { useFrames } from "../context/FramesContext";
+// import { useVideoPlaying } from "../context/VideoPlayingContext";
+
+// const FrameBoxNavigation = () => {
+//     const { frames, selectedIdx, setSelectedIdx } = useFrames();
+//     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+//     const { setDisplayMode } = useDisplayMode();
+//     const { fps, setFps } = useFps();
+
+//     // handlers for buttons
+//     const handleScrollLeft = () => {
+//         setDisplayMode("frames");
+//         setSelectedIdx(prev => Math.max(0, prev - 1));
+//     };
+
+//     const handleScrollRight = () => {
+//         setDisplayMode("frames");
+
+//         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
+//     };
+
+//     const handleMinusTen = () => {
+//         setDisplayMode("frames");
+//         setSelectedIdx(prev => Math.max(0, prev - 10));
+//     };
+
+//     const handlePlusTen = () => {
+//         setDisplayMode("frames");
+//         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 10));
+//     };
+
+//     const handlePlay = () => {
+//         setIsVideoPlaying(true);
+//         setDisplayMode("video");
+//     };
+
+//     const handlePause = () => {
+//         setIsVideoPlaying(false);
+//     };
+
+//     const handleRestart = () => {
+//         setSelectedIdx(0);
+//     };
+
+//     // changing color of speed slider
+//     useEffect(() => {
+//         const min = 6;
+//         const max = 30;
+//         const percent = ((fps - min) / (max - min)) * 100;
+//         document.documentElement.style.setProperty("--percent", `${percent}%`);
+//     }, [fps]);
+
+//     // handling key signals
+//     useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             if (e.key === 'ArrowLeft') {
+//                 handleScrollLeft();
+//             } else if (e.key === 'ArrowRight') {
+//                 handleScrollRight();
+//             }
+//         };
+
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [frames.length, setSelectedIdx]);
+
+
+//     return (
+//         <div className="timeline-header">
+//             <div></div>
+//             <div className="timeline-controls">
+//                 <button className="scroll-button-mini left" onClick={handleMinusTen}>
+//                     <div>&lt;&lt;</div>
+//                     <h6>-10</h6>
+//                 </button>
+//                 <button className="scroll-button left" onClick={handleScrollLeft}>
+//                     &lt;
+//                 </button>
+//                 {isVideoPlaying ? 
+//                     <button 
+//                         className="play-button playing"
+//                         onClick={handlePause}    
+//                     > 
+//                     ⏹
+//                     </button>
+//                 : !isVideoPlaying && selectedIdx == frames.length - 1 ?  
+//                     <button 
+//                         className="play-button "
+//                         onClick={handleRestart}
+//                     >
+//                     ⟳
+//                     </button> :    
+//                     <button 
+//                         className="play-button "
+//                         onClick={handlePlay}
+//                     >
+//                     ▶
+//                     </button>}
+//                 <button className="scroll-button right" onClick={handleScrollRight}>
+//                     &gt;
+//                 </button>
+//                 <button className="scroll-button-mini right " onClick={handlePlusTen}>
+//                     <div>&gt;&gt;</div>
+//                     <h6>+10</h6>
+//                 </button>
+//             </div>
+//             <div className="timeline-rightbar">
+//                 <div className="frame-counter">
+//                     {selectedIdx + 1} / {frames.length}
+//                 </div>
+//                 <div className="speed-control">
+//                     <div className="speed-description">
+//                         <label>Speed: </label>
+//                         <div className="speed-value"> {fps} FPS</div>
+//                     </div>
+//                     <div className="speed-slider-container">
+//                         <input
+//                             type="range"
+//                             min="6"
+//                             max="30"
+//                             step="6"
+//                             value={fps}
+//                             onChange={(e) => setFps(Number(e.target.value))}
+//                             className="speed-slider"
+//                         />
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     )
+// }
+
+// export default FrameBoxNavigation;
