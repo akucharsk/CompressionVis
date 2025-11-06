@@ -1,5 +1,5 @@
 import {useSearchParams} from "react-router-dom";
-import {useMutation, useQuery} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import {genericFetch} from "../api/genericFetch";
 import {apiUrl} from "../utils/urls";
 import { defaultRefetchIntervalPolicy, defaultRetryPolicy } from "../utils/retryUtils";
@@ -14,35 +14,26 @@ export const MacroblocksProvider = ({ children }) => {
     const frameNumber = parseInt(searchParams.get("frameNumber")) || 0;
     const { showError } = useError();
 
-    const triggerMacroblocksExtraction = useQuery({
-        queryKey: ["macroblocks-extraction", videoId],
-        queryFn: async () => {
-            return await genericFetch(`${apiUrl}/macroblocks/${videoId}/`, { method: "POST" });
-        },
-        enabled: !!videoId,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        refetchInterval: false,
-        retry: false,
-        staleTime: Infinity,
-    });
-
     const frameMacroBlocksQuery = useQuery({
         queryKey: ["macroblocks", videoId, frameNumber],
-        queryFn: async () => await genericFetch(`${apiUrl}/macroblocks/grid/${videoId}/${frameNumber}`),
+        queryFn: async () => await genericFetch(`${apiUrl}/macroblocks/${videoId}/${frameNumber}`),
         refetchInterval: defaultRefetchIntervalPolicy,
         retry: defaultRetryPolicy,
-        enabled: !!videoId && triggerMacroblocksExtraction.isSuccess
+        enabled: !!videoId
     });
-    useEffect(() => {
-        if (frameMacroBlocksQuery.isError) {
-            showError(frameMacroBlocksQuery.error.message, frameMacroBlocksQuery.error.status);
-        }
-    }, [frameMacroBlocksQuery.isError]);
 
-    const isPending = frameMacroBlocksQuery.isPending || frameMacroBlocksQuery.data?.message === "processing";
+    useEffect(() => {
+        const err = frameMacroBlocksQuery.error;
+        if (frameMacroBlocksQuery.isError && err) {
+            showError(err.message, err.status);
+        }
+    }, [frameMacroBlocksQuery.isError, frameMacroBlocksQuery.error, showError]);
+
+    const isBlocksReady = frameMacroBlocksQuery.data?.blocks?.length > 0;
+    const isBlocksLoading = frameMacroBlocksQuery.isPending || frameMacroBlocksQuery.data?.message === "processing" || !isBlocksReady;
+
     return (
-        <MacroblocksContext.Provider value={{ frameMacroBlocksQuery, triggerMacroblocksExtraction, isPending }}>
+        <MacroblocksContext.Provider value={{ frameMacroBlocksQuery, isBlocksLoading }}>
             {children}
         </MacroblocksContext.Provider>
     )

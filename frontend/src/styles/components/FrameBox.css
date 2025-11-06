@@ -219,8 +219,8 @@ input::-webkit-inner-spin-button {
     scrollbar-color: var(--netflix-red) var(--background-second);
     /* min-height: 100px; */
     transform: rotateX(180deg);
-    flex: 1; /* zajmuje dostępną przestrzeń */
-    min-width: 0; /* pozwala na scroll */
+    flex: 1;
+    min-width: 0;
 }
 
 .scrollable-frameBox > * {

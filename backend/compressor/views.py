@@ -16,6 +16,7 @@ import subprocess
 import json
 import shutil
 
+from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from utils.psnr import weighted_psnr_420
 from . import models
 from . import serializers
@@ -187,6 +188,9 @@ class CompressionView(APIView):
 
         metrics_extractor = MetricsExtractor(video)
         metrics_extractor.start_extraction_job()
+
+        macroblocks_extractor = MacroblocksExtractor(video)
+        macroblocks_extractor.start_extraction_job()
 
         return Response(camelize(resp), status=status.HTTP_200_OK)
 

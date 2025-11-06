@@ -7,9 +7,9 @@ const SidePanel = ({ frames, selectedIdx, setShowGrid, setShowVectors, showGrid,
     return (
         <div className="right-section">
             <Parameters />
-            <div className="frame-info">
+            <div className="content-box frame-info">
                 <h3>Frame Information</h3>
-                <p>Frame: {selectedIdx}</p>
+                <p>Frame: {selectedIdx + 1}</p>
                 <p>Type: {frames[selectedIdx]?.type}</p>
                 <p>PTS time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
                 <p>Frame size: {Intl.NumberFormat('pl-PL').format(frames[selectedIdx]?.pkt_size)}B</p>

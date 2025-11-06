@@ -66,6 +66,58 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
         };
     }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl]);
 
+    const mapSelectedBlockToNewFrame = (oldBlock, newBlocks) => {
+        if (!oldBlock || !newBlocks || newBlocks.length === 0) return null;
+
+        const oldCenterX = oldBlock.x;
+        const oldCenterY = oldBlock.y;
+
+        const candidates = newBlocks.filter(block => {
+            const x0 = block.x - block.width / 2;
+            const y0 = block.y - block.height / 2;
+            return oldCenterX >= x0 && oldCenterX <= x0 + block.width &&
+                oldCenterY >= y0 && oldCenterY <= y0 + block.height;
+        });
+
+        if (candidates.length > 0) {
+            return candidates[0];
+        }
+
+        const overlapCandidates = newBlocks.filter(block => {
+            const x0 = block.x - block.width / 2;
+            const y0 = block.y - block.height / 2;
+            const x1 = oldBlock.x - oldBlock.width / 2;
+            const y1 = oldBlock.y - oldBlock.height / 2;
+
+            const overlapX = Math.max(0, Math.min(x0 + block.width, x1 + oldBlock.width) - Math.max(x0, x1));
+            const overlapY = Math.max(0, Math.min(y0 + block.height, y1 + oldBlock.height) - Math.max(y0, y1));
+            return overlapX > 0 && overlapY > 0;
+        });
+
+        if (overlapCandidates.length > 0) {
+            return overlapCandidates[0];
+        }
+
+        return null;
+    };
+
+    useEffect(() => {
+        if (!selectedBlock || blocks.length === 0) return;
+
+        const newSelected = mapSelectedBlockToNewFrame(selectedBlock, blocks);
+        setSelectedBlock(newSelected);
+    }, [selectedIdx, blocks, selectedBlock]);
+
+    useEffect(() => {
+        if (frameMacroBlocksQuery.isSuccess) {
+            if (frameMacroBlocksQuery.data?.blocks) {
+                setBlocks(frameMacroBlocksQuery.data.blocks);
+            } else {
+                setBlocks([]);
+                setSelectedBlock(null);
+            }
+        }
+    }, [frameMacroBlocksQuery.isSuccess, frameMacroBlocksQuery.data]);
 
     useEffect(() => {
         if (frameMacroBlocksQuery.data?.blocks) {
@@ -84,6 +136,10 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
     };
 
     const handleCanvasClick = (e) => {
+        if (!frameMacroBlocksQuery.data?.blocks || blocks.length === 0) {
+            return;
+        }
+
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
 
@@ -120,6 +176,8 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        ctx.drawImage(img, 0, 0);
+
         if (showGrid && blocks.length > 0) {
             blocks.forEach(block => {
                 const category = block.type || 'intra';
@@ -131,13 +189,30 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                 }
 
                 ctx.strokeStyle = getCategoryColor(category);
-                ctx.lineWidth = selectedBlock === block ? 3 : 1;
+                ctx.lineWidth = 1;
 
                 const x = block.x - block.width / 2;
                 const y = block.y - block.height / 2;
                 ctx.strokeRect(x, y, block.width, block.height);
             });
             ctx.globalAlpha = 1.0;
+        }
+
+        if (selectedBlock) {
+            const x = selectedBlock.x - selectedBlock.width / 2;
+            const y = selectedBlock.y - selectedBlock.height / 2;
+
+            ctx.shadowColor = 'rgba(0, 0, 0, 1.0)';
+            ctx.shadowBlur = 5;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
+
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
 
         if (showVectors && blocks.length > 0) {
@@ -174,6 +249,7 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                     ) : (
                         <>
                             <img
+                                key={selectedIdx}
                                 ref={imgRef}
                                 src={imageUrl}
                                 alt={`Frame ${selectedIdx}`}
@@ -186,10 +262,10 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                                     position: "absolute",
                                     top: 0,
                                     left: 0,
-                                    pointerEvents: "auto",
+                                    pointerEvents: blocks.length > 0 ? "auto" : "none",
                                     width: "100%",
                                     height: "100%",
-                                    cursor: "pointer"
+                                    cursor: blocks.length > 0 ? "pointer" : "default"
                                 }}
                             />
                         </>
@@ -197,7 +273,11 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                 </div>
             )}
 
-            <MacroblockInfo selectedBlock={selectedBlock} />
+            <MacroblockInfo
+                selectedBlock={selectedBlock}
+                setSelectedBlock={setSelectedBlock}
+                frameImageUrl={imageUrl}
+            />
         </div>
     );
 };

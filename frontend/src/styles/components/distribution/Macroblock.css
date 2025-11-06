@@ -8,16 +8,11 @@
     padding: 20px 0;
 }
 
-.frame-preview-right {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
+.content-box {
     width: 70%;
     margin: 0 auto;
+    box-sizing: border-box;
 }
-
 
 .macroblock-img {
     width: 90%;
@@ -26,24 +21,44 @@
     border-radius: 10px;
 }
 
-button, .show-macroblock-grid, .show-macroblock-vectors {
+.macroblock-btn {
     width: 100%;
     padding: 16px;
     font-size: 16px;
     border: 1px solid #00bcd4;
-    background-color: var(--background-second);
+    background: var(--background-second);
     color: #00bcd4;
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    display: block;
-    margin: 0 auto;
+    transition: opacity 0.5s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
     box-sizing: border-box;
 }
 
-button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
+.macroblock-btn:hover:not(:disabled) {
     background-color: #00bcd4;
     color: #000;
+}
+
+.macroblock-btn:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.macroblock-btn:disabled {
+    opacity: 0.5 !important;
+    background: var(--background-second) !important;
+    color: #00bcd4 !important;
+    border-color: #00bcd4 !important;
+    cursor: not-allowed !important;
+}
+
+.macroblock-btn.expanded {
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
 }
 
 .modal-overlay {
@@ -74,9 +89,8 @@ button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
     border: 1px solid var(--border-color);
     background-color: var(--background-second);
     border-radius: 10px;
-    width: 70%;
-    margin: 0 auto;
     padding: 8px;
+    box-sizing: border-box;
 }
 
 .frame-info p {
@@ -85,32 +99,13 @@ button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
     color: var(--font-color);
 }
 
-.macroblock-controls-box {
-    width: 100%;
-    border: 1px solid #00bcd4;
-    background-color: var(--background-second);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.macroblock-controls-box .show-macroblock-grid {
-    border-radius: 10px 10px 0 0;
-    border: none;
-    margin: 0;
-}
-
-.macroblock-controls-box .show-macroblock-grid:hover {
-    background-color: #00bcd4;
-    color: #000;
-}
-
 .checkbox-container {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
     justify-content: center;
     overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+    transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.5s ease;
     background-color: var(--background-second);
 }
 
@@ -124,6 +119,19 @@ button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
     max-height: 200px;
     padding: 16px;
     opacity: 1;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid #00bcd4;
+    border-top: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.checkbox-container.loading {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-container.loading * {
+    cursor: not-allowed !important;
 }
 
 .checkbox-container label {
@@ -144,9 +152,6 @@ button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
     border: 1px solid var(--border-color);
     border-radius: 10px;
     background-color: var(--background-second);
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .macroblock-info-box h4 {
@@ -175,4 +180,27 @@ button:hover, .show-macroblock-grid:hover, .show-macroblock-vectors:hover {
 .macroblock-close-btn:hover {
     background-color: #00bcd4;
     color: #000;
+}
+
+.label-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.label-intra  { background: #ff4d4d; }
+.label-inter  { background: #4dff4d; }
+.label-skip   { background: #4d4dff; }
+.label-direct { background: #4dffff; }
+
+.label-dot-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-2px); }
+    to   { opacity: 1; transform: translateY(0); }
 }

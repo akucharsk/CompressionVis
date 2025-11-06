@@ -28,6 +28,8 @@ class Video(models.Model):
     size = models.IntegerField(default=None, null=True)
     frames_extraction_in_progress = models.BooleanField(default=False)
     frames_extraction_completed = models.BooleanField(default=False)
+    macroblocks_extraction_in_progress = models.BooleanField(default=False)
+    macroblocks_extraction_completed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('filename',)
