@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {forwardRef, useEffect, useState} from "react";
 import "../../styles/components/distribution/Macroblock.css";
 
 function cropSelectedBlock(frameImage, block, setThumbUrl) {
@@ -23,12 +23,19 @@ function cropSelectedBlock(frameImage, block, setThumbUrl) {
     setThumbUrl(cropCanvas.toDataURL());
 }
 
-const MacroblockInfo = ({ selectedBlock, setSelectedBlock, frameImageUrl }) => {
+const MacroblockInfo = forwardRef((props, ref) => {
+    const { selectedBlock, setSelectedBlock, frameImageUrl } = props;
     const [thumbUrl, setThumbUrl] = useState(null);
+    const [displayBlock, setDisplayBlock] = useState(null);
 
     useEffect(() => {
-        if (!frameImageUrl || !selectedBlock) {
-            setThumbUrl(null);
+        if (selectedBlock) {
+            setDisplayBlock(selectedBlock);
+        }
+    }, [selectedBlock]);
+
+    useEffect(() => {
+        if (!frameImageUrl || !displayBlock) {
             return;
         }
 
@@ -36,18 +43,16 @@ const MacroblockInfo = ({ selectedBlock, setSelectedBlock, frameImageUrl }) => {
         img.src = frameImageUrl;
 
         img.onload = () => {
-            cropSelectedBlock(img, selectedBlock, setThumbUrl);
+            cropSelectedBlock(img, displayBlock, setThumbUrl);
         };
 
         return () => {
             img.onload = null;
         };
-    }, [frameImageUrl, selectedBlock]);
-
-    if (!selectedBlock) return null;
+    }, [frameImageUrl, displayBlock]);
 
     return (
-        <div className="macroblock-info-box">
+        <div ref={ref} className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
             <h4>Macroblock details</h4>
 
             {thumbUrl && (
@@ -64,14 +69,14 @@ const MacroblockInfo = ({ selectedBlock, setSelectedBlock, frameImageUrl }) => {
                 />
             )}
 
-            <p><strong>Type:</strong> {selectedBlock.type || "N/A"}</p>
-            <p><strong>Position:</strong> ({selectedBlock.x}, {selectedBlock.y})</p>
-            <p><strong>Size:</strong> {selectedBlock.width}x{selectedBlock.height}</p>
-            <p><strong>Ffmpeg type:</strong> {selectedBlock.ftype ?? "N/A"}</p>
-            <p><strong>Reference frame:</strong> {selectedBlock.source ?? "N/A"}</p>
+            <p><strong>Type:</strong> {displayBlock?.type}</p>
+            <p><strong>Position:</strong> ({displayBlock?.x}, {displayBlock?.y})</p>
+            <p><strong>Size:</strong> {displayBlock?.width}x{displayBlock?.height}</p>
+            <p><strong>Ffmpeg type:</strong> {displayBlock?.ftype}</p>
+            <p><strong>Reference frame:</strong> {displayBlock?.source}</p>
 
-            {selectedBlock.src_x != null && (
-                <p><strong>Source:</strong> ({selectedBlock.src_x}, {selectedBlock.src_y})</p>
+            {displayBlock?.src_x != null && (
+                <p><strong>Source:</strong> ({displayBlock.src_x}, {displayBlock.src_y})</p>
             )}
 
             <button
@@ -82,6 +87,6 @@ const MacroblockInfo = ({ selectedBlock, setSelectedBlock, frameImageUrl }) => {
             </button>
         </div>
     );
-};
+});
 
 export default MacroblockInfo;

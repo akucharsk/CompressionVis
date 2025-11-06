@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {MAX_RETRIES} from "../../utils/constants";
 import {useSearchParams} from "react-router-dom";
 import {apiUrl} from "../../utils/urls";
@@ -19,7 +19,67 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
     const { showError } = useError();
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
+    const infoRef = useRef(null);
     const { frameMacroBlocksQuery } = useMacroblocks();
+
+    const drawCanvas = useCallback(() => {
+        const canvas = canvasRef.current;
+        const img = imgRef.current;
+        if (!canvas || !img) return;
+
+        const ctx = canvas.getContext("2d");
+
+        if (img.naturalWidth === 0 || img.naturalHeight === 0) return;
+
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        if (showGrid && blocks.length > 0) {
+            blocks.forEach(block => {
+                const category = block.type || 'intra';
+                ctx.globalAlpha = visibleCategories[category] ? 1.0 : 0.2;
+                ctx.strokeStyle = getCategoryColor(category);
+                ctx.lineWidth = 1;
+                const x = block.x - block.width / 2;
+                const y = block.y - block.height / 2;
+                ctx.strokeRect(x, y, block.width, block.height);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        if (selectedBlock) {
+            const x = selectedBlock.x - selectedBlock.width / 2;
+            const y = selectedBlock.y - selectedBlock.height / 2;
+            ctx.shadowColor = 'rgba(0, 0, 0, 1.0)';
+            ctx.shadowBlur = 5;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
+        }
+
+        if (showVectors && blocks.length > 0) {
+            blocks.forEach(block => {
+                if (block.src_x === undefined || block.src_y === undefined) return;
+                const category = block.type || 'intra';
+                ctx.globalAlpha = visibleCategories[category] ? 1.0 : 0.2;
+                ctx.strokeStyle = getCategoryColor(category);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(block.src_x, block.src_y);
+                ctx.lineTo(block.x, block.y);
+                ctx.stroke();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories]);
 
     useEffect(() => {
         if (selectedIdx === null) {
@@ -157,88 +217,22 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
 
         if (clickedBlock) {
             setSelectedBlock(clickedBlock);
+            setTimeout(() => {
+                if (infoRef.current) {
+                    infoRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }, 400);
         } else {
             setSelectedBlock(null);
         }
     };
 
     useEffect(() => {
-        const canvas = canvasRef.current;
-        const img = imgRef.current;
-        if (!canvas || !img) return;
-
-        const ctx = canvas.getContext("2d");
-
-        if (img.naturalWidth === 0 || img.naturalHeight === 0) return;
-
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.drawImage(img, 0, 0);
-
-        if (showGrid && blocks.length > 0) {
-            blocks.forEach(block => {
-                const category = block.type || 'intra';
-
-                if (!visibleCategories[category]) {
-                    ctx.globalAlpha = 0.2;
-                } else {
-                    ctx.globalAlpha = 1.0;
-                }
-
-                ctx.strokeStyle = getCategoryColor(category);
-                ctx.lineWidth = 1;
-
-                const x = block.x - block.width / 2;
-                const y = block.y - block.height / 2;
-                ctx.strokeRect(x, y, block.width, block.height);
-            });
-            ctx.globalAlpha = 1.0;
-        }
-
-        if (selectedBlock) {
-            const x = selectedBlock.x - selectedBlock.width / 2;
-            const y = selectedBlock.y - selectedBlock.height / 2;
-
-            ctx.shadowColor = 'rgba(0, 0, 0, 1.0)';
-            ctx.shadowBlur = 5;
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
-
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
-        }
-
-        if (showVectors && blocks.length > 0) {
-            blocks.forEach(block => {
-                if (block.src_x === undefined || block.src_y === undefined) return;
-
-                const category = block.type || 'intra';
-
-                if (!visibleCategories[category]) {
-                    ctx.globalAlpha = 0.2;
-                } else {
-                    ctx.globalAlpha = 1.0;
-                }
-
-                ctx.strokeStyle = getCategoryColor(category);
-                ctx.lineWidth = 2;
-
-                ctx.beginPath();
-                ctx.moveTo(block.src_x, block.src_y);
-                ctx.lineTo(block.x, block.y);
-                ctx.stroke();
-            });
-            ctx.globalAlpha = 1.0;
-        }
-    }, [showGrid, showVectors, blocks, imageUrl, selectedBlock, visibleCategories]);
-
+        drawCanvas();
+    }, [drawCanvas]);
 
     return (
         <div className="left-section">
@@ -254,6 +248,7 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                                 src={imageUrl}
                                 alt={`Frame ${selectedIdx}`}
                                 style={{ display: "block", width: "100%", height: "auto" }}
+                                onLoad={() => drawCanvas()}
                             />
                             <canvas
                                 ref={canvasRef}
@@ -277,6 +272,7 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                 selectedBlock={selectedBlock}
                 setSelectedBlock={setSelectedBlock}
                 frameImageUrl={imageUrl}
+                ref={infoRef}
             />
         </div>
     );

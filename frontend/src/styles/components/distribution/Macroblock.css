@@ -21,6 +21,14 @@
     border-radius: 10px;
 }
 
+.macroblock-expandable {
+    border: 1px solid #00bcd4;
+    border-radius: 10px;
+    background: var(--background-second);
+    overflow: hidden;
+}
+
+
 .macroblock-btn {
     width: 100%;
     padding: 16px;
@@ -30,12 +38,21 @@
     color: #00bcd4;
     border-radius: 10px;
     cursor: pointer;
-    transition: opacity 0.5s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 6px;
     box-sizing: border-box;
+}
+
+.macroblock-expandable .macroblock-btn {
+    border: none;
+    border-radius: 0;
+}
+
+.macroblock-expandable.loading {
+    opacity: 0.5;
 }
 
 .macroblock-btn:hover:not(:disabled) {
@@ -48,17 +65,50 @@
     box-shadow: none;
 }
 
-.macroblock-btn:disabled {
+.macroblock-btn.vector:disabled {
     opacity: 0.5 !important;
-    background: var(--background-second) !important;
-    color: #00bcd4 !important;
-    border-color: #00bcd4 !important;
+}
+
+.macroblock-btn:disabled {
     cursor: not-allowed !important;
 }
 
-.macroblock-btn.expanded {
-    border-bottom: none;
-    border-radius: 10px 10px 0 0;
+.checkbox-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.4s ease;
+    opacity: 1;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    padding: 16px;
+    background-color: var(--background-second);
+    box-sizing: border-box;
+}
+
+.checkbox-container.loading {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-container.loading * {
+    cursor: not-allowed !important;
+}
+
+.checkbox-container label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: var(--font-color);
+}
+
+.checkbox-container input[type="checkbox"] {
+    cursor: pointer;
 }
 
 .modal-overlay {
@@ -99,59 +149,30 @@
     color: var(--font-color);
 }
 
-.checkbox-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.5s ease;
-    background-color: var(--background-second);
-}
-
-.checkbox-container.collapsed {
-    max-height: 0;
-    padding: 0;
-    opacity: 0;
-}
-
-.checkbox-container.expanded {
-    max-height: 200px;
-    padding: 16px;
-    opacity: 1;
-    border-radius: 0 0 10px 10px;
-    border: 1px solid #00bcd4;
-    border-top: none;
-    animation: fadeIn 0.5s ease;
-}
-
-.checkbox-container.loading {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.checkbox-container.loading * {
-    cursor: not-allowed !important;
-}
-
-.checkbox-container label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    color: var(--font-color);
-}
-
-.checkbox-container input[type="checkbox"] {
-    cursor: pointer;
-}
-
 .macroblock-info-box {
-    margin-top: 15px;
-    padding: 12px 16px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    padding: 0 16px;
     border: 1px solid var(--border-color);
     border-radius: 10px;
     background-color: var(--background-second);
+    transition: max-height 0.4s ease,
+    opacity 0.4s ease 0.1s,
+    margin-top 0.4s ease,
+    padding 0.4s ease;
+}
+
+.macroblock-info-box.visible {
+    max-height: 600px;
+    opacity: 1;
+    margin-top: 15px;
+    padding: 12px 16px;
+    transition: max-height 0.4s ease,
+    opacity 0.4s ease,
+    margin-top 0.4s ease,
+    padding 0.4s ease;
 }
 
 .macroblock-info-box h4 {
@@ -193,14 +214,3 @@
 .label-inter  { background: #4dff4d; }
 .label-skip   { background: #4d4dff; }
 .label-direct { background: #4dffff; }
-
-.label-dot-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-2px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
