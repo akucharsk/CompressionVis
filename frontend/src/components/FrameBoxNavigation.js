@@ -70,17 +70,16 @@ const FrameBoxNavigation = () => {
             
             if (inputValue >= frames.length) {
                 setSelectedIdx(frames.length - 1);
-                console.log(`I ${inputValue} & ${frames.length}`);
+                inputSelectedIdx.value = frames.length;
                 return;
             }
             if (inputValue < 1 ) {
                 setSelectedIdx(0);
-                console.log(`II ${1}`);
+                inputSelectedIdx.value = 1;
                 return;
             }
             setSelectedIdx(inputValue);
-            console.log(`III ${inputValue} & ${frames.length}`);
-            // console.log(frames.length);
+            inputSelectedIdx.value = inputValue + 1;
         }
     }
 
@@ -156,16 +155,14 @@ const FrameBoxNavigation = () => {
             </div>
             <div className="timeline-rightbar">
                 <div className="frame-counter">
-                    <p>
-                        <input 
-                            type="number"
-                            ref={inputSelectedIdxRef} 
-                            className="input-selectedidx" 
-                            onKeyDown={handleInput}
-                        >
-                        </input>
-                        {selectedIdx + 1} / {frames.length}
-                    </p>
+                    <input 
+                        type="number"
+                        ref={inputSelectedIdxRef} 
+                        className="input-selectedidx" 
+                        onKeyDown={handleInput}
+                    >
+                    </input>
+                    <p>/ {frames.length}</p>
                 </div>
                 <div className="speed-control">
                     <div className="speed-description">
@@ -185,7 +182,7 @@ const FrameBoxNavigation = () => {
                     </div>
                 </div>
                 <button className="scroll-button-mini right" onClick={handleNextIFrame}>
-                    Next I-Frame
+                    <p>Next I-Frame</p>
                 </button>
             </div>
             
