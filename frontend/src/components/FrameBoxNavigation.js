@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useFps } from "../context/FpsContext";
 import { useFrames } from "../context/FramesContext";
@@ -9,6 +9,9 @@ const FrameBoxNavigation = () => {
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { setDisplayMode } = useDisplayMode();
     const { fps, setFps } = useFps();
+
+    const inputSelectedIdxRef = useRef(null);
+
 
     const handleScrollLeft = () => {
         setDisplayMode("frames");
@@ -57,6 +60,39 @@ const FrameBoxNavigation = () => {
         setSelectedIdx(iFrames[nextPos]);
     }
 
+    const handleInput = (event) => {
+        if (event.key === "Enter") {
+            const inputSelectedIdx = inputSelectedIdxRef.current;
+
+            if (!inputSelectedIdx) return;
+
+            let inputValue = inputSelectedIdx.value - 1
+            
+            if (inputValue >= frames.length) {
+                setSelectedIdx(frames.length - 1);
+                console.log(`I ${inputValue} & ${frames.length}`);
+                return;
+            }
+            if (inputValue < 1 ) {
+                setSelectedIdx(0);
+                console.log(`II ${1}`);
+                return;
+            }
+            setSelectedIdx(inputValue);
+            console.log(`III ${inputValue} & ${frames.length}`);
+            // console.log(frames.length);
+        }
+    }
+
+
+    useEffect(() => {
+        const inputSelectedIdx = inputSelectedIdxRef.current;
+        
+        if (!inputSelectedIdx) return;
+
+        inputSelectedIdx.value = selectedIdx + 1;
+    }, [selectedIdx])
+
     useEffect(() => {
         const min = 6;
         const max = 30;
@@ -64,6 +100,23 @@ const FrameBoxNavigation = () => {
         document.documentElement.style.setProperty("--percent", `${percent}%`);
     }, [fps]);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            const inputSelectedIdx = inputSelectedIdxRef.current;
+
+            if (inputSelectedIdx === document.activeElement) return;
+
+            if (e.key === 'ArrowLeft') {
+                
+                setSelectedIdx(prev => Math.max(0, prev - 1));
+            } else if (e.key === 'ArrowRight') {
+                setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
+            } 
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [frames.length, setSelectedIdx]);
 
     return (
         <div className="timeline-header">
@@ -103,7 +156,16 @@ const FrameBoxNavigation = () => {
             </div>
             <div className="timeline-rightbar">
                 <div className="frame-counter">
-                    <p>{selectedIdx + 1} / {frames.length}</p>
+                    <p>
+                        <input 
+                            type="number"
+                            ref={inputSelectedIdxRef} 
+                            className="input-selectedidx" 
+                            onKeyDown={handleInput}
+                        >
+                        </input>
+                        {selectedIdx + 1} / {frames.length}
+                    </p>
                 </div>
                 <div className="speed-control">
                     <div className="speed-description">

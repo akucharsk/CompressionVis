@@ -59,20 +59,6 @@ const FrameBox = () => {
         }
     }, [selectedIdx, isVideoPlaying]);
 
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'ArrowLeft') {
-                
-                setSelectedIdx(prev => Math.max(0, prev - 1));
-            } else if (e.key === 'ArrowRight') {
-                setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
-            } 
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [frames.length, setSelectedIdx]);
-
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">

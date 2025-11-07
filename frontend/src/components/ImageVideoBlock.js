@@ -1,4 +1,130 @@
-// // Ist WAY
+// Ist WAY
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useDisplayMode } from "../context/DisplayModeContext";
+import { useSearchParams } from "react-router-dom";
+import { useError } from "../context/ErrorContext";
+import { fetchImage } from "../api/fetchImage";
+import { apiUrl } from "../utils/urls";
+import { handleApiError } from "../utils/errorHandler";
+import { useFrames } from "../context/FramesContext";
+import { MAX_RETRIES } from "../utils/constants";
+import { useVideoPlaying } from "../context/VideoPlayingContext";
+import { useFps } from "../context/FpsContext";
+import Frame from "./frameDistribution/Frame";
+import Spinner from "./Spinner";
+
+const ImageVideoBlock = () => {
+    const { displayMode } = useDisplayMode();
+    const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
+    const [ params ] = useSearchParams();
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { fps } = useFps();
+    const { showError } = useError();
+
+    const [imageUrl, setImageUrl] = useState(null);
+
+    const videoRef = useRef(null);
+
+    const videoId = parseInt(params.get("videoId"));
+    const videoUrl = `${apiUrl}/video/${videoId}`;
+
+    useEffect(() => {
+        const video = videoRef.current;
+        
+        if (!video) return;
+
+        if (isVideoPlaying) {
+            video.playbackRate = fps / 30;
+            video.currentTime = frames[selectedIdx].pts_time;
+            video.play().catch(() => {});
+        }
+        else {
+            video.pause();
+            const currentTime = video.currentTime;
+            let closestIdx = 0;
+
+            for (let i = 0; i < frames.length; i++) {
+                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                    closestIdx = i;
+                    break;
+                }
+            }
+
+            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+        }
+
+    }, [isVideoPlaying, videoRef.current])
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video)
+            return;
+        if (!isVideoPlaying) {
+            video.currentTime=frames[selectedIdx].pts_time;
+        }
+    
+    }, [selectedIdx, videoRef.current, isVideoPlaying, frames])
+
+    useEffect(() => {
+        const video = videoRef.current;
+
+        if (!video) return;
+        video.playbackRate = fps / 30;
+
+    }, [fps, videoRef.current])
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !frames.length) return;
+
+        const handleTimeUpdate = () => {
+            const currentTime = video.currentTime;
+            let closestIdx = 0;
+            for (let i = 0; i < frames.length; i++) {
+                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                    closestIdx = i;
+                    break;
+                }
+            }
+            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+        };
+
+        video.addEventListener("timeupdate", handleTimeUpdate);
+        return () => video.removeEventListener("timeupdate", handleTimeUpdate);
+    }, [frames, isVideoPlaying, videoRef.current]);
+
+    if (framesQuery.isPending) {
+        return (
+            <div className="loading-overlay">
+                <Spinner />
+            </div>
+        );
+    }
+
+    return (
+        <div className="left-section">
+            {displayMode === "frames" ? (
+                <Frame />
+            ) : displayMode === "video" ? (
+                <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    onEnded={() => {
+                        setIsVideoPlaying(false);
+                    }}
+                    className="compressed-video"
+                />
+            ) : (<div className="spinner"></div>)}
+        </div>
+    )
+}
+
+export default ImageVideoBlock;
+
+// //IInd way
 
 // import { useState, useEffect, useRef, useCallback } from "react";
 // import { useDisplayMode } from "../context/DisplayModeContext";
@@ -74,13 +200,17 @@
 
 //     }, [fps, videoRef.current])
 
+//     // // Faster alternative way of following
 //     useEffect(() => {
 //         const video = videoRef.current;
 //         if (!video || !frames.length) return;
 
-//         const handleTimeUpdate = () => {
+//         let animationFrameId;
+
+//         const updateFrame = () => {
 //             const currentTime = video.currentTime;
 //             let closestIdx = 0;
+
 //             for (let i = 0; i < frames.length; i++) {
 //                 const nextTime = frames[i + 1]?.pts_time ?? Infinity;
 //                 if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
@@ -88,12 +218,20 @@
 //                     break;
 //                 }
 //             }
+
 //             setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
+
+//             if (!video.paused && !video.ended) {
+//                 animationFrameId = requestAnimationFrame(updateFrame);
+//             }
 //         };
 
-//         video.addEventListener("timeupdate", handleTimeUpdate);
-//         return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-//     }, [frames, isVideoPlaying, videoRef.current]);
+//         if (isVideoPlaying) {
+//             animationFrameId = requestAnimationFrame(updateFrame);
+//         }
+
+//         return () => cancelAnimationFrame(animationFrameId);
+//     }, [videoUrl, frames, isVideoPlaying]);
 
 //     if (framesQuery.isPending) {
 //         return (
@@ -105,9 +243,9 @@
 
 //     return (
 //         <div className="left-section">
-//             {displayMode === "frames" ? (
+//             {!isVideoPlaying ? (
 //                 <Frame />
-//             ) : displayMode === "video" ? (
+//             ) : (
 //                 <video
 //                     ref={videoRef}
 //                     src={videoUrl}
@@ -116,146 +254,9 @@
 //                     }}
 //                     className="compressed-video"
 //                 />
-//             ) : (<div className="spinner"></div>)}
+//             )}
 //         </div>
 //     )
 // }
 
 // export default ImageVideoBlock;
-
-//IInd way
-
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useDisplayMode } from "../context/DisplayModeContext";
-import { useSearchParams } from "react-router-dom";
-import { useError } from "../context/ErrorContext";
-import { fetchImage } from "../api/fetchImage";
-import { apiUrl } from "../utils/urls";
-import { handleApiError } from "../utils/errorHandler";
-import { useFrames } from "../context/FramesContext";
-import { MAX_RETRIES } from "../utils/constants";
-import { useVideoPlaying } from "../context/VideoPlayingContext";
-import { useFps } from "../context/FpsContext";
-import Frame from "./frameDistribution/Frame";
-import Spinner from "./Spinner";
-
-const ImageVideoBlock = () => {
-    const { displayMode } = useDisplayMode();
-    const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
-    const [ params ] = useSearchParams();
-    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
-    const { fps } = useFps();
-    const { showError } = useError();
-
-    const [imageUrl, setImageUrl] = useState(null);
-
-    const videoRef = useRef(null);
-
-    const videoId = parseInt(params.get("videoId"));
-    const videoUrl = `${apiUrl}/video/${videoId}`;
-    useEffect(() => {
-        const video = videoRef.current;
-        
-        if (!video) return;
-
-        if (isVideoPlaying) {
-            video.playbackRate = fps / 30;
-            video.currentTime = frames[selectedIdx].pts_time;
-            video.play().catch(() => {});
-        }
-        else {
-            video.pause();
-            const currentTime = video.currentTime;
-            let closestIdx = 0;
-
-            for (let i = 0; i < frames.length; i++) {
-                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
-                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
-                    closestIdx = i;
-                    break;
-                }
-            }
-
-            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
-        }
-
-    }, [isVideoPlaying, videoRef.current])
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video)
-            return;
-        if (!isVideoPlaying) {
-            video.currentTime=frames[selectedIdx].pts_time;
-        }
-    
-    }, [selectedIdx, videoRef.current, isVideoPlaying, frames])
-
-    useEffect(() => {
-        const video = videoRef.current;
-
-        if (!video) return;
-        video.playbackRate = fps / 30;
-
-    }, [fps, videoRef.current])
-
-    // // Faster alternative way of following
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video || !frames.length) return;
-
-        let animationFrameId;
-
-        const updateFrame = () => {
-            const currentTime = video.currentTime;
-            let closestIdx = 0;
-
-            for (let i = 0; i < frames.length; i++) {
-                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
-                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
-                    closestIdx = i;
-                    break;
-                }
-            }
-
-            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
-
-            if (!video.paused && !video.ended) {
-                animationFrameId = requestAnimationFrame(updateFrame);
-            }
-        };
-
-        if (isVideoPlaying) {
-            animationFrameId = requestAnimationFrame(updateFrame);
-        }
-
-        return () => cancelAnimationFrame(animationFrameId);
-    }, [videoUrl, frames, isVideoPlaying]);
-
-    if (framesQuery.isPending) {
-        return (
-            <div className="loading-overlay">
-                <Spinner />
-            </div>
-        );
-    }
-
-    return (
-        <div className="left-section">
-            {!isVideoPlaying ? (
-                <Frame />
-            ) : (
-                <video
-                    ref={videoRef}
-                    src={videoUrl}
-                    onEnded={() => {
-                        setIsVideoPlaying(false);
-                    }}
-                    className="compressed-video"
-                />
-            )}
-        </div>
-    )
-}
-
-export default ImageVideoBlock;
