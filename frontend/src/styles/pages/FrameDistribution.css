@@ -1,6 +1,7 @@
 @import '../shared/Shared.css';
 
 .distribution-container {
+    overflow: hidden;
     font-family: sans-serif;
     color: var(--font-color);
     padding: 16px;

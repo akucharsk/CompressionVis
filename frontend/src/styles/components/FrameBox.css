@@ -241,7 +241,8 @@
 }
 
 .timeline-content {
-    width: 100%;
+    width: 96%;
+    position: relative;
     background-color: var(--background-second);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -256,7 +257,6 @@
     padding: 0.5rem 0;
     scrollbar-width: thin;
     scrollbar-color: var(--netflix-red) var(--background-second);
-    /* min-height: 100px; */
 }
 
 .scrollable-frameBox::-webkit-scrollbar {
@@ -345,21 +345,67 @@
     z-index: -1;
 }
 
-.indicators-config {
+.indicators-config-closed,
+.indicators-config-opened {
+    position: absolute;
+    top: -20px;
+    display: flex;
+    max-width: 550px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 2px solid white;
+    background-color: var(--background-second);
+    z-index: 2;
+
+    transition: right 0.8s ease;
+}
+
+.indicators-config-closed {
+    right: -586px;
+}
+
+.indicators-config-opened {
+    right: -80px;
+}
+
+.indicators-show-button {
+    display: flex;
+    width: 25px;
+    padding: 3px;
+    font-weight: 700;
+    font-size: 2.0rem;
+    color: var(--font-color);  
+    margin: auto 0 auto 0;  
+    text-align: center;
+    justify-content: center;
+    background-color: var(--netflix-dark-red);
+    border-radius: 10px 0 0 10px;
+    border: 2px solid white; 
+}
+
+.indicator-close-arrow, 
+.indicator-open-arrow {
+    rotate: 180deg;
+    transition: transform 0.8s ease;
+}
+
+.indicator-open-arrow {
+    transform: rotate(180deg);
+}
+
+.indicators-config-content {
     display: flex;
     flex-direction: column;
     width: fit-content;
     gap: 1rem;
-    margin-top: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--netflix-gray);
-    padding: 10px;
-    z-index: 2;
+    padding: 10px 15px;
+    /* z-index: 2; */
 }
 
 .indicators-config-heading {
     font-weight: bold;
     margin: auto;
+    font-size: 1.3rem;
 }
 
 .indicator-options {

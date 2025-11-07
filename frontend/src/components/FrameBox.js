@@ -70,8 +70,8 @@ const FrameBox = () => {
     return (
         <div className="frames-container">
             <FrameBoxNavigation />
-            <IndicatorConfig loadingFields={loadingFields} />
             <div className="timeline-content">
+                <IndicatorConfig loadingFields={loadingFields} />
                 <div className="indicator-labels">
                     {[...indicators].reverse().map((indicator, i) => (
                         <div key={i} className="indicator-label">
