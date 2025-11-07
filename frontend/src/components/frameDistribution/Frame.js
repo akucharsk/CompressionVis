@@ -6,20 +6,31 @@ import {fetchImage} from "../../api/fetchImage";
 import './../../styles/components/distribution/Frame.css';
 import {useError} from "../../context/ErrorContext";
 import {useMacroblocks} from "../../context/MacroblocksContext";
-import MacroblockInfo from "./MacroblockInfo";
 
-const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }) => {
-    const [imageUrl, setImageUrl] = useState(null);
+const Frame = ({
+                   frames,
+                   selectedIdx,
+                   showGrid,
+                   showVectors,
+                   visibleCategories,
+                   imageUrl,
+                   setImageUrl,
+                   infoRef,
+                   currentFrameIdx,
+                   setCurrentFrameIdx,
+                   selectedBlock,
+                   setSelectedBlock,
+                   setNextImageUrl,
+                   setPrevImageUrl
+}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [blocks, setBlocks] = useState([]);
-    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
     const [params] = useSearchParams();
     const videoId = parseInt(params.get("videoId"));
-    const [selectedBlock, setSelectedBlock] = useState(null);
+
     const { showError } = useError();
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
-    const infoRef = useRef(null);
     const { frameMacroBlocksQuery } = useMacroblocks();
 
     const drawCanvas = useCallback(() => {
@@ -125,6 +136,40 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
             isMounted = false;
         };
     }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl]);
+
+    useEffect(() => {
+        if (!selectedBlock || !videoId) return;
+
+        const sources = [selectedBlock.source, selectedBlock.source2]
+            .filter(v => typeof v === "number" && v !== 0);
+
+        if (sources.length === 0) return;
+
+        const fetchAdjacent = async () => {
+            const framePromises = sources.map(async (offset) => {
+                const targetIdx = currentFrameIdx + offset;
+                if (targetIdx < 0 || targetIdx >= frames.length) return null;
+
+                const url = await fetchImage(
+                    MAX_RETRIES,
+                    `${apiUrl}/frames/${videoId}/${targetIdx}/`
+                );
+
+                return { offset, url };
+            });
+
+            const results = (await Promise.all(framePromises)).filter(Boolean);
+
+            const prev = results.find(r => r.offset < 0);
+            const next = results.find(r => r.offset > 0);
+
+            setPrevImageUrl(prev?.url || null);
+            setNextImageUrl(next?.url || null);
+        };
+
+        fetchAdjacent();
+    }, [selectedBlock, videoId, currentFrameIdx, frames.length]);
+
 
     const mapSelectedBlockToNewFrame = (oldBlock, newBlocks) => {
         if (!oldBlock || !newBlocks || newBlocks.length === 0) return null;
@@ -235,7 +280,7 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
     }, [drawCanvas]);
 
     return (
-        <div className="left-section">
+        <div className="frame-image-container">
             {frames.length > 0 && selectedIdx < frames.length && (
                 <div className="frame-preview" style={{ position: "relative" }}>
                     {isLoading && imageUrl === null ? (
@@ -267,13 +312,6 @@ const Frame = ({ frames, selectedIdx, showGrid, showVectors, visibleCategories }
                     )}
                 </div>
             )}
-
-            <MacroblockInfo
-                selectedBlock={selectedBlock}
-                setSelectedBlock={setSelectedBlock}
-                frameImageUrl={imageUrl}
-                ref={infoRef}
-            />
         </div>
     );
 };

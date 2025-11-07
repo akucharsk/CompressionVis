@@ -5,7 +5,7 @@ const Parameters = () => {
     const { parameters } = useSettings();
 
     return (
-        <div className="content-box frame-info">
+        <div className="content-box info">
             <h3>Video Parameters</h3>
             {parameters.mode === "parameters" && (
                 <>

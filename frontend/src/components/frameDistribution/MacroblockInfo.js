@@ -1,32 +1,9 @@
-import {forwardRef, useEffect, useState} from "react";
-import "../../styles/components/distribution/Macroblock.css";
+import {useEffect, useRef, useState} from "react";
+import '../../styles/components/distribution/Macroblock.css';
 
-function cropSelectedBlock(frameImage, block, setThumbUrl) {
-    const { x, y, width, height } = block;
-    if (!width || !height) return;
-
-    const cropCanvas = document.createElement("canvas");
-    const ctx = cropCanvas.getContext("2d");
-
-    cropCanvas.width = width;
-    cropCanvas.height = height;
-
-    ctx.drawImage(
-        frameImage,
-        x - width / 2,
-        y - height / 2,
-        width,
-        height,
-        0, 0, width, height
-    );
-
-    setThumbUrl(cropCanvas.toDataURL());
-}
-
-const MacroblockInfo = forwardRef((props, ref) => {
-    const { selectedBlock, setSelectedBlock, frameImageUrl } = props;
-    const [thumbUrl, setThumbUrl] = useState(null);
+const MacroblockInfo = ({ selectedBlock }) => {
     const [displayBlock, setDisplayBlock] = useState(null);
+    const ref = useRef(null);
 
     useEffect(() => {
         if (selectedBlock) {
@@ -35,58 +12,33 @@ const MacroblockInfo = forwardRef((props, ref) => {
     }, [selectedBlock]);
 
     useEffect(() => {
-        if (!frameImageUrl || !displayBlock) {
-            return;
+        if (ref.current) {
+            if (selectedBlock) {
+                ref.current.style.maxHeight = ref.current.scrollHeight + 'px';
+            } else {
+                ref.current.style.maxHeight = '0';
+            }
         }
+    }, [selectedBlock]);
 
-        const img = new Image();
-        img.src = frameImageUrl;
-
-        img.onload = () => {
-            cropSelectedBlock(img, displayBlock, setThumbUrl);
-        };
-
-        return () => {
-            img.onload = null;
-        };
-    }, [frameImageUrl, displayBlock]);
-
+    console.log(displayBlock?.more);
     return (
-        <div ref={ref} className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
-            <h4>Macroblock details</h4>
-
-            {thumbUrl && (
-                <img
-                    src={thumbUrl}
-                    alt="Macroblock preview"
-                    style={{
-                        width: "120px",
-                        height: "120px",
-                        imageRendering: "pixelated",
-                        border: "1px solid #555",
-                        marginBottom: "10px"
-                    }}
-                />
-            )}
-
+        <div ref={ref} className={`content-box info macroblock-data ${selectedBlock ? "visible" : ""}`}>
+            <h3>Macroblock information</h3>
             <p><strong>Type:</strong> {displayBlock?.type}</p>
             <p><strong>Position:</strong> ({displayBlock?.x}, {displayBlock?.y})</p>
             <p><strong>Size:</strong> {displayBlock?.width}x{displayBlock?.height}</p>
-            <p><strong>Ffmpeg type:</strong> {displayBlock?.ftype}</p>
+            <p><strong>Ffmpeg debug type:</strong> {displayBlock?.ftype}</p>
             <p><strong>Reference frame:</strong> {displayBlock?.source}</p>
-
-            {displayBlock?.src_x != null && (
-                <p><strong>Source:</strong> ({displayBlock.src_x}, {displayBlock.src_y})</p>
+            <p><strong>Source:</strong> ({displayBlock?.src_x}, {displayBlock?.src_y})</p>
+            {displayBlock?.more === true && (
+                <>
+                    <p><strong>Reference frame 2:</strong> {displayBlock?.source2}</p>
+                    <p><strong>Source 2:</strong> ({displayBlock?.src_x2}, {displayBlock?.src_y2})</p>
+                </>
             )}
-
-            <button
-                className="macroblock-close-btn"
-                onClick={() => setSelectedBlock(null)}
-            >
-                Close
-            </button>
         </div>
     );
-});
+};
 
 export default MacroblockInfo;

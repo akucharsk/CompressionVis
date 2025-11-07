@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, {useRef, useState} from 'react';
 import { useFrames } from "../context/FramesContext";
-import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
 import Frame from "../components/frameDistribution/Frame";
 import SidePanel from "../components/frameDistribution/SidePanel";
 import FramesBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
+import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
 
 const FramesDistribution = () => {
     const { frames, selectedIdx } = useFrames();
-    const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showGrid, setShowGrid] = useState(false);
     const [showVectors, setShowVectors] = useState(false);
+    const [imageUrl, setImageUrl] = useState(null);
+    const [prevImageUrl, setPrevImageUrl] = useState(null);
+    const [nextImageUrl, setNextImageUrl] = useState(null);
+    const infoRef = useRef(null);
+    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
+    const [selectedBlock, setSelectedBlock] = useState(null);
     const [visibleCategories, setVisibleCategories] = useState({
         intra: true,
         inter: true,
@@ -30,13 +35,33 @@ const FramesDistribution = () => {
         <div className="distribution-container">
             <FramesBox />
             <div className="main-frame-container">
-                <Frame
-                    selectedIdx={selectedIdx}
-                    frames={frames}
-                    showGrid={showGrid}
-                    showVectors={showVectors}
-                    visibleCategories={visibleCategories}
-                />
+                <div className="left-section">
+                    <Frame
+                        selectedIdx={selectedIdx}
+                        frames={frames}
+                        showGrid={showGrid}
+                        showVectors={showVectors}
+                        visibleCategories={visibleCategories}
+                        setImageUrl={setImageUrl}
+                        imageUrl={imageUrl}
+                        infoRef={infoRef}
+                        setCurrentFrameIdx={setCurrentFrameIdx}
+                        currentFrameIdx={currentFrameIdx}
+                        selectedBlock={selectedBlock}
+                        setSelectedBlock={setSelectedBlock}
+                        setPrevImageUrl={setPrevImageUrl}
+                        setNextImageUrl={setNextImageUrl}
+                    />
+                    <MacroblockHistory
+                        ref={infoRef}
+                        selectedBlock={selectedBlock}
+                        setSelectedBlock={setSelectedBlock}
+                        frameImageUrl={imageUrl}
+                        frameNumber={currentFrameIdx}
+                        prevFrameImageUrl={prevImageUrl}
+                        nextFrameImageUrl={nextImageUrl}
+                    />
+                </div>
                 <SidePanel
                     selectedIdx={selectedIdx}
                     frames={frames}
@@ -46,15 +71,10 @@ const FramesDistribution = () => {
                     showGrid={showGrid}
                     visibleCategories={visibleCategories}
                     toggleCategory={toggleCategory}
+                    selectedBlock={selectedBlock}
                 />
             </div>
-            {showHistoryModal && (
-                <MacroblockHistory
-                    selectedIdx={selectedIdx}
-                    frames={frames}
-                    handleOffClick={setShowHistoryModal}
-                />
-            )}
+
         </div>
     );
 };

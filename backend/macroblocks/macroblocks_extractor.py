@@ -8,6 +8,7 @@ import queue
 import time
 
 import fcntl
+import numpy as np
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from mvextractor.videocap import VideoCap
@@ -143,52 +144,57 @@ class MacroblocksExtractor:
     def _process_frame(self, block_types_grid, motion_vectors):
         vectors_dict = {}
         for mv in motion_vectors:
-            dst_x = int(mv[5])
-            dst_y = int(mv[6])
-            grid_x = dst_x // 16
-            grid_y = dst_y // 16
-            key = (grid_x, grid_y)
-            if key not in vectors_dict:
-                vectors_dict[key] = []
-            vectors_dict[key].append(mv)
+            dst_x, dst_y = int(mv[5]), int(mv[6])
+            grid_x, grid_y = dst_x // 16, dst_y // 16
+            vectors_dict.setdefault((grid_x, grid_y), []).append(mv)
 
         grid_blocks = []
         for row_idx, row in enumerate(block_types_grid):
             for col_idx, symbol in enumerate(row):
-                grid_x = col_idx
-                grid_y = row_idx
-
-                base_x = grid_x * 16 + 8
-                base_y = grid_y * 16 + 8
-
+                grid_x, grid_y = col_idx, row_idx
+                base_x, base_y = grid_x * 16 + 8, grid_y * 16 + 8
                 block_type = self._get_block_type_from_symbol(symbol)
-
+                block_data = {
+                    "x": base_x,
+                    "y": base_y,
+                    "width": 16,
+                    "height": 16,
+                    "src_x": base_x,
+                    "src_y": base_y,
+                    "type": block_type,
+                    "ftype": symbol,
+                    "source": 0,
+                    "more": False,
+                    "src_x2": None,
+                    "src_y2": None,
+                    "source2": None
+                }
                 key = (grid_x, grid_y)
+
+
                 if key in vectors_dict:
-                    for mv in vectors_dict[key]:
-                        grid_blocks.append({
-                            "x": int(mv[5]),
-                            "y": int(mv[6]),
-                            "width": int(mv[1]),
-                            "height": int(mv[2]),
-                            "src_x": int(mv[3]),
-                            "src_y": int(mv[4]),
-                            "type": block_type,
-                            "ftype": symbol,
-                            "source": int(mv[0])
-                        })
-                else:
-                    grid_blocks.append({
-                        "x": base_x,
-                        "y": base_y,
-                        "width": 16,
-                        "height": 16,
-                        "src_x": base_x,
-                        "src_y": base_y,
-                        "type": block_type,
-                        "ftype": symbol,
-                        "source": 0
+                    mvs = vectors_dict[key]
+                    mv1 = mvs[0]
+                    block_data.update({
+                        "x": int(mv1[5]),
+                        "y": int(mv1[6]),
+                        "width": int(mv1[1]),
+                        "height": int(mv1[2]),
+                        "src_x": int(mv1[3]),
+                        "src_y": int(mv1[4]),
+                        "source": int(mv1[0]),
+                        "more": len(mvs) > 1
                     })
+                    if len(mvs) > 1:
+                        mv2 = mvs[1]
+                        block_data.update({
+                            "src_x2": int(mv2[3]),
+                            "src_y2": int(mv2[4]),
+                            "source2": int(mv2[0])
+                        })
+
+                grid_blocks.append(block_data)
+
         return grid_blocks
 
     def _extract_macroblocks(self):

@@ -2,12 +2,13 @@ import React from "react";
 import '../../styles/components/distribution/Macroblock.css';
 import Parameters from "../Parameters";
 import MacroblockControl from "./MacroblockControl";
+import MacroblockInfo from "./MacroblockInfo";
 
-const SidePanel = ({ frames, selectedIdx, setShowGrid, setShowVectors, showGrid, showVectors, toggleCategory, visibleCategories }) => {
+const SidePanel = ({ frames, selectedIdx, setShowGrid, setShowVectors, showGrid, showVectors, toggleCategory, visibleCategories, selectedBlock }) => {
     return (
         <div className="right-section">
             <Parameters />
-            <div className="content-box frame-info">
+            <div className="content-box info">
                 <h3>Frame Information</h3>
                 <p>Frame: {selectedIdx + 1}</p>
                 <p>Type: {frames[selectedIdx]?.type}</p>
@@ -21,6 +22,9 @@ const SidePanel = ({ frames, selectedIdx, setShowGrid, setShowVectors, showGrid,
                 showVectors={showVectors}
                 toggleCategory={toggleCategory}
                 visibleCategories={visibleCategories}
+            />
+            <MacroblockInfo
+                selectedBlock={selectedBlock}
             />
         </div>
     );
