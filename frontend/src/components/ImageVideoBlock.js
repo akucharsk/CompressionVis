@@ -4,30 +4,79 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useSearchParams } from "react-router-dom";
 import { useError } from "../context/ErrorContext";
-import { fetchImage } from "../api/fetchImage";
 import { apiUrl } from "../utils/urls";
-import { handleApiError } from "../utils/errorHandler";
 import { useFrames } from "../context/FramesContext";
-import { MAX_RETRIES } from "../utils/constants";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import { useFps } from "../context/FpsContext";
 import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
+import { fetchImage } from "../api/fetchImage";
+import { MAX_RETRIES } from "../utils/constants";
 
 const ImageVideoBlock = () => {
-    const { displayMode } = useDisplayMode();
+    const { displayMode, setDisplayMode, hasImageFetched,setHasImageFetched } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     const [ params ] = useSearchParams();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
     const { showError } = useError();
 
-    const [imageUrl, setImageUrl] = useState(null);
-
     const videoRef = useRef(null);
+
+    const [imageUrl, setImageUrl] = useState(null);
+    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
 
     const videoId = parseInt(params.get("videoId"));
     const videoUrl = `${apiUrl}/video/${videoId}`;
+
+    useEffect(() => {
+
+    }, [])
+
+    useEffect(() => {
+        if (selectedIdx === null) {
+            setImageUrl(null);
+            setCurrentFrameIdx(null);
+            return;
+        }
+        // if (isVideoPlaying) {
+        //     return;
+        // }
+
+        if (selectedIdx === currentFrameIdx && imageUrl != null) {
+            return;
+        }
+
+        const controller = new AbortController();
+        let isMounted = true;
+
+        const loadImage = async () => {
+
+            try {
+                setHasImageFetched(false);
+                const url = await fetchImage(
+                    MAX_RETRIES,
+                    `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
+                    controller
+                );
+                if (isMounted) {
+                    setImageUrl(url);
+                    setHasImageFetched(true);
+                    setCurrentFrameIdx(selectedIdx);
+                }
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                if (isMounted) showError(error.message, error.statusCode);
+            }
+        };
+
+        loadImage();
+
+        return () => {
+            controller.abort();
+            isMounted = false;
+        };
+    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -41,6 +90,7 @@ const ImageVideoBlock = () => {
         }
         else {
             video.pause();
+            // setHasImageFetched(false);
             const currentTime = video.currentTime;
             let closestIdx = 0;
 
@@ -96,6 +146,9 @@ const ImageVideoBlock = () => {
         return () => video.removeEventListener("timeupdate", handleTimeUpdate);
     }, [frames, isVideoPlaying, videoRef.current]);
 
+
+    // setDisplayMode(null);
+
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
@@ -106,17 +159,21 @@ const ImageVideoBlock = () => {
 
     return (
         <div className="left-section">
-            {displayMode === "frames" ? (
-                <Frame />
-            ) : displayMode === "video" ? (
-                <video
-                    ref={videoRef}
-                    src={videoUrl}
-                    onEnded={() => {
-                        setIsVideoPlaying(false);
-                    }}
-                    className="compressed-video"
+            {displayMode === "frames" && hasImageFetched ? (
+                <Frame
+                    imageUrl={imageUrl}
                 />
+            ) : displayMode === "video" || (displayMode === "frames" && !hasImageFetched)? (
+                <div className="video-preview">
+                    <video
+                        ref={videoRef}
+                        src={videoUrl}
+                        onEnded={() => {
+                            setIsVideoPlaying(false);
+                        }}
+                        className="compressed-video"
+                    />
+                </div>
             ) : (<div className="spinner"></div>)}
         </div>
     )

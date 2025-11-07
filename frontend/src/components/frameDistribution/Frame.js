@@ -1,82 +1,26 @@
-import React, {useEffect, useState} from "react";
-import {MAX_RETRIES} from "../../utils/constants";
-import {useSearchParams} from "react-router-dom";
-import {apiUrl} from "../../utils/urls";
-import {fetchImage} from "../../api/fetchImage";
 import './../../styles/components/distribution/Frame.css';
-import {useError} from "../../context/ErrorContext";
-import { useVideoPlaying } from "../../context/VideoPlayingContext";
 import { useFrames } from "../../context/FramesContext";
+import Spinner from "../Spinner";
 
-const Frame = () => {
-    const [imageUrl, setImageUrl] = useState(null);
-    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
-    const [params] = useSearchParams();
-    const videoId = parseInt(params.get("videoId"));
-    const { showError } = useError();
-    const { isVideoPlaying } = useVideoPlaying();
+const Frame = ({ imageUrl }) => {
     const { frames, selectedIdx } = useFrames();
 
-    useEffect(() => {
-        if (selectedIdx === null) {
-            setImageUrl(null);
-            setCurrentFrameIdx(null);
-            return;
-        }
-        if (isVideoPlaying) {
-            return;
-        }
-
-        if (selectedIdx === currentFrameIdx) {
-            return;
-        }
-
-        const controller = new AbortController();
-        let isMounted = true;
-
-        const loadImage = async () => {
-
-            try {
-                const url = await fetchImage(
-                    MAX_RETRIES,
-                    `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
-                    controller
-                );
-                if (isMounted) {
-                    setImageUrl(url);
-                    setCurrentFrameIdx(selectedIdx);
-                }
-            } catch (error) {
-                if (error.name === "AbortError") return;
-                if (isMounted) showError(error.message, error.statusCode);
-            } finally {
-                
-            }
-        };
-
-        loadImage();
-
-        return () => {
-            controller.abort();
-            isMounted = false;
-        };
-    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl, isVideoPlaying]);
 
     return (
-        <div className="left-section">
+        <> 
             {frames.length > 0 && selectedIdx < frames.length && (
                 <div className="frame-preview">
                     {imageUrl === null ? (
-                        <div className="spinner"></div>
+                        <Spinner></Spinner>
                     ) : imageUrl && (
                         <img
                             src={imageUrl}
-                            alt={`Frame ${currentFrameIdx !== null ? currentFrameIdx : selectedIdx} (${frames[selectedIdx].type})`}
+                            alt={`Frame ${selectedIdx} (${frames[selectedIdx].type})`}
                         />
                     )}
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
