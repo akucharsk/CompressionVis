@@ -12,9 +12,10 @@ import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
 import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
+import Video from "./frameDistribution/Video";
 
 const ImageVideoBlock = () => {
-    const { displayMode, setDisplayMode, hasImageFetched,setHasImageFetched } = useDisplayMode();
+    const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     const [ params ] = useSearchParams();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
@@ -24,10 +25,10 @@ const ImageVideoBlock = () => {
     const videoRef = useRef(null);
 
     const [imageUrl, setImageUrl] = useState(null);
-    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
 
     const videoId = parseInt(params.get("videoId"));
     const videoUrl = `${apiUrl}/video/${videoId}`;
+
 
     useEffect(() => {
 
@@ -36,14 +37,6 @@ const ImageVideoBlock = () => {
     useEffect(() => {
         if (selectedIdx === null) {
             setImageUrl(null);
-            setCurrentFrameIdx(null);
-            return;
-        }
-        // if (isVideoPlaying) {
-        //     return;
-        // }
-
-        if (selectedIdx === currentFrameIdx && imageUrl != null) {
             return;
         }
 
@@ -53,7 +46,6 @@ const ImageVideoBlock = () => {
         const loadImage = async () => {
 
             try {
-                setHasImageFetched(false);
                 const url = await fetchImage(
                     MAX_RETRIES,
                     `${apiUrl}/frames/${videoId}/${selectedIdx}/`,
@@ -61,8 +53,9 @@ const ImageVideoBlock = () => {
                 );
                 if (isMounted) {
                     setImageUrl(url);
-                    setHasImageFetched(true);
-                    setCurrentFrameIdx(selectedIdx);
+                    if (!isVideoPlaying) {
+                        setDisplayMode("frames");
+                    }
                 }
             } catch (error) {
                 if (error.name === "AbortError") return;
@@ -76,7 +69,7 @@ const ImageVideoBlock = () => {
             controller.abort();
             isMounted = false;
         };
-    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl, isVideoPlaying]);
+    }, [selectedIdx, videoId, frames, showError, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -90,7 +83,6 @@ const ImageVideoBlock = () => {
         }
         else {
             video.pause();
-            // setHasImageFetched(false);
             const currentTime = video.currentTime;
             let closestIdx = 0;
 
@@ -159,21 +151,15 @@ const ImageVideoBlock = () => {
 
     return (
         <div className="left-section">
-            {displayMode === "frames" && hasImageFetched ? (
+            {displayMode === "frames" ? (
                 <Frame
                     imageUrl={imageUrl}
                 />
-            ) : displayMode === "video" || (displayMode === "frames" && !hasImageFetched)? (
-                <div className="video-preview">
-                    <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        onEnded={() => {
-                            setIsVideoPlaying(false);
-                        }}
-                        className="compressed-video"
-                    />
-                </div>
+            ) : displayMode === "video" ? (
+                <Video 
+                    videoRef={videoRef}
+                    videoUrl={videoUrl}
+                />
             ) : (<div className="spinner"></div>)}
         </div>
     )

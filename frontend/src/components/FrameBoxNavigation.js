@@ -7,7 +7,7 @@ import { useVideoPlaying } from "../context/VideoPlayingContext";
 const FrameBoxNavigation = () => {
     const { frames, selectedIdx, setSelectedIdx } = useFrames();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
-    const { setDisplayMode, setHasImageFetched } = useDisplayMode();
+    const { setDisplayMode } = useDisplayMode();
     const { fps, setFps } = useFps();
 
     const inputSelectedIdxRef = useRef(null);
@@ -40,8 +40,7 @@ const FrameBoxNavigation = () => {
 
     const handlePause = () => {
         setIsVideoPlaying(false);
-        setHasImageFetched(false); 
-        setDisplayMode("frames");
+        // setDisplayMode("frames");
     };
 
     const handleRestart = () => {
