@@ -146,7 +146,7 @@ class MacroblocksExtractor:
         for mv in motion_vectors:
             dst_x, dst_y = int(mv[5]), int(mv[6])
             grid_x, grid_y = dst_x // 16, dst_y // 16
-            vectors_dict.setdefault((grid_x, grid_y), []).append(mv)
+            vectors_dict.setdefault((grid_x, grid_y), {}).setdefault((dst_x, dst_y), []).append(mv)
 
         grid_blocks = []
         for row_idx, row in enumerate(block_types_grid):
@@ -170,10 +170,13 @@ class MacroblocksExtractor:
                     "source2": None
                 }
                 key = (grid_x, grid_y)
+                if key not in vectors_dict:
+                    grid_blocks.append(block_data)
+                    continue
 
+                sub_dict = vectors_dict[key]
 
-                if key in vectors_dict:
-                    mvs = vectors_dict[key]
+                for mvs in sub_dict.values():
                     mv1 = mvs[0]
                     block_data.update({
                         "x": int(mv1[5]),
@@ -183,7 +186,10 @@ class MacroblocksExtractor:
                         "src_x": int(mv1[3]),
                         "src_y": int(mv1[4]),
                         "source": int(mv1[0]),
-                        "more": len(mvs) > 1
+                        "more": len(mvs) > 1,
+                        "src_x2": None,
+                        "src_y2": None,
+                        "source2": None
                     })
                     if len(mvs) > 1:
                         mv2 = mvs[1]
@@ -193,7 +199,7 @@ class MacroblocksExtractor:
                             "source2": int(mv2[0])
                         })
 
-                grid_blocks.append(block_data)
+                    grid_blocks.append(block_data.copy())
 
         return grid_blocks
 

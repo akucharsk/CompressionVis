@@ -54,9 +54,9 @@ const Frame = ({
                 ctx.globalAlpha = visibleCategories[category] ? 1.0 : 0.2;
                 ctx.strokeStyle = getCategoryColor(category);
                 ctx.lineWidth = 1;
-                const x = block.x - block.width / 2;
-                const y = block.y - block.height / 2;
-                ctx.strokeRect(x, y, block.width, block.height);
+                const x = block.x - block.width / 2 + 1;
+                const y = block.y - block.height / 2 + 1;
+                ctx.strokeRect(x, y, block.width - 2, block.height - 2);
             });
             ctx.globalAlpha = 1.0;
         }
@@ -76,17 +76,58 @@ const Frame = ({
             ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
 
+
         if (showVectors && blocks.length > 0) {
             blocks.forEach(block => {
-                if (block.src_x === undefined || block.src_y === undefined) return;
-                const category = block.type || 'intra';
-                ctx.globalAlpha = visibleCategories[category] ? 1.0 : 0.2;
-                ctx.strokeStyle = getCategoryColor(category);
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(block.src_x, block.src_y);
-                ctx.lineTo(block.x, block.y);
-                ctx.stroke();
+                if (block.src_x == null || block.src_y == null) return;
+
+                const drawVector = (srcX, srcY) => {
+                    const category = block.type || 'intra';
+                    const alpha = visibleCategories[category] ? 1.0 : 0.2;
+                    const color = getCategoryColor(category);
+
+                    const dx = block.x - srcX;
+                    const dy = block.y - srcY;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+
+                    if (length < 1) return;
+
+                    ctx.shadowColor = 'rgba(0, 0, 0, ' + alpha + ')';
+                    ctx.shadowBlur = 3;
+                    ctx.strokeStyle = color;
+                    ctx.globalAlpha = alpha;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(srcX, srcY);
+                    ctx.lineTo(block.x, block.y);
+                    ctx.stroke();
+
+                    const angle = Math.atan2(dy, dx);
+                    const arrowSize = 8;
+                    const arrowAngle = Math.PI / 6;
+
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        block.x - arrowSize * Math.cos(angle - arrowAngle),
+                        block.y - arrowSize * Math.sin(angle - arrowAngle)
+                    );
+                    ctx.lineTo(block.x, block.y);
+                    ctx.lineTo(
+                        block.x - arrowSize * Math.cos(angle + arrowAngle),
+                        block.y - arrowSize * Math.sin(angle + arrowAngle)
+                    );
+                    ctx.stroke();
+
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                };
+
+                drawVector(block.src_x, block.src_y);
+
+                if (block.src_x2 != null && block.src_y2 != null) {
+                    drawVector(block.src_x2, block.src_y2);
+                }
             });
             ctx.globalAlpha = 1.0;
         }
@@ -135,7 +176,7 @@ const Frame = ({
             controller.abort();
             isMounted = false;
         };
-    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl]);
+    }, [selectedIdx, videoId, frames, showError, currentFrameIdx, imageUrl, setCurrentFrameIdx, setImageUrl]);
 
     useEffect(() => {
         if (!selectedBlock || !videoId) return;
@@ -168,7 +209,7 @@ const Frame = ({
         };
 
         fetchAdjacent();
-    }, [selectedBlock, videoId, currentFrameIdx, frames.length]);
+    }, [selectedBlock, videoId, currentFrameIdx, frames.length, setPrevImageUrl, setNextImageUrl]);
 
 
     const mapSelectedBlockToNewFrame = (oldBlock, newBlocks) => {
@@ -211,7 +252,7 @@ const Frame = ({
 
         const newSelected = mapSelectedBlockToNewFrame(selectedBlock, blocks);
         setSelectedBlock(newSelected);
-    }, [selectedIdx, blocks, selectedBlock]);
+    }, [selectedIdx, blocks, selectedBlock, setSelectedBlock]);
 
     useEffect(() => {
         if (frameMacroBlocksQuery.isSuccess) {
@@ -222,7 +263,7 @@ const Frame = ({
                 setSelectedBlock(null);
             }
         }
-    }, [frameMacroBlocksQuery.isSuccess, frameMacroBlocksQuery.data]);
+    }, [frameMacroBlocksQuery.isSuccess, frameMacroBlocksQuery.data, setSelectedBlock]);
 
     useEffect(() => {
         if (frameMacroBlocksQuery.data?.blocks) {
@@ -232,11 +273,11 @@ const Frame = ({
 
     const getCategoryColor = (blockType) => {
         switch(blockType) {
-            case 'intra': return 'rgba(255, 0, 0, 0.7)';
-            case 'inter': return 'rgba(0, 255, 0, 0.7)';
-            case 'skip': return 'rgba(0, 0, 255, 0.7)';
-            case 'direct': return 'rgba(0, 255, 255, 0.7)'
-            default: return 'rgba(128, 128, 128, 0.7)';
+            case 'intra': return 'rgba(255, 0, 0, 0.8)';
+            case 'inter': return 'rgba(0, 255, 0, 0.8)';
+            case 'skip': return 'rgba(0, 0, 255, 0.8)';
+            case 'direct': return 'rgba(0, 255, 255, 0.8)'
+            default: return 'rgba(128, 128, 128, 0.8)';
         }
     };
 

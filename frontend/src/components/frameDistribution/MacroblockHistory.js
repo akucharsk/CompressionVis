@@ -94,6 +94,9 @@ const MacroblockHistory = forwardRef((props, ref) => {
         });
     }, [displayBlock, frameImageUrl, prevFrameImageUrl, nextFrameImageUrl]);
 
+    const blockWidth = displayBlock?.width || 16;
+    const blockHeight = displayBlock?.height || 16;
+
     return (
         <div ref={ref} className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
             <h4>Macroblock history</h4>
@@ -101,7 +104,20 @@ const MacroblockHistory = forwardRef((props, ref) => {
             <div className="macroblock-history">
                 <div className="mb-slot">
                     {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
-                        <Macroblock name="Previous reference" url={thumbs.previous} />
+                        <Macroblock
+                            name="Previous reference"
+                            url={thumbs.previous}
+                            width={blockWidth}
+                            height={blockHeight}
+                        />
+                    ) : (
+                        <div className="mb-placeholder" />
+                    )}
+                </div>
+
+                <div className="arrow-slot">
+                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
+                        <div className="arrow">→</div>
                     ) : (
                         <div className="mb-placeholder" />
                     )}
@@ -109,19 +125,37 @@ const MacroblockHistory = forwardRef((props, ref) => {
 
                 <div className="mb-slot">
                     {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
-                        <Macroblock name="Moved macroblock" url={thumbs.moved} />
+                        <Macroblock
+                            name="Moved macroblock"
+                            url={thumbs.moved}
+                            width={blockWidth}
+                            height={blockHeight}
+                        />
+                    ) : (
+                        <div className="mb-placeholder" />
+                    )}
+                </div>
+
+                <div className="arrow-slot">
+                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
+                        <div className="arrow">→</div>
                     ) : (
                         <div className="mb-placeholder" />
                     )}
                 </div>
 
                 <div className="mb-slot">
-                    <Macroblock name="Result" url={thumbs.result} />
+                    <Macroblock
+                        name="Result"
+                        url={thumbs.result}
+                        width={blockWidth}
+                        height={blockHeight}
+                    />
                 </div>
 
-                <div className="mb-slot">
+                <div className="arrow-slot">
                     {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
-                        <Macroblock name="Moved macroblock" url={thumbs.moved2} />
+                        <div className="arrow">←</div>
                     ) : (
                         <div className="mb-placeholder" />
                     )}
@@ -129,7 +163,33 @@ const MacroblockHistory = forwardRef((props, ref) => {
 
                 <div className="mb-slot">
                     {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
-                        <Macroblock name="Next reference" url={thumbs.next} />
+                        <Macroblock
+                            name="Moved macroblock"
+                            url={thumbs.moved2}
+                            width={blockWidth}
+                            height={blockHeight}
+                        />
+                    ) : (
+                        <div className="mb-placeholder" />
+                    )}
+                </div>
+
+                <div className="arrow-slot">
+                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
+                        <div className="arrow">←</div>
+                    ) : (
+                        <div className="mb-placeholder" />
+                    )}
+                </div>
+
+                <div className="mb-slot">
+                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
+                        <Macroblock
+                            name="Next reference"
+                            url={thumbs.next}
+                            width={blockWidth}
+                            height={blockHeight}
+                        />
                     ) : (
                         <div className="mb-placeholder" />
                     )}
