@@ -21,8 +21,9 @@ const Frame = ({
                    selectedBlock,
                    setSelectedBlock,
                    setNextImageUrl,
-                   setPrevImageUrl
-}) => {
+                   setPrevImageUrl,
+                   mode
+               }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [blocks, setBlocks] = useState([]);
     const [params] = useSearchParams();
@@ -46,9 +47,21 @@ const Frame = ({
         canvas.height = img.naturalHeight;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
 
-        if (showGrid && blocks.length > 0) {
+        if (mode === "disappear" && blocks.length > 0) {
+            blocks.forEach(block => {
+                const category = block.type || 'intra';
+                if (visibleCategories[category]) {
+                    const x = block.x - block.width / 2;
+                    const y = block.y - block.height / 2;
+                    ctx.drawImage(img, x, y, block.width, block.height, x, y, block.width, block.height);
+                }
+            });
+        } else {
+            ctx.drawImage(img, 0, 0);
+        }
+
+        if (mode === "grid" && showGrid && blocks.length > 0) {
             blocks.forEach(block => {
                 const category = block.type || 'intra';
                 ctx.globalAlpha = visibleCategories[category] ? 1.0 : 0.2;
@@ -75,7 +88,6 @@ const Frame = ({
             ctx.lineWidth = 2;
             ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
-
 
         if (showVectors && blocks.length > 0) {
             blocks.forEach(block => {
@@ -131,7 +143,7 @@ const Frame = ({
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories]);
+    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
 
     useEffect(() => {
         if (selectedIdx === null) {
@@ -333,14 +345,18 @@ const Frame = ({
                                 ref={imgRef}
                                 src={imageUrl}
                                 alt={`Frame ${selectedIdx}`}
-                                style={{ display: "block", width: "100%", height: "auto" }}
+                                style={{
+                                    display: mode === "disappear" ? "none" : "block",
+                                    width: "100%",
+                                    height: "auto"
+                                }}
                                 onLoad={() => drawCanvas()}
                             />
                             <canvas
                                 ref={canvasRef}
                                 onClick={handleCanvasClick}
                                 style={{
-                                    position: "absolute",
+                                    position: mode === "disappear" ? "relative" : "absolute",
                                     top: 0,
                                     left: 0,
                                     pointerEvents: blocks.length > 0 ? "auto" : "none",

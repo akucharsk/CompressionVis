@@ -16,6 +16,7 @@ const FramesDistribution = () => {
     const infoRef = useRef(null);
     const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
     const [selectedBlock, setSelectedBlock] = useState(null);
+    const [mode, setMode] = useState("grid");
     const [visibleCategories, setVisibleCategories] = useState({
         intra: true,
         inter: true,
@@ -51,6 +52,8 @@ const FramesDistribution = () => {
                         setSelectedBlock={setSelectedBlock}
                         setPrevImageUrl={setPrevImageUrl}
                         setNextImageUrl={setNextImageUrl}
+                        mode={mode}
+                        setMode={setMode}
                     />
                     <MacroblockHistory
                         ref={infoRef}
@@ -72,6 +75,8 @@ const FramesDistribution = () => {
                     visibleCategories={visibleCategories}
                     toggleCategory={toggleCategory}
                     selectedBlock={selectedBlock}
+                    mode={mode}
+                    setMode={setMode}
                 />
             </div>
 

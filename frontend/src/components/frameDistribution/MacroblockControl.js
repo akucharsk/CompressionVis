@@ -1,6 +1,7 @@
-import { useRef, useEffect } from "react";
+import {useRef, useEffect} from "react";
 import Spinner from "../Spinner";
 import { useMacroblocks } from "../../context/MacroblocksContext";
+import GridSwitch from "./GridSwitch";
 
 const MacroblockControl = ({
                                setShowGrid,
@@ -8,7 +9,9 @@ const MacroblockControl = ({
                                showGrid,
                                showVectors,
                                toggleCategory,
-                               visibleCategories
+                               visibleCategories,
+                               mode,
+                               setMode
                            }) => {
     const { isBlocksLoading } = useMacroblocks();
     const wrapperRef = useRef(null);
@@ -33,10 +36,15 @@ const MacroblockControl = ({
                         disabled={isBlocksLoading}
                     >
                         {isBlocksLoading && <Spinner size={15} />}
-                        {showGrid ? "Hide macroblock grid" : "Show macroblock grid"}
+                        {showGrid ? "Hide macroblocks controls" : "Show macroblocks controls"}
                     </button>
 
                     <div className="checkbox-wrapper" ref={wrapperRef}>
+                        <GridSwitch
+                            mode={mode}
+                            setMode={setMode}
+                            disabled={isBlocksLoading}
+                        />
                         <div className={`checkbox-container ${isBlocksLoading ? "loading" : ""}`}>
                             {[
                                 { key: "intra", label: "Intra", class: "label-intra" },
