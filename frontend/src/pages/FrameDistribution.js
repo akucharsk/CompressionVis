@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrames } from "../context/FramesContext";
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
 import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
@@ -6,11 +6,19 @@ import FrameBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
 import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
+import { useSearchParams } from 'react-router-dom';
 
 const FramesDistribution = () => {
     const { frames, framesQuery, selectedIdx } = useFrames();
+    const [ params ] = useSearchParams();
+
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     
+    const videoRef = useRef(null);
+
+    const videoId = parseInt(params.get("videoId"));
+
+
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
@@ -24,7 +32,11 @@ const FramesDistribution = () => {
             <FrameBox />
             <div className="main-frame-container">
 
-                <ImageVideoBlock />
+                <ImageVideoBlock 
+                    isConst={false}
+                    videoId={videoId}
+                    videoRef={videoRef}
+                />
                 <MacroblockInfo
                     selectedIdx={selectedIdx}
                     frames={frames}

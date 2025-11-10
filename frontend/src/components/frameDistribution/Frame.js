@@ -2,7 +2,7 @@ import './../../styles/components/distribution/Frame.css';
 import { useFrames } from "../../context/FramesContext";
 import Spinner from "../Spinner";
 
-const Frame = ({ imageUrl }) => {
+const Frame = ({ imageUrl, fullscreenHandler }) => {
     const { frames, selectedIdx } = useFrames();
 
 
@@ -16,6 +16,7 @@ const Frame = ({ imageUrl }) => {
                         <img
                             src={imageUrl}
                             alt={`Frame ${selectedIdx} (${frames[selectedIdx].type})`}
+                            onClick={fullscreenHandler}
                         />
                     )}
                 </div>

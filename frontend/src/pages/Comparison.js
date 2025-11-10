@@ -57,9 +57,10 @@ const Comparison = () => {
         <div className="comparison">
             <FrameBox />
             <div className="comparison-container">
-                {displayMode === "frames" ? (
+                {/* {displayMode === "frames" ? (
                     <>
                         <ImageBlock
+                            isConst={false}
                             selectedIdx={selectedIdx}
                             navigation={makeNavigation()}
                             fullscreen={{
@@ -92,7 +93,39 @@ const Comparison = () => {
                             videoRef={rightVideoRef}
                         />
                     </>
-                    )}
+                    )} */}
+                        <ImageBlock
+                            selectedIdx={selectedIdx}
+                            navigation={makeNavigation()}
+                            fullscreen={{
+                                is: fullscreenSide === "left",
+                                onOpen: () => setFullscreenSide("left"),
+                                onClose: () => setFullscreenSide(null),
+                                onSwitch: switchFullscreen,
+                            }}
+                            videoRef={leftVdieoRef}
+                        />
+
+                        <ImageBlock
+                            isConst={false}
+                            selectedIdx={selectedIdx}
+                            navigation={makeNavigation()}
+                            fullscreen={{
+                                is: fullscreenSide === "right",
+                                onOpen: () => setFullscreenSide("right"),
+                                onClose: () => setFullscreenSide(null),
+                                onSwitch: switchFullscreen,
+                            }}
+                            videoRef={rightVideoRef}
+                        />
+                        {/* <VideoPlayerForAnalysis
+                            videoId={videoId}
+                            videoRef={leftVdieoRef}
+                        />
+                        <VideoPlayerForAnalysis
+                            videoId={originalVideoId} 
+                            videoRef={rightVideoRef}
+                        /> */}
             </div>
         </div>
     );

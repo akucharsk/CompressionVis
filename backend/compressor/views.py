@@ -269,9 +269,18 @@ class FrameView(APIView):
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if original:
-            dirname = video.original.filename.split(".")[0]
+            has_original = video.original
+            
+            if has_original: 
+                dirname = video.original.filename.split(".")[0]
+
+            else:
+                dirname = video.filename.split(".")[0]
+                
         else:
             dirname = video.filename.split(".")[0]
+
+        # print(dirname)
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:

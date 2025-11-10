@@ -14,7 +14,7 @@ import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
+const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     // const [ params ] = useSearchParams();
@@ -85,18 +85,6 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
         }
         else {
             video.pause();
-            const currentTime = video.currentTime;
-            let closestIdx = 0;
-
-            for (let i = 0; i < frames.length; i++) {
-                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
-                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
-                    closestIdx = i;
-                    break;
-                }
-            }
-
-            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
         }
 
     }, [isVideoPlaying, videoRef.current])
@@ -119,30 +107,6 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
 
     }, [fps, videoRef.current])
 
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video || !frames.length) return;
-
-        const handleTimeUpdate = () => {
-            const currentTime = video.currentTime;
-            let closestIdx = 0;
-            for (let i = 0; i < frames.length; i++) {
-                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
-                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
-                    closestIdx = i;
-                    break;
-                }
-            }
-            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
-        };
-
-        video.addEventListener("timeupdate", handleTimeUpdate);
-        return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-    }, [frames, isVideoPlaying, videoRef.current]);
-
-
-    // setDisplayMode(null);
-
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
@@ -154,7 +118,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
     // console.log(videoId);
 
     return (
-        <div className="left-section">
+        <div className="left-section slave">
             {displayMode === "frames" ? (
                 <Frame
                     imageUrl={imageUrl}
@@ -170,4 +134,4 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
     )
 }
 
-export default ImageVideoBlock;
+export default SlaveImageVideoBlock;
