@@ -14,7 +14,7 @@ import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     // const [ params ] = useSearchParams();
@@ -157,7 +157,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler }) => {
         <div className="left-section">
             {displayMode === "frames" ? (
                 <Frame
-                    imageUrl={imageUrl}
+                    imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
                 />
             ) : displayMode === "video" ? (

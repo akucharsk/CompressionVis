@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
-import { useComparisonImage } from "./useComparisonImage";
+import { useComparisonImage, useImage } from "./useComparisonImage";
 import { useSettings } from "../../context/SettingsContext";
 import Frame from "../frameDistribution/Frame";
 import ImageVideoBlock from "../ImageVideoBlock";
@@ -61,7 +61,8 @@ const ImageBlock = ({
                             isConst={isConst}
                             videoId={compressedVideoId}
                             videoRef={videoRef}
-                            fullscreenHandler={openFullscreen}                          
+                            fullscreenHandler={openFullscreen}
+                            imgSrc={imgSrc}                       
                         />
                     </>
                 ) : (
@@ -77,6 +78,7 @@ const ImageBlock = ({
                             videoId={selectedVideoId}
                             videoRef={videoRef}
                             fullscreenHandler={openFullscreen}
+                            imgSrc={imgSrc}
                         />
                     </>
                 )}
