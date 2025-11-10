@@ -7,10 +7,12 @@ import './../styles/pages/FrameDistribution.css';
 import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
+import { useComparisonImage } from '../components/comparison/useComparisonImage';
 
 const FramesDistribution = () => {
     const { frames, framesQuery, selectedIdx } = useFrames();
     const [ params ] = useSearchParams();
+    const { imgSrc } = useComparisonImage(true, selectedIdx);
 
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     
@@ -36,6 +38,7 @@ const FramesDistribution = () => {
                     isConst={false}
                     videoId={videoId}
                     videoRef={videoRef}
+                    imgSrc={imgSrc}
                 />
                 <MacroblockInfo
                     selectedIdx={selectedIdx}

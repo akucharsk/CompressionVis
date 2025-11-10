@@ -18,60 +18,11 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     // const [ params ] = useSearchParams();
-    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
-    const { showError } = useError();
 
-    // const videoRef = useRef(null);
-
-    const [imageUrl, setImageUrl] = useState(null);
-
-    // const videoId = parseInt(params.get("videoId"));
     const videoUrl = `${apiUrl}/video/${videoId}`;
 
-    const frameRequestPath = isConst ? `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true` : `${apiUrl}/frames/${videoId}/${selectedIdx}/`
-    console.log(frameRequestPath);
-
-    useEffect(() => {
-
-    }, [])
-
-    useEffect(() => {
-        if (selectedIdx === null) {
-            setImageUrl(null);
-            return;
-        }
-
-        const controller = new AbortController();
-        let isMounted = true;
-
-        const loadImage = async () => {
-
-            try {
-                const url = await fetchImage(
-                    MAX_RETRIES,
-                    frameRequestPath,
-                    controller
-                );
-                if (isMounted) {
-                    setImageUrl(url);
-                    if (!isVideoPlaying) {
-                        setDisplayMode("frames");
-                    }
-                }
-            } catch (error) {
-                if (error.name === "AbortError") return;
-                if (isMounted) showError(error.message, error.statusCode);
-            }
-        };
-
-        loadImage();
-
-        return () => {
-            controller.abort();
-            isMounted = false;
-        };
-    }, [selectedIdx, videoId, frames, showError, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -141,8 +92,6 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
     }, [frames, isVideoPlaying, videoRef.current]);
 
 
-    // setDisplayMode(null);
-
     if (framesQuery.isPending) {
         return (
             <div className="loading-overlay">
@@ -150,6 +99,8 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
             </div>
         );
     }
+
+
 
     // console.log(videoId);
 
