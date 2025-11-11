@@ -1,13 +1,19 @@
 import FrameBox from "../components/FrameBox";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
+import './../styles/pages/Comparison.css';
+
+import {useFrames} from "../context/FramesContext";
 import "../styles/pages/Comparison.css";
-import { useFrames } from "../context/FramesContext";
-import { useMetrics } from "../context/MetricsContext";
 import ImageBlock from "../components/comparison/ImageBlock";
+import { useVideoPlaying } from "../context/VideoPlayingContext";
 
 const Comparison = () => {
+    const { isVideoPlaying } = useVideoPlaying();
     const { selectedIdx, setSelectedIdx, frames } = useFrames();
     const [fullscreenSide, setFullscreenSide] = useState(null);
+
+    const leftVdieoRef = useRef(null);
+    const rightVideoRef = useRef(null);
 
     const switchFullscreen = (direction) => {
         setFullscreenSide(prev => {
@@ -21,12 +27,22 @@ const Comparison = () => {
             return prev === 'left' ? 'right' : 'left';
         });
     };
-
-
     const makeNavigation = () => ({
         onPrev: () => setSelectedIdx(prev => Math.max(0, prev - 1)),
         onNext: () => setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1)),
     });
+
+    useEffect(() => {
+        const leftVideo = leftVdieoRef.current;
+        const rightVideo = rightVideoRef.current;
+        if (!leftVideo || !rightVideo)
+            return;
+        if (isVideoPlaying) {
+            leftVideo.currentTime = frames[selectedIdx].pts_time;
+            rightVideo.currentTime = frames[selectedIdx].pts_time;
+        }
+    
+    }, [selectedIdx, isVideoPlaying, frames]);
 
     return (
         <div className="comparison">
@@ -41,6 +57,7 @@ const Comparison = () => {
                         onClose: () => setFullscreenSide(null),
                         onSwitch: switchFullscreen,
                     }}
+                    videoRef={leftVdieoRef}
                 />
 
                 <ImageBlock
@@ -53,6 +70,7 @@ const Comparison = () => {
                         onClose: () => setFullscreenSide(null),
                         onSwitch: switchFullscreen,
                     }}
+                    videoRef={rightVideoRef}
                 />
             </div>
         </div>

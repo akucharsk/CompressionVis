@@ -7,6 +7,9 @@ import Menu from './pages/Menu';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
+import { DisplayModeProvider } from './context/DisplayModeContext';
+import { VideoPlayingProvider } from './context/VideoPlayingContext';
+import { FpsProvider } from './context/FpsContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
 import {queryClient} from "./utils/queryClient";
@@ -19,18 +22,24 @@ function Layout() {
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-            <FramesProvider>
-              <MetricsProvider>
-                {!hideNavbar && <NavigationTabs />}
-                <Routes>
-                  <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="/" element={<Menu />} />
-                  <Route path="/compress" element={<FramesDistribution />} />
-                  <Route path="/comparison" element={<Comparison />} />
-                  <Route path="/quiz" element={<Quiz />} />
-                </Routes>
-              </MetricsProvider>
-            </FramesProvider>
+              <FpsProvider>  
+                <FramesProvider>
+                <MetricsProvider>
+                  <DisplayModeProvider>
+                    <VideoPlayingProvider>
+                      {!hideNavbar && <NavigationTabs />}
+                      <Routes>
+                          <Route path="*" element={<Navigate to="/" />} />
+                          <Route path="/" element={<Menu />} />
+                          <Route path="/compress" element={<FramesDistribution />} />
+                          <Route path="/comparison" element={<Comparison />} />
+                          <Route path="/quiz" element={<Quiz />} />
+                      </Routes>
+                    </VideoPlayingProvider>
+                  </DisplayModeProvider>
+                  </MetricsProvider>
+                </FramesProvider>
+              </FpsProvider>
           </SettingsProvider>
         </QueryClientProvider>
       </ErrorProvider>

@@ -86,7 +86,7 @@ function Menu() {
             }
             addVideoIdToCache(parameters.videoId, videoId);
 
-            navigate(`/compress?videoId=${videoId}`);
+            navigate(`/compress?videoId=${videoId}&originalVideoId=${parameters.videoId}`);
         } catch (error) {
             showError(error.message, error.statusCode);
         } finally {

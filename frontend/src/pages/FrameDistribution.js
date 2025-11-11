@@ -1,26 +1,44 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrames } from "../context/FramesContext";
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
-import Frame from "../components/frameDistribution/Frame";
 import MacroblockInfo from "../components/frameDistribution/MacroblockInfo";
-import FramesBox from "../components/FrameBox";
+import FrameBox from "../components/FrameBox";
 import './../styles/pages/FrameDistribution.css';
+import ImageVideoBlock from '../components/ImageVideoBlock';
+import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
+import { useComparisonImage } from '../components/comparison/useComparisonImage';
 
 const FramesDistribution = () => {
-    const { frames, selectedIdx } = useFrames();
-    const [searchParams] = useSearchParams();
-    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const { frames, framesQuery, selectedIdx } = useFrames();
+    const [ params ] = useSearchParams();
+    const { imgSrc } = useComparisonImage(true, selectedIdx);
 
-    const videoId = searchParams.get("videoId");
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    
+    const videoRef = useRef(null);
+
+    const videoId = parseInt(params.get("videoId"));
+
+
+    if (framesQuery.isPending) {
+        return (
+            <div className="loading-overlay">
+                <Spinner />
+            </div>
+        );
+    }
 
     return (
         <div className="distribution-container">
-            <FramesBox />
+            <FrameBox />
             <div className="main-frame-container">
-                <Frame
-                    selectedIdx={selectedIdx}
-                    frames={frames}
+
+                <ImageVideoBlock 
+                    isConst={false}
+                    videoId={videoId}
+                    videoRef={videoRef}
+                    imgSrc={imgSrc}
                 />
                 <MacroblockInfo
                     selectedIdx={selectedIdx}
