@@ -29,7 +29,7 @@ export function useComparisonImage(isConst, selectedIdx) {
     };
 
     useEffect(() => {
-        if (selectedIdx == null) {
+        if (selectedIdx === null || isVideoPlaying) {
             setImgSrc(null);
             return;
         }

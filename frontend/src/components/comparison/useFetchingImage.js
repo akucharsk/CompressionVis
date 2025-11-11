@@ -31,7 +31,7 @@ export function useFetchingImage(isConst, selectedIdx) {
     };
 
     useEffect(() => {
-        if (selectedIdx == null) {
+        if (selectedIdx === null || isVideoPlaying) {
             setImgSrc(null);
             return;
         }
@@ -63,7 +63,7 @@ export function useFetchingImage(isConst, selectedIdx) {
             cancelled = true;
             controller.abort();
         };
-    }, [selectedIdx, isConst, videoId]);
+    }, [selectedIdx, isConst, videoId, isVideoPlaying]);
 
     return { imgSrc, compressedIds, fetchImagesForComparison };
 }

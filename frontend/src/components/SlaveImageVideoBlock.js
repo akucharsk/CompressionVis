@@ -37,7 +37,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
     }, [])
 
     useEffect(() => {
-        if (selectedIdx === null) {
+        if (selectedIdx === null || isVideoPlaying) {
             setImageUrl(null);
             return;
         }
