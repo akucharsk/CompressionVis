@@ -13,4 +13,5 @@ urlpatterns = [
     path('metrics/frames/<int:video_id>/all', views.AllFramesMetricsView.as_view(), name='all_metrics'),
     path('video/size/<int:video_id>/', views.SizeView.as_view(), name='video_size'),
     path('video/size-compress/', views.SizeCompressionView.as_view(), name='size_compress'),
+    path('video/parameters/<int:video_id>/', views.VideoParameters.as_view(), name='video_parameters')
 ]

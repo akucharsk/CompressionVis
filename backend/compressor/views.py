@@ -72,7 +72,89 @@ class VideoView(APIView):
         models.Video.objects.filter(id=video_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class CompressionView(APIView):
+class BaseCompressionView(APIView):
+    def get_original_video(self, video_id):
+        try:
+            return models.Video.objects.get(id=video_id, original=None)
+        except models.Video.DoesNotExist:
+            return None
+
+    def get_video_path(self, original_video):
+        video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
+        return video_url if video_url else None
+
+    def get_or_create_video(self, filename, original_video):
+        try:
+            video = models.Video.objects.get(filename=filename)
+            return video, False
+        except models.Video.DoesNotExist:
+            try:
+                video = models.Video.objects.create(
+                    filename=filename,
+                    original=original_video,
+                    title=original_video.title,
+                    is_compressed=False
+                )
+                return video, True
+            except IntegrityError:
+                video = models.Video.objects.get(filename=filename)
+                return video, False
+
+    def prepare_response(self, video, filename):
+        resp = {
+            "compressed_filename": filename,
+            "is_compressed": video.is_compressed,
+            "video_id": video.id
+        }
+
+        if video.is_compressed and video.size:
+            resp["resulting_size"] = round(video.size / (1024 * 1024), 2)
+
+        response_status = status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
+        return Response(camelize(resp), status=response_status)
+
+    def run_post_compression_jobs(self, video):
+        frames_extractor = FramesExtractor(video)
+        frames_extractor.start_extraction_job()
+
+        metrics_extractor = MetricsExtractor(video)
+        metrics_extractor.start_extraction_job()
+
+        macroblocks_extractor = MacroblocksExtractor(video)
+        macroblocks_extractor.start_extraction_job()
+
+    def finalize_video(self, video, output_path, original_video):
+        try:
+            file_size = os.path.getsize(output_path)
+            video.is_compressed = True
+            video.size = file_size
+            video.width = original_video.width
+            video.height = original_video.height
+            video.save()
+            return True
+        except FileNotFoundError:
+            return False
+
+    def execute_compression(self, ffmpeg_command, video, output_path, output_filename, original_video):
+        process = subprocess.Popen(ffmpeg_command)
+        return_code = process.wait()
+
+        if return_code != 0:
+            return Response(
+                {"message": "FFmpeg compression failed"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        if not self.finalize_video(video, output_path, original_video):
+            return Response(
+                {"message": "Couldn't access compressed file"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        self.run_post_compression_jobs(video)
+        return self.prepare_response(video, output_filename)
+
+class CompressionView(BaseCompressionView):
 
     def post(self, request):
         data = decamelize(request.data)
@@ -84,18 +166,14 @@ class CompressionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            original_video = models.Video.objects.get(
-                id=video_id,
-                original=None
-            )
-        except models.Video.DoesNotExist:
+        original_video = self.get_original_video(video_id)
+        if not original_video:
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
+        video_url = self.get_video_path(original_video)
         if not video_url:
             return Response(
                 {"message": "Video not present in the file system. Please contact management!"},
@@ -109,92 +187,65 @@ class CompressionView(APIView):
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        data = serializer.validated_data
 
-        output_filename = data['filename']
+        validated_data = serializer.validated_data
+        output_filename = validated_data['filename']
+
+        video, created = self.get_or_create_video(output_filename, original_video)
+
+        if not created and video.is_compressed:
+            return self.prepare_response(video, output_filename)
+
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
-
-        resp = {
-            "compressed_filename": output_filename,
-            "is_compressed": False
-        }
-
-        try:
-            video = models.Video.objects.get(filename=output_filename)
-            resp['is_compressed'] = video.is_compressed
-            if video.is_compressed:
-                resp_status = status.HTTP_200_OK
-            else:
-                resp_status = status.HTTP_202_ACCEPTED
-            resp["video_id"] = video.id
-            return Response(camelize(resp), status=resp_status)
-        except models.Video.DoesNotExist:
-            pass
-
-        try:
-            video = serializer.save()
-        except IntegrityError:
-            video = models.Video.objects.get(filename=output_filename)
-            resp['is_compressed'] = video.is_compressed
-            if video.is_compressed:
-                resp_status = status.HTTP_200_OK
-            else:
-                resp_status = status.HTTP_202_ACCEPTED
-            resp["video_id"] = video.id
-            return Response(camelize(resp), status=resp_status)
-
         os.makedirs(compressed_dir, exist_ok=True)
-        scale = f"{data['width']}:{data['height']}"
-        resp["video_id"] = video.id
 
-        gop_size = data.get("gop_size")
+        scale = f"{validated_data['width']}:{validated_data['height']}"
+        gop_size = validated_data.get("gop_size")
+        bf = validated_data.get("bf")
 
         if gop_size in ["default", 1, None]:
             gop_params = []
         else:
             gop_params = ["-g", str(gop_size), "-keyint_min", str(gop_size), "-sc_threshold", "0"]
 
-        bf = data.get("bf")
         if bf == "default":
             bf_params = []
         else:
             bf_params = ["-bf", bf]
 
-        if data.get("bandwidth"):
-            param = ["-b:v", data['bandwidth']]
+        if validated_data.get("bandwidth"):
+            bitrate_param = ["-b:v", validated_data['bandwidth']]
         else:
-            param = ["-crf", str(data['crf'])]
+            bitrate_param = ["-crf", str(validated_data['crf'])]
 
-        process = subprocess.Popen([
+        ffmpeg_command = [
             "ffmpeg",
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
             "-vf", f'scale={scale}',
-            *param,
+            *bitrate_param,
             *gop_params,
-            "-preset", data['preset'],
+            "-preset", validated_data['preset'],
             *bf_params,
-            "-aq-mode", str(data['aq_mode']),
-            "-aq-strength", str(data['aq_strength']),
+            "-aq-mode", str(validated_data['aq_mode']),
+            "-aq-strength", str(validated_data['aq_strength']),
             output
-        ])
-        process.wait()
-        video.is_compressed = True
+        ]
+
+        video.width = validated_data.get('width')
+        video.height = validated_data.get('height')
+        video.bandwidth = validated_data.get('bandwidth')
+        video.crf = validated_data.get('crf')
+        video.gop_size = gop_size
+        video.bf = bf
+        video.aq_mode = validated_data.get('aq_mode')
+        video.aq_strength = validated_data.get('aq_strength')
+        video.preset = validated_data.get('preset')
         video.save()
-        resp['is_compressed'] = True
 
-        frames_extractor = FramesExtractor(video)
-        frames_extractor.start_extraction_job()
-
-        metrics_extractor = MetricsExtractor(video)
-        metrics_extractor.start_extraction_job()
-
-        macroblocks_extractor = MacroblocksExtractor(video)
-        macroblocks_extractor.start_extraction_job()
-
-        return Response(camelize(resp), status=status.HTTP_200_OK)
+        return self.execute_compression(ffmpeg_command, video, output, output_filename, original_video)
 
 class CompressionFramesView(APIView):
     def get(self, request, video_id):
@@ -392,7 +443,7 @@ class SizeView(APIView):
 
         return Response({"size": video.size}, status=status.HTTP_200_OK)
 
-class SizeCompressionView(APIView):
+class SizeCompressionView(BaseCompressionView):
     def post(self, request):
         data = decamelize(request.data)
         video_id = data.get("video_id")
@@ -405,14 +456,23 @@ class SizeCompressionView(APIView):
             )
 
         try:
-            original_video = models.Video.objects.get(id=video_id, original=None)
-        except models.Video.DoesNotExist:
+            target_size_bytes = float(target_size)
+            if target_size_bytes <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return Response(
+                {"message": "Target size must be a positive number"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        original_video = self.get_original_video(video_id)
+        if not original_video:
             return Response(
                 {"message": f"Couldn't find uncompressed video with id {video_id}"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
+        video_url = self.get_video_path(original_video)
         if not video_url:
             return Response(
                 {"message": "Video not present in the file system. Please contact management!"},
@@ -426,77 +486,30 @@ class SizeCompressionView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        target_size_bytes = float(target_size)
         bitrate = (target_size_bytes * 8) / duration
         bitrate_kbps = int(bitrate / 1000)
 
+        output_filename = f"size{int(target_size)}_video_{original_video.filename}"
 
-        output_filename = f"size{target_size}_video_{original_video.filename}"
+        video, created = self.get_or_create_video(output_filename, original_video)
+
+        if not created and video.is_compressed:
+            return self.prepare_response(video, output_filename)
+
         output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
-
-        resp = {
-            "compressed_filename": output_filename,
-            "is_compressed": False
-        }
-
-        try:
-            video = models.Video.objects.get(filename=output_filename)
-            resp["is_compressed"] = video.is_compressed
-            resp["video_id"] = video.id
-            return Response(
-                camelize(resp),
-                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
-            )
-        except models.Video.DoesNotExist:
-            pass
-
-        try:
-            video = models.Video.objects.create(
-                filename=output_filename,
-                original=original_video,
-                is_compressed=False
-            )
-        except IntegrityError:
-            video = models.Video.objects.get(filename=output_filename)
-            resp["is_compressed"] = video.is_compressed
-            resp["video_id"] = video.id
-            return Response(
-                camelize(resp),
-                status=status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
-            )
-
         os.makedirs(compressed_dir, exist_ok=True)
 
-        process = subprocess.Popen([
+        ffmpeg_command = [
             "ffmpeg",
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
             "-b:v", f"{bitrate_kbps}k",
             output_path
-        ])
-        process.wait()
+        ]
 
-        video.is_compressed = True
-        video.width = original_video.width
-        video.height = original_video.height
-        video.save()
-
-        try:
-            file_size_bytes = os.path.getsize(output_path)
-            file_size_mb = file_size_bytes
-            resp["resulting_size"] = round(file_size_mb, 2)
-        except FileNotFoundError:
-            return Response(
-                {"message": "Couldn't determine resulting file size"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        resp["is_compressed"] = True
-        resp["video_id"] = video.id
-
-        return Response(camelize(resp), status=status.HTTP_200_OK)
+        return self.execute_compression(ffmpeg_command, video, output_path, output_filename, original_video)
 
     @staticmethod
     def get_video_duration(video_path):
@@ -510,3 +523,25 @@ class SizeCompressionView(APIView):
             return float(result.stdout)
         except Exception:
             return None
+
+class VideoParameters(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        params = {
+            "bandwidth": video.bandwidth,
+            "resolution": f"{video.width}x{video.height}",
+            "crf": video.crf,
+            "gop_size": video.gop_size,
+            "bf": video.bf,
+            "aq_mode": video.aq_mode,
+            "aq_strength": float(video.aq_strength) if video.aq_strength is not None else None,
+            "preset": video.preset,
+            "name": video.title,
+            "size": video.size,
+        }
+
+        return Response(camelize(params), status=status.HTTP_200_OK)

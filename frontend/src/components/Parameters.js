@@ -20,7 +20,7 @@ const Parameters = () => {
                 </>
             )}
             {parameters.mode === "compressedSize" && (
-                <p>Resulting Size: {Intl.NumberFormat('pl-PL').format(parameters.resultingSize)} B</p>
+                <p>Resulting Size: {Intl.NumberFormat('pl-PL').format(parameters.resultingSize)} MB</p>
             )}
         </div>
     );

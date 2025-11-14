@@ -8,8 +8,9 @@ models.Video.objects.all().delete()
 reserved_filenames = os.listdir(os.path.join("static", "original_videos"))
 reserved_frame_dirs = set(map(lambda x: os.path.splitext(x)[0], reserved_filenames))
 
-# for file in os.listdir(os.path.join("static", "compressed_videos")):
-#     os.remove(os.path.join("static", "compressed_videos", file))
+for file in os.listdir(os.path.join("static", "compressed_videos")):
+    if file != ".gitkeep":
+        os.remove(os.path.join("static", "compressed_videos", file))
 for file in os.listdir(os.path.join("static", "frames")):
     if file not in reserved_frame_dirs:
         shutil.rmtree(os.path.join("static", "frames", file))
@@ -49,12 +50,6 @@ for vid in reserved_filenames:
             height=1080,
             original_filename=vid,
             title=title,
-            preset="medium",
-            aq_mode=1,
-            aq_strength=1.0,
-            bf=2,
-            crf=25,
-            gop_size=60,
             size=size
         )
         video_dir = os.path.join("static", "frames", name)
