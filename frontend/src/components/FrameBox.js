@@ -2,17 +2,28 @@ import React, { useEffect, useState, useRef } from "react";
 import { useFrames } from "../context/FramesContext";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
+import {handleApiError} from "../utils/errorHandler";
+import {useError} from "../context/ErrorContext";
+import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
+import FrameBoxNavigation from "./FrameBoxNavigation";
+import { useDisplayMode } from "../context/DisplayModeContext";
+import { useVideoPlaying } from "../context/VideoPlayingContext";
+import { useFps } from "../context/FpsContext";
 import Spinner from "./Spinner";
-import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
 import { useMetrics } from "../context/MetricsContext";
 import { INDICATOR_OPTIONS } from "../utils/constants";
 
-const FramesBox = () => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [fps, setFps] = useState(5); // domyślnie np. 5 FPS
+const FrameBox = () => {
+    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { showError } = useError();
 
+    const [isLoading, setIsLoading] = useState(true);
     const containerRef = useRef(null);
+
+    const [params] = useSearchParams();
+    const videoId = params.get("videoId");
 
     const [searchParams] = useSearchParams();
     const indicators = searchParams.get("indicators")?.split(",")?.filter(indicator => indicator in INDICATOR_OPTIONS) || [];
@@ -26,7 +37,6 @@ const FramesBox = () => {
     const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
     const { videoMetricsQuery } = useMetrics();
 
-    const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
 
     useEffect(() => {
         setFrameInput((selectedIdx + 1).toString());
@@ -46,77 +56,9 @@ const FramesBox = () => {
 
         if (frameLeft < containerLeft || frameLeft + frameWidth > containerLeft + containerWidth) {
             const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
-            container.scrollTo({ left: targetScroll, behavior: isPlaying ? 'auto' : 'smooth' });
+            container.scrollTo({ left: targetScroll, behavior: isVideoPlaying ? 'auto' : 'smooth' });
         }
-    }, [selectedIdx, isPlaying]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'ArrowLeft') {
-
-                setSelectedIdx(prev => Math.max(0, prev - 1));
-            } else if (e.key === 'ArrowRight') {
-                setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 1)));
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                setIsPlaying(prev => !prev);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [frames.length, setSelectedIdx]);
-
-    const handleScrollLeft = () => {
-        setSelectedIdx(prev => Math.max(0, prev - 1));
-    };
-
-    const handleScrollRight = () => {
-        setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 1)));
-    };
-
-    const handleMinusTen = () => {
-        setSelectedIdx(prev => Math.max(0, prev - 10));
-    }
-
-    const handlePlusTen = () => {
-        setSelectedIdx(prev => Math.max(0, Math.min(frames.length - 1, prev + 10)));
-    }
-
-    const handleNextIFrame = () => {
-        if (frames.length === 0) return;
-        const iFrames = frames
-            .map((frame, idx) => ({ frame, idx }))
-            .filter(({ frame }) => frame.type === "I")
-            .map(({ idx }) => idx);
-
-        if (iFrames.length === 0) return;
-        const currentPos = iFrames.indexOf(selectedIdx);
-        const nextPos = (currentPos + 1) % iFrames.length;
-        setSelectedIdx(iFrames[nextPos]);
-    }
-
-    const handleFrameInputChange = (e) => {
-        const val = e.target.value;
-        if (val === '') {
-            setFrameInput('');
-            return;
-        }
-
-        const num = Number(val);
-        if (!isNaN(num) && num >= 1 && num <= frames.length) {
-            setSelectedIdx(num - 1);
-            setFrameInput(val);
-        } else {
-            setFrameInput(val);
-        }
-    };
-
-    const handleFrameInputBlur = () => {
-        if (frameInput === '') {
-            setFrameInput((selectedIdx + 1).toString());
-        }
-    };
+    }, [selectedIdx, isVideoPlaying]);
 
     if (framesQuery.isPending) {
         return (
@@ -128,90 +70,36 @@ const FramesBox = () => {
 
     return (
         <div className="frames-container">
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                <div className="timeline-header">
-                    <button className="scroll-button left" onClick={handleMinusTen}>
-                        -10
-                    </button>
-                    <button className="scroll-button left" onClick={handleScrollLeft}>
-                        &lt;
-                    </button>
-                    <button
-                        className={`play-button ${isPlaying ? 'playing' : ''}`}
-                        onClick={() => setIsPlaying(prev => !prev)}
-                    >
-                        {isPlaying ? '⏹ Stop' : '▶ Play'}
-                    </button>
-                    <button className="scroll-button right" onClick={handleScrollRight}>
-                        &gt;
-                    </button>
-                    <button className="scroll-button right" onClick={handlePlusTen}>
-                    +10
-                    </button>
-                    <div className="speed-control">
-                        <label>Speed:</label>
-                        <div className="speed-slider-container">
-                            <input
-                                type="range"
-                                min="1"
-                                max="15"
-                                step="1"
-                                value={fps}
-                                onChange={(e) => setFps(Number(e.target.value))}
-                                className="speed-slider"
-                            />
-                            <div className="speed-value">{fps} FPS</div>
+            <FrameBoxNavigation />
+            <div className="timeline-content">
+                <div className="indicator-labels">
+                    {[...indicators].reverse().map((indicator, i) => (
+                        <div key={i} className="indicator-label">
+                            {indicator.toUpperCase()}
                         </div>
-                    </div>
-                    <div className="frame-counter">
-                        <input
-                            type="number"
-                            min={1}
-                            max={frames.length}
-                            value={frameInput}
-                            onChange={handleFrameInputChange}
-                            onBlur={handleFrameInputBlur}
-                        />
-                        <span> / {frames.length}</span>
-                    </div>
-                    <button className="scroll-button i-frame" onClick={handleNextIFrame}>
-                        Next I-Frame
-                    </button>
+                    ))}
                 </div>
-            </div>
-            <div className="frames-and-indicator">
-                <div className="timeline-content">
-                    <div className="indicator-labels">
-                        {[...indicators].reverse().map((indicator, i) => (
-                            <div key={i} className="indicator-label">
-                                {indicator.toUpperCase()}
+                <div className="scrollable-frameBox" ref={containerRef}>
+                    {frames?.map((frame, idx) => (
+                        <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
+                            <div
+                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
+                                onClick={() => setSelectedIdx(idx)}
+                                title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
+                            >
+                                <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                                <div className="frame-type">{frame.type}</div>
+                                <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="scrollable-frameBox" ref={containerRef}>
-                        {frames?.map((frame, idx) => (
-                            <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
-                                <div
-                                    className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                                    onClick={() => setSelectedIdx(idx)}
-                                    title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
-                                >
-                                    <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
-                                    <div className="frame-type">{frame.type}</div>
-                                    <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
-                                </div>
-                                { indicators.map((indicator, i) => (
-                                    <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
-                                )) }
-                            </div>
-                        ))}
-                    </div>
+                            { indicators.map((indicator, i) => (
+                                <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
+                            )) }
+                        </div>
+                    ))}
                 </div>
-                <IndicatorConfig loadingFields={loadingFields} />
             </div>
         </div>
     );
 };
 
-export default FramesBox;
+export default FrameBox;

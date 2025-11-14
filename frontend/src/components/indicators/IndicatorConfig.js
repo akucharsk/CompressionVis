@@ -28,7 +28,7 @@ export default function IndicatorConfig({ loadingFields }) {
 
     return (
         <div className="indicators-config">
-            <span className="indicators-config-heading">indicators</span>
+            <span className="indicators-config-heading">Indicators</span>
             <div className="indicator-options">
                 { Object.values(INDICATOR_OPTIONS).map(({ label, value }) => (
                     <IndicatorOption

@@ -1,20 +1,18 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrames } from "../context/FramesContext";
-import Frame from "../components/frameDistribution/Frame";
 import SidePanel from "../components/frameDistribution/SidePanel";
-import FramesBox from "../components/FrameBox";
-import './../styles/pages/FrameDistribution.css';
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
+import FrameBox from "../components/FrameBox";
+import './../styles/pages/FrameDistribution.css';
+import ImageVideoBlock from '../components/ImageVideoBlock';
+import Spinner from '../components/Spinner';
+import { useSearchParams } from 'react-router-dom';
+import { useComparisonImage } from '../components/comparison/useComparisonImage';
+import {useAdjacentFrames} from "../components/comparison/useAdjacentFrames";
 
 const FramesDistribution = () => {
-    const { frames, selectedIdx } = useFrames();
     const [showGrid, setShowGrid] = useState(false);
     const [showVectors, setShowVectors] = useState(false);
-    const [imageUrl, setImageUrl] = useState(null);
-    const [prevImageUrl, setPrevImageUrl] = useState(null);
-    const [nextImageUrl, setNextImageUrl] = useState(null);
-    const infoRef = useRef(null);
-    const [currentFrameIdx, setCurrentFrameIdx] = useState(null);
     const [selectedBlock, setSelectedBlock] = useState(null);
     const [mode, setMode] = useState("grid");
     const [visibleCategories, setVisibleCategories] = useState({
@@ -23,6 +21,12 @@ const FramesDistribution = () => {
         skip: true,
         direct: true
     });
+    const { frames, framesQuery, selectedIdx } = useFrames();
+    const [ params ] = useSearchParams();
+    const { imgSrc } = useComparisonImage(true, selectedIdx);
+    const { prevUrl, nextUrl } = useAdjacentFrames(selectedIdx, selectedBlock, frames)
+
+    const videoRef = useRef(null);
 
     const toggleCategory = (category) => {
         setVisibleCategories(prev => ({
@@ -31,38 +35,41 @@ const FramesDistribution = () => {
         }));
     };
 
+    const videoId = parseInt(params.get("videoId"));
+
+
+    if (framesQuery.isPending) {
+        return (
+            <div className="loading-overlay">
+                <Spinner />
+            </div>
+        );
+    }
 
     return (
         <div className="distribution-container">
-            <FramesBox />
+            <FrameBox />
             <div className="main-frame-container">
                 <div className="left-section">
-                    <Frame
-                        selectedIdx={selectedIdx}
-                        frames={frames}
+                    <ImageVideoBlock
+                        isConst={false}
+                        videoId={videoId}
+                        videoRef={videoRef}
+                        imgSrc={imgSrc}
                         showGrid={showGrid}
                         showVectors={showVectors}
                         visibleCategories={visibleCategories}
-                        setImageUrl={setImageUrl}
-                        imageUrl={imageUrl}
-                        infoRef={infoRef}
-                        setCurrentFrameIdx={setCurrentFrameIdx}
-                        currentFrameIdx={currentFrameIdx}
                         selectedBlock={selectedBlock}
                         setSelectedBlock={setSelectedBlock}
-                        setPrevImageUrl={setPrevImageUrl}
-                        setNextImageUrl={setNextImageUrl}
                         mode={mode}
-                        setMode={setMode}
+                        macroblocks={true}
                     />
                     <MacroblockHistory
-                        ref={infoRef}
                         selectedBlock={selectedBlock}
                         setSelectedBlock={setSelectedBlock}
-                        frameImageUrl={imageUrl}
-                        frameNumber={currentFrameIdx}
-                        prevFrameImageUrl={prevImageUrl}
-                        nextFrameImageUrl={nextImageUrl}
+                        frameImageUrl={imgSrc}
+                        prevFrameImageUrl={prevUrl}
+                        nextFrameImageUrl={nextUrl}
                     />
                 </div>
                 <SidePanel

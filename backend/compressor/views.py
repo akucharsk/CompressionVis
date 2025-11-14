@@ -1,7 +1,3 @@
-import sys
-import time
-import threading
-
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,11 +9,9 @@ from django.db import IntegrityError
 
 import os
 import subprocess
-import json
 import shutil
 
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
-from utils.psnr import weighted_psnr_420
 from . import models
 from . import serializers
 from .frames_extractor import FramesExtractor
@@ -36,21 +30,29 @@ class VideoView(APIView):
         video_file = finders.find(os.path.join("videos", video.filename))
 
         if not video_file:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            video_file = finders.find(os.path.join("compressed_videos", video.filename))
+
+            if not video_file:
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
         range_header = request.headers.get('Range')
+
         if not range_header:
             return Response({"message": "Range header required"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = serializers.VideoSerializer(data={"video_url": video_file, "range_header": range_header})
+
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         response = StreamingHttpResponse(
             streaming_content=serializer.validated_data.get("video_iterator")(),
             status=status.HTTP_206_PARTIAL_CONTENT,
-            content_type="media/mp4"
+            content_type="video/mp4"
         )
+        response["Content-Length"] = serializer.validated_data["Content-Length"]
+        response["Content-Range"] = serializer.validated_data["Content-Range"]
+        response["Accept-Ranges"] = "bytes"
         return response
 
     def delete(self, request, video_id):
@@ -271,9 +273,18 @@ class FrameView(APIView):
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if original:
-            dirname = video.original.filename.split(".")[0]
+            has_original = video.original
+
+            if has_original:
+                dirname = video.original.filename.split(".")[0]
+
+            else:
+                dirname = video.filename.split(".")[0]
+
         else:
             dirname = video.filename.split(".")[0]
+
+        # print(dirname)
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:

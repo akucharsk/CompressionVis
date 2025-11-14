@@ -2,14 +2,16 @@
     flex: 6;
 }
 
-.frame-preview {
+.frame-preview,
+.video-preview {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 200px;
 }
 
-.frame-preview img {
+.frame-preview img,
+.video-preview video {
     width: 95%;
     height: auto;
     /*border-radius: 8px;*/

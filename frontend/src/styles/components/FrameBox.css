@@ -2,26 +2,70 @@
     display: flex;
     flex-direction: column;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
     gap: 1rem;
 }
 
-
 .timeline-header {
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    align-items: stretch;
+    justify-content: space-between;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    gap: 1rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
     width: 100%;
 }
 
-.scroll-buttons {
+.control-group {
     display: flex;
+    align-items: stretch;
     gap: 0.5rem;
+}
+
+.navigation {
+    display: flex;
+    flex-direction: row;
+    gap: 0.25rem;
+    height: 100%;
+    flex: 1;
+}
+
+.navigation-group {
+    flex: 1;
+    min-width: 400px;
+    display: flex;
+    gap: 0.25rem;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.navigation-group .scroll-button,
+.navigation-group .play-button {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navigation-group .play-button {
+    flex: 1.2;
+}
+
+.navigation-group .scroll-button {
+    padding: 0;
+}
+
+.playback-group {
+    flex: 0 0 auto;
+    justify-content: center;
+}
+
+.additional-group {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    align-items: stretch;
 }
 
 .play-button, .scroll-button {
@@ -29,9 +73,8 @@
     color: var(--font-color);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    min-width: 60px;
-    height: 40px;
-    flex: 1;
+    min-width: 40px;
+    display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -39,16 +82,40 @@
     font-weight: bold;
     transition: all 0.2s ease;
     white-space: nowrap;
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
 }
 
-.scroll-button {
-    min-width: 40px;
-    padding: 0;
+.play-button {
+    min-width: 60px;
 }
 
-.i-frame {
-    min-width:120px;
+.i-frame, .next-scene {
+    width: 220px;
+    min-width: 120px;
+    flex: 0 0 auto;
+}
+
+.i-frame p, .next-scene p {
+    margin: 0;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.control-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    height: 100%;
+}
+
+.control-buttons button {
+    flex: 1;
+    min-height: 0;
+}
+
+.navigation button {
+    flex: 1;
+    min-height: 0;
 }
 
 .play-button:hover, .scroll-button:hover {
@@ -65,62 +132,50 @@
 }
 
 .speed-control {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     color: var(--font-color);
-    padding: 0.5rem 0.75rem;
+    padding: 0 0.75rem;
     background: var(--background-second);
     border-radius: 6px;
     border: 1px solid var(--border-color);
+    height: 100%;
 }
 
 .speed-control label {
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
-    height: auto;
-}
-
-.frame-select {
-    background: var(--background-second);
-    color: var(--font-color);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    min-width: 60px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    padding: 0 0.75rem;
+    flex-shrink: 0;
 }
 
 .speed-slider-container {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    min-width: 140px;
+    flex: 1;
+    min-width: 0;
 }
 
 .speed-slider {
     flex: 1;
-    height: 6px;
+    min-width: 0;
+    height: 8px;
     -webkit-appearance: none;
     background: var(--border-color);
-    border-radius: 3px;
+    border-radius: 6px;
+    background: linear-gradient(to right, var(--netflix-red) 0%, var(--netflix-red) var(--percent), var(--border-color) var(--percent), var(--border-color) 100%);
     outline: none;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 .speed-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--netflix-red);
     cursor: pointer;
@@ -134,8 +189,8 @@
 }
 
 .speed-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--netflix-red);
     cursor: pointer;
@@ -143,26 +198,60 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.speed-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--netflix-red);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.speed-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
 .speed-value {
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--netflix-red);
     min-width: 45px;
+    flex-shrink: 0;
     text-align: center;
     margin: 3px 0;
 }
 
 .frame-counter {
     color: var(--font-color);
-    font-size: 0.9rem;
     font-weight: 600;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--background-third);
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
     white-space: nowrap;
-    min-width: 70px;
+    min-width: 90px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.frame-counter-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: auto;
+    color: var(--font-color);
+}
+
+.frame-counter-content {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+    padding: 0 1.25rem;
 }
 
 .frame-counter input::-webkit-outer-spin-button,
@@ -180,12 +269,10 @@ input::-webkit-inner-spin-button {
     color: var(--font-color);
     font: inherit;
     text-align: center;
-    width: 48px;
-
+    width: 30px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 2px 4px;
-
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -217,7 +304,6 @@ input::-webkit-inner-spin-button {
     padding: 0.5rem 0;
     scrollbar-width: thin;
     scrollbar-color: var(--netflix-red) var(--background-second);
-    /* min-height: 100px; */
     transform: rotateX(180deg);
     flex: 1;
     min-width: 0;
@@ -351,23 +437,26 @@ input::-webkit-inner-spin-button {
     border: 1px solid var(--border-color);
     padding: 10px;
     z-index: 2;
+    background-color: var(--background-third);
 }
 
 .indicators-config-heading {
     font-weight: bold;
     margin: auto;
+    font-size: 1.1rem;
 }
 
 .indicator-options {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
+    padding: 0 0.75rem;
 }
 
 .indicator-option {
     display: flex;
     justify-content: space-between;
     border: 1px solid black;
-    padding: 0.5rem;
+    padding: 0.3rem 1rem;
     gap: 0.5rem;
     border-radius: 4px;
     background-color: var(--background-second);
@@ -418,11 +507,56 @@ input::-webkit-inner-spin-button {
     background-color: var(--background-second);
 }
 
-.frames-and-indicator {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
-    width: 100%;
-    overflow: hidden;
-    align-items: stretch;
+@media (max-width: 1400px) {
+    .timeline-header {
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .navigation-group {
+        order: 1;
+        flex: 1 1 100%;
+    }
+
+    .playback-group {
+        order: 2;
+        flex: 0 0 auto;
+    }
+
+    .additional-group {
+        order: 2;
+        flex: 1 1 auto;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .timeline-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .control-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .play-button, .scroll-button {
+        min-width: 50px;
+        height: 35px;
+        font-size: 0.8rem;
+    }
+
+    .speed-control {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .i-frame, .next-scene {
+        min-width: 100px;
+    }
+
+    .frame-counter {
+        min-width: 80px;
+        font-size: 0.8rem;
+    }
 }

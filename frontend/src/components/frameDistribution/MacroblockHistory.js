@@ -1,4 +1,4 @@
-import {forwardRef, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import "../../styles/components/distribution/Macroblock.css";
 import Macroblock from "./Macroblock";
 
@@ -26,14 +26,7 @@ function cropBlock(frameImage, block, offsetX, offsetY) {
     return canvas.toDataURL();
 }
 
-const MacroblockHistory = forwardRef((props, ref) => {
-    const {
-        selectedBlock,
-        setSelectedBlock,
-        frameImageUrl,
-        prevFrameImageUrl,
-        nextFrameImageUrl
-    } = props;
+const MacroblockHistory = ({selectedBlock, setSelectedBlock, frameImageUrl, prevFrameImageUrl, nextFrameImageUrl}) => {
 
     const [thumbs, setThumbs] = useState({});
     const [displayBlock, setDisplayBlock] = useState(null);
@@ -98,7 +91,7 @@ const MacroblockHistory = forwardRef((props, ref) => {
     const blockHeight = displayBlock?.height || 16;
 
     return (
-        <div ref={ref} className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
+        <div className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
             <h4>Macroblock history</h4>
 
             <div className="macroblock-history">
@@ -201,6 +194,6 @@ const MacroblockHistory = forwardRef((props, ref) => {
             </button>
         </div>
     );
-});
+};
 
 export default MacroblockHistory;
