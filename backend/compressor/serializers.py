@@ -108,6 +108,38 @@ class CompressSerializer(serializers.Serializer):
 
         video = models.Video.objects.create(**validated_data)
         return video
+    
+class SizeCompressionSerializer(serializers.Serializer):
+    target_size = serializers.FloatField()
+    def validate(self, attrs):
+        target_size = attrs.get("target_size", -1)
+        duration = self.context.get("duration")
+        original_video = self.context.get("original_video")
+        print(attrs)
+        sys.stdout.flush()
+        try:
+            target_size_bytes = float(target_size)
+            if target_size_bytes <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            raise serializers.ValidationError("Target size must be a positive number")
+
+        bitrate = (target_size_bytes * 8) / duration
+        bitrate_kbps = int(bitrate / 1000)
+
+        output_filename = f"size{int(target_size)}_video_{original_video.filename}"
+        
+        attrs["bandwidth"] = bitrate_kbps
+        attrs["filename"] = output_filename
+        attrs["original_id"] = original_video.id
+        
+        return attrs
+    
+    def create(self, validated_data):
+        data = validated_data.copy()
+        data.pop("target_size")
+        video = models.Video.objects.create(**data)
+        return video
 
 class FrameSerializer(serializers.ModelSerializer):
 

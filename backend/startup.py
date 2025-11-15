@@ -12,13 +12,15 @@ for file in os.listdir(os.path.join("static", "compressed_videos")):
     if file != ".gitkeep":
         os.remove(os.path.join("static", "compressed_videos", file))
 for file in os.listdir(os.path.join("static", "frames")):
-    if file not in reserved_frame_dirs:
+    if file not in reserved_frame_dirs and file != ".gitkeep":
         shutil.rmtree(os.path.join("static", "frames", file))
 
 folder = os.path.join("static", "macroblocks")
 
 for name in os.listdir(folder):
     path = os.path.join(folder, name)
+    if name == ".gitkeep":
+        continue
 
     if os.path.isfile(path) or os.path.islink(path):
         os.remove(path)

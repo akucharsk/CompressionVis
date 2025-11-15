@@ -10,7 +10,7 @@ from django.db import IntegrityError
 import os
 import subprocess
 import shutil
-
+import sys
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from . import models
 from . import serializers
@@ -83,18 +83,14 @@ class BaseCompressionView(APIView):
         video_url = finders.find(os.path.join("original_videos", original_video.original_filename))
         return video_url if video_url else None
 
-    def get_or_create_video(self, filename, original_video):
+    def get_or_create_video(self, serializer):
+        filename = serializer.validated_data["filename"]
         try:
             video = models.Video.objects.get(filename=filename)
             return video, False
         except models.Video.DoesNotExist:
             try:
-                video = models.Video.objects.create(
-                    filename=filename,
-                    original=original_video,
-                    title=original_video.title,
-                    is_compressed=False
-                )
+                video = serializer.save()
                 return video, True
             except IntegrityError:
                 video = models.Video.objects.get(filename=filename)
@@ -191,7 +187,7 @@ class CompressionView(BaseCompressionView):
         validated_data = serializer.validated_data
         output_filename = validated_data['filename']
 
-        video, created = self.get_or_create_video(output_filename, original_video)
+        video, created = self.get_or_create_video(serializer)
 
         if not created and video.is_compressed:
             return self.prepare_response(video, output_filename)
@@ -234,18 +230,84 @@ class CompressionView(BaseCompressionView):
             output
         ]
 
-        video.width = validated_data.get('width')
-        video.height = validated_data.get('height')
-        video.bandwidth = validated_data.get('bandwidth')
-        video.crf = validated_data.get('crf')
-        video.gop_size = gop_size
-        video.bf = bf
-        video.aq_mode = validated_data.get('aq_mode')
-        video.aq_strength = validated_data.get('aq_strength')
-        video.preset = validated_data.get('preset')
-        video.save()
-
         return self.execute_compression(ffmpeg_command, video, output, output_filename, original_video)
+    
+class SizeCompressionView(BaseCompressionView):
+    def post(self, request):
+        data = decamelize(request.data)
+        video_id = data.get("video_id")
+        target_size = data.get("target_size")
+        print(target_size)
+        sys.stdout.flush()
+
+        if not video_id or not target_size:
+            return Response(
+                {"message": "Video id and target size must be provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        original_video = self.get_original_video(video_id)
+        if not original_video:
+            return Response(
+                {"message": f"Couldn't find uncompressed video with id {video_id}"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        video_url = self.get_video_path(original_video)
+        if not video_url:
+            return Response(
+                {"message": "Video not present in the file system. Please contact management!"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        duration = self.get_video_duration(video_url)
+        if duration is None:
+            return Response(
+                {"message": "Couldn't determine video duration"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        serializer = serializers.SizeCompressionSerializer(
+            data=data,
+            context={ "original_video": original_video, "duration": duration }
+        )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+        output_filename = validated_data["filename"]
+        video, created = self.get_or_create_video(serializer)
+
+        if not created and video.is_compressed:
+            return self.prepare_response(video, output_filename)
+
+        output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
+        compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
+        os.makedirs(compressed_dir, exist_ok=True)
+
+        ffmpeg_command = [
+            "ffmpeg",
+            "-y",
+            "-i", video_url,
+            "-c:v", "libx264",
+            "-b:v", f"{validated_data['bandwidth']}k",
+            output_path
+        ]
+
+        return self.execute_compression(ffmpeg_command, video, output_path, output_filename, original_video)
+
+    @staticmethod
+    def get_video_duration(video_path):
+        try:
+            result = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", video_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            return float(result.stdout)
+        except Exception:
+            return None
 
 class CompressionFramesView(APIView):
     def get(self, request, video_id):
@@ -442,87 +504,6 @@ class SizeView(APIView):
             return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"size": video.size}, status=status.HTTP_200_OK)
-
-class SizeCompressionView(BaseCompressionView):
-    def post(self, request):
-        data = decamelize(request.data)
-        video_id = data.get("video_id")
-        target_size = data.get("target_size")
-
-        if not video_id or not target_size:
-            return Response(
-                {"message": "Video id and target size must be provided"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            target_size_bytes = float(target_size)
-            if target_size_bytes <= 0:
-                raise ValueError()
-        except (ValueError, TypeError):
-            return Response(
-                {"message": "Target size must be a positive number"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        original_video = self.get_original_video(video_id)
-        if not original_video:
-            return Response(
-                {"message": f"Couldn't find uncompressed video with id {video_id}"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        video_url = self.get_video_path(original_video)
-        if not video_url:
-            return Response(
-                {"message": "Video not present in the file system. Please contact management!"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        duration = self.get_video_duration(video_url)
-        if duration is None:
-            return Response(
-                {"message": "Couldn't determine video duration"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        bitrate = (target_size_bytes * 8) / duration
-        bitrate_kbps = int(bitrate / 1000)
-
-        output_filename = f"size{int(target_size)}_video_{original_video.filename}"
-
-        video, created = self.get_or_create_video(output_filename, original_video)
-
-        if not created and video.is_compressed:
-            return self.prepare_response(video, output_filename)
-
-        output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
-        compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
-        os.makedirs(compressed_dir, exist_ok=True)
-
-        ffmpeg_command = [
-            "ffmpeg",
-            "-y",
-            "-i", video_url,
-            "-c:v", "libx264",
-            "-b:v", f"{bitrate_kbps}k",
-            output_path
-        ]
-
-        return self.execute_compression(ffmpeg_command, video, output_path, output_filename, original_video)
-
-    @staticmethod
-    def get_video_duration(video_path):
-        try:
-            result = subprocess.run(
-                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                 "-of", "default=noprint_wrappers=1:nokey=1", video_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
-            )
-            return float(result.stdout)
-        except Exception:
-            return None
 
 class VideoParameters(APIView):
     def get(self, request, video_id):
