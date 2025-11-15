@@ -237,8 +237,6 @@ class SizeCompressionView(BaseCompressionView):
         data = decamelize(request.data)
         video_id = data.get("video_id")
         target_size = data.get("target_size")
-        print(target_size)
-        sys.stdout.flush()
 
         if not video_id or not target_size:
             return Response(
