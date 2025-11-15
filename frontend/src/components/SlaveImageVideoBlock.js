@@ -13,7 +13,7 @@ import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
+const SlaveImageVideoBlock = ({ videoId, videoRef, fullscreenHandler, imgSrc }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx } = useFrames();
     const { isVideoPlaying } = useVideoPlaying();
@@ -27,7 +27,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
     // const videoId = parseInt(params.get("videoId"));
     const videoUrl = `${apiUrl}/video/${videoId}`;
 
-    const frameRequestPath = isConst ? `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true` : `${apiUrl}/frames/${videoId}/${selectedIdx}/`
+    const frameRequestPath = `${apiUrl}/frames/${videoId}/${selectedIdx}/`
     console.log(frameRequestPath);
 
     useEffect(() => {

@@ -25,6 +25,7 @@ export function useComparisonImage(isConst, selectedIdx) {
         const url = `${apiUrl}/frames/${vId}/${selectedIdx}/` + (original ? "?original=true" : "");
 
         const imageUrl = await fetchImage(MAX_RETRIES, url, controller);
+        setImgSrc(imageUrl);
         return imageUrl;
     };
 
@@ -52,14 +53,15 @@ export function useComparisonImage(isConst, selectedIdx) {
                 console.error("Image fetch failed:", error);
             }
         };
+        console.log("XDD1")
 
         loadImage();
-
+        console.log("XDD2")
         return () => {
             cancelled = true;
             controller.abort();
         };
     }, [selectedIdx, isConst, videoId, isVideoPlaying, setDisplayMode]);
 
-    return { imgSrc, compressedIds, fetchImagesForComparison };
+    return { imgSrc, compressedIds, fetchImagesForComparison, setImgSrc };
 }

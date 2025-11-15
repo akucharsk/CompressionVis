@@ -17,7 +17,7 @@ const ImageBlock = ({
                         videoRef
                     }) => {
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const { imgSrc, compressedIds, fetchImagesForComparison } = useComparisonImage(isConst, selectedIdx);
+    const { imgSrc, compressedIds, fetchImagesForComparison, setImgSrc } = useComparisonImage(isConst, selectedIdx);
     const { parameters } = useSettings();
     const [searchParams] = useSearchParams();
 
@@ -34,9 +34,9 @@ const ImageBlock = ({
 
     const handleSelectChange = (e) => {
         const val = parseInt(e.target.value);
-        isOriginalChosen = val === originalVideoId;
+        isOriginalChosen = Number(val) === Number(originalVideoId);
         setSelectedVideoId(val);
-        fetchImagesForComparison(val === -1, val);
+        fetchImagesForComparison(isOriginalChosen, val);
     };
 
     const openFullscreen = () => {
