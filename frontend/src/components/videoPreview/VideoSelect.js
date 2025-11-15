@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {useSettings} from "../../context/SettingsContext";
-import FileDropZone from "./FileDropZone";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/VideoSelect.css";
 import {useError} from "../../context/ErrorContext";
@@ -55,17 +54,6 @@ const VideoSelect = () => {
         return () => controller.abort();
     }, [showError, setParameters]);
 
-    const handleFileChange = (file) => {
-        const url = URL.createObjectURL(file);
-        if (file.type.startsWith("video/")) {
-            setParameters(prev => ({
-                ...prev,
-                videoLink: url
-            }));
-        } else {
-            showError("Unsupported file format", 400);
-        }
-    };
     return (
         <div className="video-select">
             {videoSources.map((video) => {
@@ -87,7 +75,6 @@ const VideoSelect = () => {
                     </div>
                 );
             })}
-            <FileDropZone onFileSelected={handleFileChange}/>
         </div>
     );
 };

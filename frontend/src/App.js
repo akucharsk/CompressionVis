@@ -4,6 +4,7 @@ import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
+import Admin from "./pages/Admin";
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
@@ -17,7 +18,7 @@ import {queryClient} from "./utils/queryClient";
 
 function Layout() {
   const location = useLocation();
-  const hideNavbar = location.pathname === "/";
+  const hideNavbar = location.pathname === "/" || location.pathname === "/admin";
 
   return (
       <ErrorProvider>
@@ -36,6 +37,7 @@ function Layout() {
                       <Route path="/compress" element={<FramesDistribution />} />
                       <Route path="/comparison" element={<Comparison />} />
                       <Route path="/quiz" element={<Quiz />} />
+                      <Route path="/admin" element={<Admin />} />
                     </Routes>
                 </MacroblocksProvider>
                     </VideoPlayingProvider>

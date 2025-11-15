@@ -12,7 +12,7 @@ const Navigation = () => {
                 ↩
             </NavLink>
             <NavLink to={`/compress${search}`} className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}>
-                FRAMES DISTRIBUTION
+                MACROBLOCKS
             </NavLink>
             <NavLink to={`/comparison${search}`} className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}>
                 COMPARISON
