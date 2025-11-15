@@ -8,13 +8,57 @@ import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
 import Video from "./frameDistribution/Video";
 
-const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
-    const { displayMode } = useDisplayMode();
+const SlaveImageVideoBlock = ({ videoId, videoRef, fullscreenHandler, imgSrc }) => {
+    const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx } = useFrames();
     const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
 
     const videoUrl = `${apiUrl}/video/${videoId}`;
+
+    const frameRequestPath = `${apiUrl}/frames/${videoId}/${selectedIdx}/`
+    console.log(frameRequestPath);
+
+    useEffect(() => {
+
+    }, [])
+
+    useEffect(() => {
+        if (selectedIdx === null || isVideoPlaying) {
+            setImageUrl(null);
+            return;
+        }
+
+        const controller = new AbortController();
+        let isMounted = true;
+
+        const loadImage = async () => {
+
+            try {
+                const url = await fetchImage(
+                    MAX_RETRIES,
+                    frameRequestPath,
+                    controller
+                );
+                if (isMounted) {
+                    setImageUrl(url);
+                    if (!isVideoPlaying) {
+                        setDisplayMode("frames");
+                    }
+                }
+            } catch (error) {
+                if (error.name === "AbortError") return;
+                if (isMounted) showError(error.message, error.statusCode);
+            }
+        };
+
+        loadImage();
+
+        return () => {
+            controller.abort();
+            isMounted = false;
+        };
+    }, [selectedIdx, videoId, frames, showError, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
