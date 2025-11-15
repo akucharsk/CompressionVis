@@ -191,7 +191,6 @@ const OptionsSection = ({ handleCompress }) => {
                             <label>
                                 Quality Control
                                 <span className="tooltip-container">
-                                <span className="info-icon">❔</span>
                                 <span className="tooltip-text">
                                   <strong>CRF</strong> dynamically adjusts bitrate based on scene complexity
                                   to keep consistent visual quality. Ideal when quality matters more

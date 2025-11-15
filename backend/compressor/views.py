@@ -548,3 +548,26 @@ class VideoParameters(APIView):
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
+
+class AllCompressed(APIView):
+    def get(self, request):
+        videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
+        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+
+class DeleteVideoView(APIView):
+    def delete(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        dot_idx = video.filename.find(".")
+        if dot_idx == -1:
+            return Response({"message": "Invalid filename"}, status=status.HTTP_400_BAD_REQUEST)
+        frames_dirname = video.filename[:dot_idx]
+        video_path = finders.find(os.path.join("compressed_videos", video.filename))
+        frames_path = finders.find(os.path.join("frames", frames_dirname))
+
+        os.remove(video_path)
+        shutil.rmtree(frames_path)
+        models.Video.objects.filter(id=video_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
