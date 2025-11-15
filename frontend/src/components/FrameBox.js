@@ -4,14 +4,12 @@ import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
 import {handleApiError} from "../utils/errorHandler";
 import {useError} from "../context/ErrorContext";
-import FrameByFrameNav from "./frameDistribution/FrameByFrameNav";
 import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 import FrameBoxNavigation from "./FrameBoxNavigation";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import { useFps } from "../context/FpsContext";
 import Spinner from "./Spinner";
-import IndicatorConfig from "./indicators/IndicatorConfig";
 import IndicatorBlock from "./indicators/IndicatorBlock";
 import { useMetrics } from "../context/MetricsContext";
 import { INDICATOR_OPTIONS } from "../utils/constants";
@@ -36,10 +34,13 @@ const FrameBox = () => {
         selectedIdx,
         setSelectedIdx,
     } = useFrames();
-
+    const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
     const { videoMetricsQuery } = useMetrics();
 
-    const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
+
+    useEffect(() => {
+        setFrameInput((selectedIdx + 1).toString());
+    }, [selectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -71,7 +72,6 @@ const FrameBox = () => {
         <div className="frames-container">
             <FrameBoxNavigation />
             <div className="timeline-content">
-                <IndicatorConfig loadingFields={loadingFields} />
                 <div className="indicator-labels">
                     {[...indicators].reverse().map((indicator, i) => (
                         <div key={i} className="indicator-label">
@@ -81,17 +81,15 @@ const FrameBox = () => {
                 </div>
                 <div className="scrollable-frameBox" ref={containerRef}>
                     {frames?.map((frame, idx) => (
-                        <div key={idx} className="frame-container">
-                            <div className="time-label">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                        <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
                             <div
                                 className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                                onClick={() => {
-                                    setSelectedIdx(idx);
-                                    setDisplayMode("frames");
-                                }}
+                                onClick={() => setSelectedIdx(idx)}
                                 title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
                             >
-                                {frame.type}
+                                <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                                <div className="frame-type">{frame.type}</div>
+                                <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
                             </div>
                             { indicators.map((indicator, i) => (
                                 <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />

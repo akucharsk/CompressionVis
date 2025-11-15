@@ -11,28 +11,40 @@ const OptionsSection = ({ handleCompress }) => {
     const [originalSize, setOriginalSize] = useState(null);
     const [loadingSize, setLoadingSize] = useState(false);
     const {showError} = useError();
+    const [sizeInput, setSizeInput] = useState("");
 
-    const handleBestParameters = async () => {
-        try {
-            const resp = await fetch(`${apiUrl}/video/best-parameters/${parameters.videoId}/`);
-            await handleApiError(resp);
-            const data = await resp.json();
-            setParameters((prev) => ({
-                ...prev,
-                resolution: data.resolution || parameters.resolution,
-                pattern: data.pattern || parameters.pattern,
-                crf: String(data.crf) || parameters.crf,
-                qualityMode: "crf",
-                preset: data.preset || parameters.preset,
-                bFrames: String(data.bFrames) || parameters.bFrames,
-                aqMode: String(data.aqMode) || parameters.aqMode,
-                aqStrength: String(data.aqStrength) || parameters.aqStrength,
-                mode: "parameters",
-            }));
-        } catch (error) {
-            showError(error.message, error.statusCode);
-        }
+    const handleSizeChange = (e) => {
+        setSizeInput(e.target.value);
     };
+
+    const handleSizeBlur = () => {
+        const value = sizeInput.replace(",", ".").trim();
+        if (!value) {
+            setSizeInput("1");
+            updateParam("compressedSize")((1024 * 1024).toString());
+            return;
+        }
+
+        let num = parseFloat(value);
+        if (isNaN(num)) return;
+
+        const minMB = 1;
+        const maxMB = originalSize ? originalSize / (1024 * 1024) : 100;
+
+        if (num < minMB) num = minMB;
+        if (num > maxMB) num = maxMB;
+
+        const formatted = Number(num.toFixed(2)).toString();
+
+        setSizeInput(formatted);
+        updateParam("compressedSize")(Math.round(num * 1024 * 1024).toString());
+    };
+
+    useEffect(() => {
+        if (parameters.compressedSize) {
+            setSizeInput((parameters.compressedSize / (1024 * 1024)).toFixed(2));
+        }
+    }, [parameters.compressedSize]);
 
     const updateParam = (key) => (value) => {
         setParameters((prev) => ({
@@ -195,73 +207,51 @@ const OptionsSection = ({ handleCompress }) => {
                                 <DropdownSelect key={config.label} {...config} />
                             ))}
                         </div>
-
-                        <button className="best-parameters-btn" onClick={handleBestParameters}>
-                            SET BEST PARAMETERS
-                        </button>
                     </>
                 );
             case "compressedSize":
+                const originalSizeMB = originalSize ? (originalSize / (1024 * 1024)).toFixed(2) : null;
+                const maxSizeMB = originalSize ? originalSize / (1024 * 1024) / 10 : 100;
+
                 return (
                     <div className="size-slider-container">
                         <div className="video-info">
                             <p>Original Size: <strong>
                                 {loadingSize ? "Loading..." :
-                                    originalSize !== null ? `${Intl.NumberFormat('pl-PL').format(originalSize)} B` : "Unknown"}
+                                    originalSizeMB !== null ? `${originalSizeMB} MB` : "Unknown"}
                             </strong></p>
                         </div>
                         <label>Compressed Size:</label>
 
                         <input
                             type="range"
-                            min="1000"
-                            max={originalSize ? parseInt(originalSize, 10) / 10 : 1_000_000}
-                            step="1"
-                            value={parameters.compressedSize}
-                            onChange={(e) => updateParam("compressedSize")(e.target.value)}
+                            min="1"
+                            max={maxSizeMB}
+                            step="0.001"
+                            value={parameters.compressedSize / (1024 * 1024)}
+                            onChange={(e) => {
+                                const mbValue = parseFloat(e.target.value);
+                                const bytesValue = Math.round(mbValue * 1024 * 1024);
+                                updateParam("compressedSize")(bytesValue.toString());
+                            }}
                             className="size-slider"
                         />
 
                         <div className="size-input-container">
                             <input
                                 type="text"
-                                value={Intl.NumberFormat('pl-PL').format(parameters.compressedSize)}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\s/g, '');
-
-                                    if (value === '') {
-                                        updateParam("compressedSize")('');
-                                        return;
-                                    }
-
-                                    const cleanValue = value.replace(/\D/g, '');
-
-                                    if (cleanValue === '') {
-                                        return;
-                                    }
-
-                                    const numValue = parseInt(cleanValue, 10);
-                                    const maxValue = originalSize ? parseInt(originalSize, 10) : 1000;
-                                    const minValue = 1000;
-
-                                    if (numValue >= minValue && numValue <= maxValue) {
-                                        updateParam("compressedSize")(cleanValue);
-                                    } else if (numValue < minValue) {
-                                        updateParam("compressedSize")(minValue.toString());
-                                    } else {
-                                        updateParam("compressedSize")(maxValue.toString());
-                                    }
-                                }}
-                                onBlur={(e) => {
-                                    if (e.target.value === '') {
-                                        updateParam("compressedSize")('1000');
-                                    }
-                                }}
-                                placeholder="Enter size in bytes"
+                                value={sizeInput}
+                                onChange={handleSizeChange}
+                                onBlur={handleSizeBlur}
+                                placeholder="Enter size in MB"
                                 className="size-input"
                             />
-                            <span className="size-unit">B</span>
+                            <span className="size-unit">MB</span>
                         </div>
+                        <p className="size-hint">
+                            <strong>Note:</strong> The encoder targets this size by estimating bitrate.
+                            Complex scenes may result in a slightly different final file size.
+                        </p>
                     </div>
                 );
             default:
@@ -279,7 +269,7 @@ const OptionsSection = ({ handleCompress }) => {
             aqMode: "2",
             aqStrength: "1.0",
             bandwidth: "5M",
-            compressedSize: "1000",
+            compressedSize: (1024 * 1024).toString(),
             qualityMode: "crf",
             mode: "parameters",
         };

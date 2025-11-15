@@ -12,6 +12,7 @@ import { VideoPlayingProvider } from './context/VideoPlayingContext';
 import { FpsProvider } from './context/FpsContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
+import {MacroblocksProvider} from "./context/MacroblocksContext";
 import {queryClient} from "./utils/queryClient";
 
 function Layout() {
@@ -22,19 +23,21 @@ function Layout() {
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-              <FpsProvider>  
+              <FpsProvider>
                 <FramesProvider>
                 <MetricsProvider>
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
-                      {!hideNavbar && <NavigationTabs />}
-                      <Routes>
-                          <Route path="*" element={<Navigate to="/" />} />
-                          <Route path="/" element={<Menu />} />
-                          <Route path="/compress" element={<FramesDistribution />} />
-                          <Route path="/comparison" element={<Comparison />} />
-                          <Route path="/quiz" element={<Quiz />} />
-                      </Routes>
+                      <MacroblocksProvider>
+                  {!hideNavbar && <NavigationTabs />}
+                    <Routes>
+                      <Route path="*" element={<Navigate to="/" />} />
+                      <Route path="/" element={<Menu />} />
+                      <Route path="/compress" element={<FramesDistribution />} />
+                      <Route path="/comparison" element={<Comparison />} />
+                      <Route path="/quiz" element={<Quiz />} />
+                    </Routes>
+                </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
                   </MetricsProvider>

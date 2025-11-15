@@ -1,8 +1,7 @@
 // Ist WAY
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
-import { useSearchParams } from "react-router-dom";
 import { useError } from "../context/ErrorContext";
 import { apiUrl } from "../utils/urls";
 import { useFrames } from "../context/FramesContext";
@@ -16,9 +15,8 @@ import Video from "./frameDistribution/Video";
 
 const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
-    const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
-    // const [ params ] = useSearchParams();
-    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
+    const { frames, framesQuery, selectedIdx } = useFrames();
+    const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
     const { showError } = useError();
 
@@ -118,11 +116,12 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
     // console.log(videoId);
 
     return (
-        <div className="left-section slave">
+        <div className="slave">
             {displayMode === "frames" ? (
                 <Frame
                     imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
+                    macroblocks={false}
                 />
             ) : displayMode === "video" ? (
                 <Video 

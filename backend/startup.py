@@ -1,4 +1,4 @@
-from compressor import models  # zmień 'yourapp' na nazwę swojej aplikacji Django
+from compressor import models
 import os
 import sys
 import shutil
@@ -8,11 +8,24 @@ models.Video.objects.all().delete()
 reserved_filenames = os.listdir(os.path.join("static", "original_videos"))
 reserved_frame_dirs = set(map(lambda x: os.path.splitext(x)[0], reserved_filenames))
 
-# for file in os.listdir(os.path.join("static", "compressed_videos")):
-#     os.remove(os.path.join("static", "compressed_videos", file))
+for file in os.listdir(os.path.join("static", "compressed_videos")):
+    if file != ".gitkeep":
+        os.remove(os.path.join("static", "compressed_videos", file))
 for file in os.listdir(os.path.join("static", "frames")):
-    if file not in reserved_frame_dirs:
+    if file not in reserved_frame_dirs and file != ".gitkeep":
         shutil.rmtree(os.path.join("static", "frames", file))
+
+folder = os.path.join("static", "macroblocks")
+
+for name in os.listdir(folder):
+    path = os.path.join(folder, name)
+    if name == ".gitkeep":
+        continue
+
+    if os.path.isfile(path) or os.path.islink(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
 
 video_titles = {
     "example1.y4m": "Witcher 3",
@@ -39,12 +52,6 @@ for vid in reserved_filenames:
             height=1080,
             original_filename=vid,
             title=title,
-            preset="medium",
-            aq_mode=1,
-            aq_strength=1.0,
-            bf=2,
-            crf=25,
-            gop_size=60,
             size=size
         )
         video_dir = os.path.join("static", "frames", name)

@@ -35,7 +35,8 @@ export const FramesProvider = ({ children }) => {
         queryKey: [ "frames", videoId ],
         queryFn: async () => genericFetch(`${apiUrl}/video/frames/${videoId}`),
         refetchInterval: defaultRefetchIntervalPolicy,
-        retry: defaultRetryPolicy
+        retry: defaultRetryPolicy,
+        enabled: !!videoId
     });
 
     framesQuery.isPending = framesQuery.isPending || framesQuery.data?.message === "processing";

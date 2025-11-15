@@ -5,7 +5,7 @@ const Parameters = () => {
     const { parameters } = useSettings();
 
     return (
-        <div className="frame-info">
+        <div className="content-box info">
             <h3>Video Parameters</h3>
             {parameters.mode === "parameters" && (
                 <>
@@ -20,7 +20,7 @@ const Parameters = () => {
                 </>
             )}
             {parameters.mode === "compressedSize" && (
-                <p>Resulting Size: {Intl.NumberFormat('pl-PL').format(parameters.resultingSize)} B</p>
+                <p>Resulting Size: {Intl.NumberFormat('pl-PL').format(parameters.resultingSize)} MB</p>
             )}
         </div>
     );

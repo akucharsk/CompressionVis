@@ -1,53 +1,48 @@
-import React from "react";
+import {useEffect, useRef, useState} from "react";
 import '../../styles/components/distribution/Macroblock.css';
-import Parameters from "../Parameters";
 
-const MacroblockInfo = ({ frames, selectedIdx, handleOnClick }) => {
-    const handleHighlightClick = () => {
-        alert("Highlighting macroblocks is not implemented yet.");
-    };
+const MacroblockInfo = ({ selectedBlock }) => {
+    const [displayBlock, setDisplayBlock] = useState(null);
+    const [moreBlock, setMoreBlock] = useState(null);
+    const ref = useRef(null);
 
+    useEffect(() => {
+        if (selectedBlock) {
+            setDisplayBlock(selectedBlock);
+            if (selectedBlock?.more === true) {
+                setMoreBlock(selectedBlock);
+            }
+        }
+    }, [selectedBlock]);
+
+    useEffect(() => {
+        if (ref.current) {
+            if (selectedBlock && displayBlock) {
+                setTimeout(() => {
+                    if (ref.current) {
+                        ref.current.style.maxHeight = ref.current.scrollHeight + 10 + 'px';
+                    }
+                }, 250);
+            } else {
+                ref.current.style.maxHeight = '0';
+            }
+        }
+    }, [selectedBlock, displayBlock, moreBlock]);
 
     return (
-        <div className="right-section">
-            <Parameters />
-            <div className="frame-info">
-                <h3>Frame Information</h3>
-                <p>Frame: {selectedIdx}</p>
-                <p>Type: {frames[selectedIdx]?.type}</p>
-                <p>PTS time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
-                <p>Frame size: {Intl.NumberFormat('pl-PL').format(frames[selectedIdx]?.pkt_size)}B</p>
+        <div ref={ref} className={`content-box info macroblock-data ${selectedBlock ? "visible" : ""}`}>
+            <h3>Macroblock information</h3>
+            <p><strong>Type:</strong> {displayBlock?.type}</p>
+            <p><strong>Position:</strong> ({displayBlock?.x}, {displayBlock?.y})</p>
+            <p><strong>Size:</strong> {displayBlock?.width}x{displayBlock?.height}</p>
+            <p><strong>Ffmpeg debug type:</strong> {displayBlock?.ftype}</p>
+            <p><strong>Reference frame:</strong> {displayBlock?.source}</p>
+            <p><strong>Source:</strong> ({displayBlock?.src_x}, {displayBlock?.src_y})</p>
+            <div className={`more-info ${displayBlock?.more === true ? "visible" : ""}`}>
+                <p><strong>Reference frame 2:</strong> {moreBlock?.source2}</p>
+                <p><strong>Source 2:</strong> ({moreBlock?.src_x2}, {moreBlock?.src_y2})</p>
             </div>
 
-            <div className="macroblock-box">
-                <h3>Macroblock Information</h3>
-                {frames.length > 0 && selectedIdx < frames.length && (
-                    <>
-                        <div className="macroblock-placeholder">
-                            <p>Macroblock visualization would appear here</p>
-                        </div>
-                        <div className="macroblock-info">
-                            <p>Type: {frames[selectedIdx].type}</p>
-                            <p>Time: {parseFloat(frames[selectedIdx]?.pts_time).toFixed(2)}s</p>
-                        </div>
-                    </>
-                )}
-
-            </div>
-            <div className="frame-preview-right">
-                <button
-                    className="highlight-macroblock"
-                    onClick={handleHighlightClick}
-                >
-                    Highlight macroblocks
-                </button>
-                <button
-                    className="history-button"
-                    onClick={() => handleOnClick(true)}
-                >
-                    Show macroblock history
-                </button>
-            </div>
         </div>
     );
 };

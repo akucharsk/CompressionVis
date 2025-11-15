@@ -14,7 +14,7 @@ import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     // const [ params ] = useSearchParams();
@@ -105,11 +105,21 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
     // console.log(videoId);
 
     return (
-        <div className="left-section">
+        <>
             {displayMode === "frames" ? (
                 <Frame
                     imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
+                    showGrid={showGrid}
+                    showVectors={showVectors}
+                    visibleCategories={visibleCategories}
+                    selectedBlock={selectedBlock}
+                    setSelectedBlock={setSelectedBlock}
+                    setNextImageUrl={setNextImageUrl}
+                    setPrevImageUrl={setPrevImageUrl}
+                    mode={mode}
+                    macroblocks={macroblocks}
+
                 />
             ) : displayMode === "video" ? (
                 <Video 
@@ -117,7 +127,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
                     videoUrl={videoUrl}
                 />
             ) : (<div className="spinner"></div>)}
-        </div>
+        </>
     )
 }
 
