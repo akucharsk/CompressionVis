@@ -5,7 +5,6 @@ import sys
 import threading
 import json
 import queue
-import time
 
 import fcntl
 import numpy as np

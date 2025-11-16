@@ -23,8 +23,8 @@ function Layout() {
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-              <FpsProvider>
-                <FramesProvider>
+            <FpsProvider>  
+              <FramesProvider>
                 <MetricsProvider>
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
@@ -40,9 +40,9 @@ function Layout() {
                 </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
-                  </MetricsProvider>
-                </FramesProvider>
-              </FpsProvider>
+                </MetricsProvider>
+              </FramesProvider>
+            </FpsProvider>
           </SettingsProvider>
         </QueryClientProvider>
       </ErrorProvider>

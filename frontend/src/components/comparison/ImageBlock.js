@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
-import { useComparisonImage, useImage } from "./useComparisonImage";
 import { useSettings } from "../../context/SettingsContext";
-import Frame from "../frameDistribution/Frame";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
+import { getVideoIdsFromCache } from "../../utils/videoIdsCache";
+import { apiUrl } from "../../utils/urls";
 
 const ImageBlock = ({
                         isConst = true,
@@ -16,17 +16,17 @@ const ImageBlock = ({
                         fullscreen = {},
                         videoRef
                     }) => {
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const { imgSrc, compressedIds, fetchImagesForComparison } = useComparisonImage(isConst, selectedIdx);
     const { parameters } = useSettings();
     const [searchParams] = useSearchParams();
 
     const originalVideoId = parameters.videoId;
     const compressedVideoId = parseInt(searchParams.get("videoId"));
     let isOriginalChosen = !isConst;
-
-    const [selectedVideoId, setSelectedVideoId] = useState(originalVideoId);
-
+    const [ isOriginal, setIsOriginal ] = useState(isOriginalChosen);
+    const videoId = isOriginal ? originalVideoId : searchParams.get("videoId");
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [ selectedVideoId, setSelectedVideoId ] = useState(videoId);
+    const compressedIds = getVideoIdsFromCache(originalVideoId);
 
     useEffect(() => {
         setIsFullscreen(fullscreen.is);
@@ -35,8 +35,8 @@ const ImageBlock = ({
     const handleSelectChange = (e) => {
         const val = parseInt(e.target.value);
         isOriginalChosen = val === originalVideoId;
+        setIsOriginal(isOriginalChosen);
         setSelectedVideoId(val);
-        fetchImagesForComparison(val === -1, val);
     };
 
     const openFullscreen = () => {
@@ -49,7 +49,6 @@ const ImageBlock = ({
         else setIsFullscreen(false);
     };
 
-    // console.log(parameters.videoId, selectedVideoId);
 
     return (
         <div className="image-block">
@@ -62,7 +61,6 @@ const ImageBlock = ({
                             videoId={compressedVideoId}
                             videoRef={videoRef}
                             fullscreenHandler={openFullscreen}
-                            imgSrc={imgSrc}                       
                         />
                     </>
                 ) : (
@@ -78,7 +76,6 @@ const ImageBlock = ({
                             videoId={selectedVideoId}
                             videoRef={videoRef}
                             fullscreenHandler={openFullscreen}
-                            imgSrc={imgSrc}
                         />
                     </>
                 )}
@@ -92,7 +89,7 @@ const ImageBlock = ({
 
             {isFullscreen && (
                 <ImageFullScreen
-                    imageSrc={imgSrc}
+                    imageSrc={`${apiUrl}/frames/${isConst ? compressedVideoId : selectedVideoId}/${selectedIdx}`}
                     onPrev={navigation.onPrev}
                     onNext={navigation.onNext}
                     onSwitchFullscreen={fullscreen.onSwitch}

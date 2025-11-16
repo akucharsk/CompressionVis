@@ -1,28 +1,20 @@
-// Ist WAY
-
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
-import { useSearchParams } from "react-router-dom";
-import { useError } from "../context/ErrorContext";
 import { apiUrl } from "../utils/urls";
 import { useFrames } from "../context/FramesContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import { useFps } from "../context/FpsContext";
 import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
-import { fetchImage } from "../api/fetchImage";
-import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
-    const { displayMode, setDisplayMode } = useDisplayMode();
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
+    const { displayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
-    // const [ params ] = useSearchParams();
     const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
 
     const videoUrl = `${apiUrl}/video/${videoId}`;
-
 
     useEffect(() => {
         const video = videoRef.current;
@@ -50,7 +42,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
             setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
         }
 
-    }, [isVideoPlaying, videoRef.current])
+    }, [isVideoPlaying, videoRef, fps, frames, selectedIdx, setSelectedIdx]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -60,7 +52,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
             video.currentTime=frames[selectedIdx].pts_time;
         }
     
-    }, [selectedIdx, videoRef.current, isVideoPlaying, frames])
+    }, [selectedIdx, videoRef, isVideoPlaying, frames])
 
     useEffect(() => {
         const video = videoRef.current;
@@ -68,7 +60,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
         if (!video) return;
         video.playbackRate = fps / 30;
 
-    }, [fps, videoRef.current])
+    }, [fps, videoRef])
 
     useEffect(() => {
         const video = videoRef.current;
@@ -89,7 +81,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
 
         video.addEventListener("timeupdate", handleTimeUpdate);
         return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-    }, [frames, isVideoPlaying, videoRef.current]);
+    }, [frames, isVideoPlaying, videoRef, setSelectedIdx]);
 
 
     if (framesQuery.isPending) {
@@ -108,7 +100,6 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
         <>
             {displayMode === "frames" ? (
                 <Frame
-                    imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
                     showGrid={showGrid}
                     showVectors={showVectors}
@@ -119,7 +110,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
                     setPrevImageUrl={setPrevImageUrl}
                     mode={mode}
                     macroblocks={macroblocks}
-
+                    videoId={videoId}
                 />
             ) : displayMode === "video" ? (
                 <Video 

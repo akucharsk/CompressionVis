@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiUrl, needRetryForThisStatus } from "../utils/urls";
-import { MAX_RETRIES } from "../utils/constants";
+import { apiUrl } from "../utils/urls";
+import { DEFAULT_RETRY_TIMEOUT_MS } from "../utils/constants";
 import { genericFetch } from "../api/genericFetch";
 import { defaultRefetchIntervalPolicy, defaultRetryPolicy } from "../utils/retryUtils";
 
@@ -31,10 +31,22 @@ export const FramesProvider = ({ children }) => {
         }
     }
 
+    const refetchInterval = useCallback((query) => {
+        const defaultRetry = defaultRefetchIntervalPolicy(query);
+        if (defaultRetry > 0) {
+            return defaultRetry;
+        }
+        const data = query?.state?.data;
+        if (data?.frames?.length < data?.total) {
+            return DEFAULT_RETRY_TIMEOUT_MS;
+        }
+        return false;
+    }, []);
+
     const framesQuery = useQuery({
         queryKey: [ "frames", videoId ],
         queryFn: async () => genericFetch(`${apiUrl}/video/frames/${videoId}`),
-        refetchInterval: defaultRefetchIntervalPolicy,
+        refetchInterval,
         retry: defaultRetryPolicy,
         enabled: !!videoId
     });

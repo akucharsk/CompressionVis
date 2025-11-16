@@ -9,3 +9,4 @@ django-cors-headers
 django-redis
 
 motion-vector-extractor
+opencv-python

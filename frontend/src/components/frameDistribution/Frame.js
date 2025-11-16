@@ -1,31 +1,38 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import './../../styles/components/distribution/Frame.css';
 import {useMacroblocks} from "../../context/MacroblocksContext";
 import Spinner from "../Spinner";
 import { useFrames } from "../../context/FramesContext";
+import { apiUrl } from "../../utils/urls";
+import { useSearchParams } from "react-router-dom";
 
 const Frame = ({
                    showGrid,
                    showVectors,
                    visibleCategories,
-                   imageUrl,
                    selectedBlock,
                    setSelectedBlock,
                    mode,
                    macroblocks,
-                   fullscreenHandler
+                   fullscreenHandler,
+                   videoId
                }) => {
-    const [blocks, setBlocks] = useState([]);
+    const [ params ] = useSearchParams();
+    if(!videoId) {
+        videoId = parseInt(params.get("videoId"));
+    }
     const {frames, selectedIdx} = useFrames();
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
     const {frameMacroBlocksQuery} = useMacroblocks();
-
+    const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
+    
     const drawCanvas = useCallback(() => {
+        if (!frameMacroBlocksQuery.data?.blocks) return;
+        const blocks = frameMacroBlocksQuery.data.blocks;
         const canvas = canvasRef.current;
         const img = imgRef.current;
         if (!canvas || !img) return;
-
         const ctx = canvas.getContext("2d");
 
         if (img.naturalWidth === 0 || img.naturalHeight === 0) return;
@@ -129,7 +136,7 @@ const Frame = ({
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;
@@ -148,49 +155,14 @@ const Frame = ({
         if (candidates.length > 0) {
             return candidates[0];
         }
-
-        const overlapCandidates = newBlocks.filter(block => {
-            const x0 = block.x - block.width / 2;
-            const y0 = block.y - block.height / 2;
-            const x1 = oldBlock.x - oldBlock.width / 2;
-            const y1 = oldBlock.y - oldBlock.height / 2;
-
-            const overlapX = Math.max(0, Math.min(x0 + block.width, x1 + oldBlock.width) - Math.max(x0, x1));
-            const overlapY = Math.max(0, Math.min(y0 + block.height, y1 + oldBlock.height) - Math.max(y0, y1));
-            return overlapX > 0 && overlapY > 0;
-        });
-
-        if (overlapCandidates.length > 0) {
-            return overlapCandidates[0];
-        }
-
         return null;
     }, [macroblocks]);
 
     useEffect(() => {
-        if (!macroblocks) return;
-        if (!selectedBlock || blocks.length === 0) return;
-
-        const newSelected = mapSelectedBlockToNewFrame(selectedBlock, blocks);
+        if (!macroblocks || !frameMacroBlocksQuery.data?.blocks || !selectedBlock) return;
+        const newSelected = mapSelectedBlockToNewFrame(selectedBlock, frameMacroBlocksQuery.data.blocks);
         setSelectedBlock(newSelected);
-    }, [selectedIdx, blocks, selectedBlock, setSelectedBlock, macroblocks, mapSelectedBlockToNewFrame]);
-
-    useEffect(() => {
-        if (macroblocks && frameMacroBlocksQuery.isSuccess) {
-            if (frameMacroBlocksQuery.data?.blocks) {
-                setBlocks(frameMacroBlocksQuery.data.blocks);
-            } else {
-                setBlocks([]);
-                setSelectedBlock(null);
-            }
-        }
-    }, [frameMacroBlocksQuery.isSuccess, frameMacroBlocksQuery.data, setSelectedBlock, macroblocks]);
-
-    useEffect(() => {
-        if (macroblocks && frameMacroBlocksQuery.data?.blocks) {
-            setBlocks(frameMacroBlocksQuery.data.blocks);
-        }
-    }, [frameMacroBlocksQuery.data, macroblocks])
+    }, [selectedIdx, frameMacroBlocksQuery.data?.blocks, selectedBlock, setSelectedBlock, macroblocks, mapSelectedBlockToNewFrame]);
 
     const getCategoryColor = (blockType) => {
         switch (blockType) {
@@ -208,9 +180,11 @@ const Frame = ({
     };
 
     const handleCanvasClick = (e) => {
-        if (!frameMacroBlocksQuery.data?.blocks || blocks.length === 0) {
+        console.log({ e });
+        if (!frameMacroBlocksQuery.data?.blocks) {
             return;
         }
+        const blocks = frameMacroBlocksQuery.data.blocks || [];
 
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
@@ -226,6 +200,7 @@ const Frame = ({
             return clickX >= x && clickX <= x + block.width &&
                 clickY >= y && clickY <= y + block.height;
         });
+        console.log({ clickedBlock });
 
         if (clickedBlock) {
             setSelectedBlock(clickedBlock);
@@ -240,6 +215,8 @@ const Frame = ({
         }
     }, [drawCanvas, macroblocks]);
 
+    const blocks = frameMacroBlocksQuery.data?.blocks || [];
+
     return (
         <>
             {frames.length > 0 && selectedIdx < frames.length && (
@@ -249,7 +226,6 @@ const Frame = ({
                     ) : imageUrl && macroblocks ? (
                         <>
                             <img
-                                key={selectedIdx}
                                 ref={imgRef}
                                 src={imageUrl}
                                 alt={`Frame ${selectedIdx} (${frames[selectedIdx].type})`}
@@ -258,7 +234,7 @@ const Frame = ({
                                     width: "100%",
                                     height: "auto"
                                 }}
-                                onLoad={() => drawCanvas()}
+                                onLoad={drawCanvas}
                             />
                             <canvas
                                 ref={canvasRef}
