@@ -32,7 +32,7 @@ cd CompressionVis
 Download the files from Google Drive:
 
 ```
-https://drive.google.com/drive/folders/1OR3iby_OVX7wfpjg6arrbFoZvVkJDyX6st=n7e9bxd2&dl=0
+https://drive.google.com/drive/folders/1OR3iby_OVX7wfpjg6arrbFoZvVkJDyX6?usp=sharing
 ```
 
 Place the files in the following directories:
