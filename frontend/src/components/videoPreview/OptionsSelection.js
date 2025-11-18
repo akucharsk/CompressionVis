@@ -112,6 +112,7 @@ const OptionsSection = ({ handleCompress }) => {
                 { value: "1.4", label: "1.4" },
                 { value: "1.6", label: "1.6" },
             ],
+            disabled: parameters.aqMode === "0",
         },
         {
             label: "Preset (speed)",
@@ -154,33 +155,6 @@ const OptionsSection = ({ handleCompress }) => {
             { value: "10M", label: "10Mb/s" },
         ],
     };
-
-
-    useEffect(() => {
-        const defaultOptions = {
-            resolution: "1280x720",
-            pattern: "250",
-            crf: "20",
-            preset: "medium",
-            bFrames: "2",
-            aqMode: "2",
-            aqStrength: "1.0",
-            bandwidth: "5M",
-            compressedSize: (1024 * 1024).toString(),
-            qualityMode: "crf",
-            mode: "parameters",
-        };
-
-        setParameters((prev) => ({
-            ...prev,
-            ...defaultOptions,
-        }));
-    }, [setParameters]);
-
-    const { data, isPending, error } = useQuery({
-        queryKey: [ "videoSize", parameters.videoId ],
-        queryFn: () => genericFetch(`${apiUrl}/video/size/${parameters.videoId}/`),
-    })
 
     const renderContent = () => {
         switch (parameters.mode) {
@@ -287,6 +261,57 @@ const OptionsSection = ({ handleCompress }) => {
                 return null;
         }
     };
+
+    useEffect(() => {
+        const defaultOptions = {
+            resolution: "1280x720",
+            pattern: "default",
+            crf: "20",
+            preset: "medium",
+            bFrames: "default",
+            aqMode: "0",
+            aqStrength: "1.0",
+            bandwidth: "5M",
+            compressedSize: (1024 * 1024).toString(),
+            qualityMode: "crf",
+            mode: "parameters",
+        };
+
+        setParameters((prev) => ({
+            ...prev,
+            ...defaultOptions,
+        }));
+    }, [setParameters]);
+
+    useEffect(() => {
+        const fetchVideoSize = async () => {
+            if (!parameters.videoId) return;
+
+            setLoadingSize(true);
+            try {
+                const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
+                await handleApiError(resp);
+                const data = await resp.json();
+                setOriginalSize(data.size);
+            } catch (error) {
+                showError(error.message, error.statusCode);
+            } finally {
+                setLoadingSize(false);
+            }
+        };
+
+        const loadVideoSize = async () => {
+            if (parameters.videoId) {
+                try {
+                    await fetchVideoSize();
+                } catch (error) {
+                    showError(error.message, error.statusCode);
+                }
+            }
+        };
+
+        void loadVideoSize();
+    }, [parameters.videoId, showError]);
 
     return (
         <div className="options-section">
