@@ -4,91 +4,79 @@ const VIDEO_MAP_KEY = ["videoMap"];
 const STORAGE_KEY = "videoMap";
 const EXPIRY_KEY = "videoMap_expiry";
 
-const TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-function loadCacheWithExpiry() {
-    const expiry = parseInt(localStorage.getItem(EXPIRY_KEY) || "0", 10);
+function loadPersistentCache() {
+    const expiry = Number(localStorage.getItem(EXPIRY_KEY) || 0);
     const now = Date.now();
 
     if (expiry && now > expiry) {
-        // wygasło — czyścimy
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(EXPIRY_KEY);
         queryClient.setQueryData(VIDEO_MAP_KEY, {});
         return {};
     }
 
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
         queryClient.setQueryData(VIDEO_MAP_KEY, {});
         return {};
     }
 
-    const parsed = JSON.parse(stored);
-    queryClient.setQueryData(VIDEO_MAP_KEY, parsed);
-    return parsed;
+    const data = JSON.parse(raw);
+    queryClient.setQueryData(VIDEO_MAP_KEY, data);
+    return data;
 }
 
-loadCacheWithExpiry();
+loadPersistentCache();
 
-export const addVideoIdToCache = (originalVideoId, compressedVideoId) => {
-    queryClient.setQueryData(VIDEO_MAP_KEY, (oldMap = {}) => {
-        const currentList = oldMap[originalVideoId] || [];
+function saveToLocalStorage(map) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    localStorage.setItem(EXPIRY_KEY, (Date.now() + ONE_DAY_MS).toString());
+}
 
-        if (currentList.includes(compressedVideoId)) {
-            // nic nie zmieniamy, tylko odświeżamy TTL
-            localStorage.setItem(EXPIRY_KEY, (Date.now() + TTL_MS).toString());
-            return oldMap;
+export const addVideoIdToCache = (originalId, compressedId) => {
+    queryClient.setQueryData(VIDEO_MAP_KEY, (old = {}) => {
+        const list = old[originalId] || [];
+
+        if (list.includes(compressedId)) {
+            saveToLocalStorage(old);
+            return old;
         }
 
-        const newMap = {
-            ...oldMap,
-            [originalVideoId]: [...currentList, compressedVideoId],
+        const updated = {
+            ...old,
+            [originalId]: [...list, compressedId],
         };
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newMap));
-        localStorage.setItem(EXPIRY_KEY, (Date.now() + TTL_MS).toString());
-
-        return newMap;
+        saveToLocalStorage(updated);
+        return updated;
     });
 };
 
-export const getVideoIdsFromCache = (originalVideoId) => {
-    const map = queryClient.getQueryData(VIDEO_MAP_KEY) || {};
-    return map[originalVideoId] || [];
+export const removeVideoIdFromCache = (originalId, compressedId) => {
+    queryClient.setQueryData(VIDEO_MAP_KEY, (old = {}) => {
+        const list = old[originalId] || [];
+        if (!list.includes(compressedId)) return old;
+
+        const newList = list.filter(id => id !== compressedId);
+        const updated = { ...old };
+
+        if (newList.length === 0) {
+            delete updated[originalId];
+        } else {
+            updated[originalId] = newList;
+        }
+
+        saveToLocalStorage(updated);
+        return updated;
+    });
+};
+
+export const getVideoIdsFromCache = (originalId) => {
+    return queryClient.getQueryData(VIDEO_MAP_KEY)?.[originalId] || [];
 };
 
 export const getAllVideoIdsMap = () => {
     return queryClient.getQueryData(VIDEO_MAP_KEY) || {};
 };
-
-export const removeVideoIdFromCache = (originalVideoId, compressedVideoId) => {
-    queryClient.setQueryData(VIDEO_MAP_KEY, (oldMap = {}) => {
-        const currentList = oldMap[originalVideoId] || [];
-
-        if (!currentList.includes(compressedVideoId)) {
-            return oldMap;
-        }
-
-        const newList = currentList.filter(id => id !== compressedVideoId);
-
-        let newMap;
-
-        if (newList.length === 0) {
-            newMap = { ...oldMap };
-            delete newMap[originalVideoId];
-        } else {
-            newMap = {
-                ...oldMap,
-                [originalVideoId]: newList,
-            };
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newMap));
-
-        localStorage.setItem(EXPIRY_KEY, (Date.now() + TTL_MS).toString());
-
-        return newMap;
-    });
-};
-

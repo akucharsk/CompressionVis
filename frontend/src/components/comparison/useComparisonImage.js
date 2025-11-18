@@ -53,10 +53,8 @@ export function useComparisonImage(isConst, selectedIdx) {
                 console.error("Image fetch failed:", error);
             }
         };
-        console.log("XDD1")
 
         loadImage();
-        console.log("XDD2")
         return () => {
             cancelled = true;
             controller.abort();
