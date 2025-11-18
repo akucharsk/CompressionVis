@@ -113,6 +113,7 @@ const OptionsSection = ({ handleCompress }) => {
                 { value: "1.4", label: "1.4" },
                 { value: "1.6", label: "1.6" },
             ],
+            disabled: parameters.aqMode === "0",
         },
         {
             label: "Preset (speed)",
@@ -261,11 +262,11 @@ const OptionsSection = ({ handleCompress }) => {
     useEffect(() => {
         const defaultOptions = {
             resolution: "1280x720",
-            pattern: "250",
+            pattern: "default",
             crf: "20",
             preset: "medium",
-            bFrames: "2",
-            aqMode: "2",
+            bFrames: "default",
+            aqMode: "0",
             aqStrength: "1.0",
             bandwidth: "5M",
             compressedSize: (1024 * 1024).toString(),
