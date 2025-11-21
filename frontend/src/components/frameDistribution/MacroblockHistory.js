@@ -8,13 +8,32 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
     const blockWidth = displayBlock?.width || 16;
     const blockHeight = displayBlock?.height || 16;
 
+    const hasPrev = displayBlock?.source < 0 || displayBlock?.source2 < 0;
+    const hasNext = displayBlock?.source > 0 || displayBlock?.source2 > 0;
+    const isBiDir = hasPrev && hasNext;
+
+    const getVectorText = (isPrevRef) => {
+        let dx, dy;
+        const s1 = displayBlock.source;
+
+        if (isPrevRef) {
+            if (s1 < 0) { dx = displayBlock.x - displayBlock.src_x; dy = displayBlock.y - displayBlock.src_y; }
+            else { dx = displayBlock.x - displayBlock.src_x2; dy = displayBlock.y - displayBlock.src_y2; }
+        } else {
+            if (s1 > 0) { dx = displayBlock.x - displayBlock.src_x; dy = displayBlock.y - displayBlock.src_y; }
+            else { dx = displayBlock.x - displayBlock.src_x2; dy = displayBlock.y - displayBlock.src_y2; }
+        }
+        return `(${dx}, ${dy})`;
+    };
+
     return (
         <div className={`macroblock-info-box ${selectedBlock ? "visible" : ""}`}>
             <h4>Macroblock history</h4>
 
-            <div className="macroblock-history">
+            <div className="macroblock-history grid-layout">
+
                 <div className="mb-slot">
-                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
+                    {hasPrev ? (
                         <Macroblock
                             name="Previous reference"
                             src={history?.prev}
@@ -27,15 +46,14 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 </div>
 
                 <div className="arrow-slot">
-                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
+                    {hasPrev ? <>
+                        <span className="vector-label">{getVectorText(true)}</span>
                         <div className="arrow">→</div>
-                    ) : (
-                        <div className="mb-placeholder" />
-                    )}
+                    </> : <div className="mb-placeholder"/>}
                 </div>
 
                 <div className="mb-slot">
-                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
+                    {hasPrev ? (
                         <Macroblock
                             name="Moved macroblock"
                             src={history?.prev_moved}
@@ -48,32 +66,27 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 </div>
 
                 <div className="arrow-slot">
-                    {(displayBlock?.source < 0 || displayBlock?.source2 < 0) ? (
-                        <div className="arrow">→</div>
-                    ) : (
-                        <div className="mb-placeholder" />
-                    )}
+                    {hasPrev ? <div className="arrow">→</div> : <div className="mb-placeholder"/>}
                 </div>
 
-                <div className="mb-slot">
-                    <Macroblock
-                        name="Result"
-                        src={history?.result}
-                        width={blockWidth}
-                        height={blockHeight}
-                    />
+                <div className="mb-slot center-slot">
+                    {isBiDir ? (
+                        <div className="center-stack">
+                            <Macroblock name="Interpolation" url={history?.result} width={blockWidth} height={blockHeight} />
+                            <div className="arrow-down">↓</div>
+                            <Macroblock name="Result" url={history?.result} width={blockWidth} height={blockHeight} />
+                        </div>
+                    ) : (
+                        <Macroblock name="Result" url={history?.result} width={blockWidth} height={blockHeight} />
+                    )}
                 </div>
 
                 <div className="arrow-slot">
-                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
-                        <div className="arrow">←</div>
-                    ) : (
-                        <div className="mb-placeholder" />
-                    )}
+                    {hasNext ? <div className="arrow">←</div> : <div className="mb-placeholder"/>}
                 </div>
 
                 <div className="mb-slot">
-                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
+                    {hasNext ? (
                         <Macroblock
                             name="Moved macroblock"
                             src={history?.next_moved}
@@ -86,15 +99,14 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 </div>
 
                 <div className="arrow-slot">
-                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
+                    {hasNext ? <>
+                        <span className="vector-label">{getVectorText(false)}</span>
                         <div className="arrow">←</div>
-                    ) : (
-                        <div className="mb-placeholder" />
-                    )}
+                    </> : <div className="mb-placeholder"/>}
                 </div>
 
                 <div className="mb-slot">
-                    {(displayBlock?.source > 0 || displayBlock?.source2 > 0) ? (
+                    {hasNext ? (
                         <Macroblock
                             name="Next reference"
                             src={history?.next}

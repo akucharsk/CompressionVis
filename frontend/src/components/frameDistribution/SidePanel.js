@@ -15,7 +15,9 @@ const SidePanel = ({
                        visibleCategories,
                        selectedBlock,
                        mode,
-                       setMode
+                       setMode,
+                       vectorsMode,
+                       setVectorsMode
                    }) => {
     return (
         <div className="right-section">
@@ -39,8 +41,10 @@ const SidePanel = ({
                 visibleCategories={visibleCategories}
                 mode={mode}
                 setMode={setMode}
+                vectorsMode={vectorsMode}
+                setVectorsMode={setVectorsMode}
             />
-            <MacroblockInfo selectedBlock={selectedBlock} />
+            <MacroblockInfo selectedBlock={selectedBlock} frames={frames} currentFrameIdx={selectedIdx}/>
         </div>
     );
 };

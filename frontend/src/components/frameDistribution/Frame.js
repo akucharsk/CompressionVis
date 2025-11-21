@@ -15,7 +15,8 @@ const Frame = ({
                    mode,
                    macroblocks,
                    fullscreenHandler,
-                   videoId
+                   videoId,
+                   vectorsMode
                }) => {
     const [ params ] = useSearchParams();
     if(!videoId) {
@@ -26,7 +27,7 @@ const Frame = ({
     const imgRef = useRef(null);
     const {frameMacroBlocksQuery} = useMacroblocks();
     const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
-    
+
     const drawCanvas = useCallback(() => {
         if (!frameMacroBlocksQuery.data?.blocks) return;
         const blocks = frameMacroBlocksQuery.data.blocks;
@@ -128,15 +129,23 @@ const Frame = ({
                     ctx.shadowBlur = 0;
                 };
 
-                drawVector(block.src_x, block.src_y);
+                const tryDrawVector = (source, x, y) => {
+                    if (source == null) return;
 
-                if (block.src_x2 != null && block.src_y2 != null) {
-                    drawVector(block.src_x2, block.src_y2);
-                }
+                    const showPrev = source < 0 && (vectorsMode === "previous" || vectorsMode === "both");
+                    const showNext = source > 0 && (vectorsMode === "next" || vectorsMode === "both");
+
+                    if (showPrev || showNext) {
+                        drawVector(x, y);
+                    }
+                };
+
+                tryDrawVector(block.source, block.src_x, block.src_y);
+                tryDrawVector(block.source2, block.src_x2, block.src_y2);
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [frameMacroBlocksQuery.data?.blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode, vectorsMode]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;

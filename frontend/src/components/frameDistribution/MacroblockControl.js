@@ -2,6 +2,7 @@ import {useRef, useEffect} from "react";
 import Spinner from "../Spinner";
 import { useMacroblocks } from "../../context/MacroblocksContext";
 import GridSwitch from "./GridSwitch";
+import GridTripleSwitch from "./GridTripleSwitch";
 
 const MacroblockControl = ({
                                setShowGrid,
@@ -11,10 +12,13 @@ const MacroblockControl = ({
                                toggleCategory,
                                visibleCategories,
                                mode,
-                               setMode
+                               setMode,
+                               vectorsMode,
+                               setVectorsMode
                            }) => {
     const { isBlocksLoading } = useMacroblocks();
     const wrapperRef = useRef(null);
+    const vectorsRef = useRef(null);
 
     useEffect(() => {
         if (wrapperRef.current) {
@@ -25,6 +29,16 @@ const MacroblockControl = ({
             }
         }
     }, [showGrid]);
+
+    useEffect(() => {
+        if (vectorsRef.current) {
+            if (showVectors) {
+                vectorsRef.current.style.maxHeight = vectorsRef.current.scrollHeight + 'px';
+            } else {
+                vectorsRef.current.style.maxHeight = '0';
+            }
+        }
+    }, [showVectors]);
 
     return (
         <>
@@ -70,14 +84,23 @@ const MacroblockControl = ({
             </div>
 
             <div className="content-box">
-                <button
-                    className="macroblock-btn vector"
-                    onClick={() => setShowVectors(!showVectors)}
-                    disabled={isBlocksLoading}
-                >
-                    {isBlocksLoading && <Spinner size={15} />}
-                    {showVectors ? "Hide motion vectors" : "Show motion vectors"}
-                </button>
+                <div className={`macroblock-expandable ${showVectors ? "expanded" : ""} ${isBlocksLoading ? "loading" : ""}`}>
+                    <button
+                        className="macroblock-btn vector"
+                        onClick={() => setShowVectors(!showVectors)}
+                        disabled={isBlocksLoading}
+                    >
+                        {isBlocksLoading && <Spinner size={15} />}
+                        {showVectors ? "Hide motion vectors" : "Show motion vectors"}
+                    </button>
+                    <div className="checkbox-wrapper" ref={vectorsRef}>
+                        <GridTripleSwitch
+                            mode={vectorsMode}
+                            setMode={setVectorsMode}
+                            disabled={isBlocksLoading}
+                        />
+                    </div>
+                </div>
             </div>
         </>
     );
