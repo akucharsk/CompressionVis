@@ -9,6 +9,7 @@ import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
 import { useMacroblockHistoryQuery } from '../hooks/macroblock-history-query';
 import { useEffect } from 'react';
+import { apiUrl } from '../utils/urls';
 
 const FramesDistribution = () => {
     const [showGrid, setShowGrid] = useState(false);
@@ -42,6 +43,7 @@ const FramesDistribution = () => {
     }, [macroblockHistoryQuery.data]);
 
     const videoId = parseInt(params.get("videoId"));
+    const imgSrc = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
 
     if (framesQuery.isPending) {
         return (
@@ -60,6 +62,7 @@ const FramesDistribution = () => {
                         isConst={false}
                         videoId={videoId}
                         videoRef={videoRef}
+                        imgSrc={imgSrc}
                         showGrid={showGrid}
                         showVectors={showVectors}
                         visibleCategories={visibleCategories}

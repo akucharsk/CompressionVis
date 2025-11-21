@@ -180,7 +180,6 @@ const Frame = ({
     };
 
     const handleCanvasClick = (e) => {
-        console.log({ e });
         if (!frameMacroBlocksQuery.data?.blocks) {
             return;
         }
@@ -200,7 +199,6 @@ const Frame = ({
             return clickX >= x && clickX <= x + block.width &&
                 clickY >= y && clickY <= y + block.height;
         });
-        console.log({ clickedBlock });
 
         if (clickedBlock) {
             setSelectedBlock(clickedBlock);
