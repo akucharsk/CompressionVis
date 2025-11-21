@@ -4,12 +4,11 @@ import { useSettings } from "../../context/SettingsContext";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/OptionsSelection.css";
 import {useError} from "../../context/ErrorContext";
-import {handleApiError} from "../../utils/errorHandler";
+import { useQuery } from "@tanstack/react-query";
+import { genericFetch } from "../../api/genericFetch";
 
 const OptionsSection = ({ handleCompress }) => {
     const { parameters, setParameters } = useSettings();
-    const [originalSize, setOriginalSize] = useState(null);
-    const [loadingSize, setLoadingSize] = useState(false);
     const {showError} = useError();
     const [sizeInput, setSizeInput] = useState("");
 
@@ -17,7 +16,7 @@ const OptionsSection = ({ handleCompress }) => {
         setSizeInput(e.target.value);
     };
 
-    const handleSizeBlur = () => {
+    const handleSizeBlur = (originalSize) => {
         const value = sizeInput.replace(",", ".").trim();
         if (!value) {
             setSizeInput("1");
@@ -156,6 +155,33 @@ const OptionsSection = ({ handleCompress }) => {
         ],
     };
 
+
+    useEffect(() => {
+        const defaultOptions = {
+            resolution: "1280x720",
+            pattern: "250",
+            crf: "20",
+            preset: "medium",
+            bFrames: "2",
+            aqMode: "2",
+            aqStrength: "1.0",
+            bandwidth: "5M",
+            compressedSize: (1024 * 1024).toString(),
+            qualityMode: "crf",
+            mode: "parameters",
+        };
+
+        setParameters((prev) => ({
+            ...prev,
+            ...defaultOptions,
+        }));
+    }, [setParameters]);
+
+    const { data, isPending, error } = useQuery({
+        queryKey: [ "videoSize", parameters.videoId ],
+        queryFn: () => genericFetch(`${apiUrl}/video/size/${parameters.videoId}/`),
+    })
+
     const renderContent = () => {
         switch (parameters.mode) {
             case "parameters":
@@ -210,14 +236,18 @@ const OptionsSection = ({ handleCompress }) => {
                     </>
                 );
             case "compressedSize":
+                const originalSize = data?.size;
                 const originalSizeMB = originalSize ? (originalSize / (1024 * 1024)).toFixed(2) : null;
                 const maxSizeMB = originalSize ? originalSize / (1024 * 1024) / 10 : 100;
 
+                if (error) {
+                    showError(error.message, error.statusCode);
+                }
                 return (
                     <div className="size-slider-container">
                         <div className="video-info">
                             <p>Original Size: <strong>
-                                {loadingSize ? "Loading..." :
+                                {isPending ? "Loading..." :
                                     originalSizeMB !== null ? `${originalSizeMB} MB` : "Unknown"}
                             </strong></p>
                         </div>
@@ -242,7 +272,7 @@ const OptionsSection = ({ handleCompress }) => {
                                 type="text"
                                 value={sizeInput}
                                 onChange={handleSizeChange}
-                                onBlur={handleSizeBlur}
+                                onBlur={() => handleSizeBlur(originalSize)}
                                 placeholder="Enter size in MB"
                                 className="size-input"
                             />
@@ -258,57 +288,6 @@ const OptionsSection = ({ handleCompress }) => {
                 return null;
         }
     };
-
-    useEffect(() => {
-        const defaultOptions = {
-            resolution: "1280x720",
-            pattern: "250",
-            crf: "20",
-            preset: "medium",
-            bFrames: "2",
-            aqMode: "2",
-            aqStrength: "1.0",
-            bandwidth: "5M",
-            compressedSize: (1024 * 1024).toString(),
-            qualityMode: "crf",
-            mode: "parameters",
-        };
-
-        setParameters((prev) => ({
-            ...prev,
-            ...defaultOptions,
-        }));
-    }, [setParameters]);
-
-    useEffect(() => {
-        const fetchVideoSize = async () => {
-            if (!parameters.videoId) return;
-
-            setLoadingSize(true);
-            try {
-                const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
-                await handleApiError(resp);
-                const data = await resp.json();
-                setOriginalSize(data.size);
-            } catch (error) {
-                showError(error.message, error.statusCode);
-            } finally {
-                setLoadingSize(false);
-            }
-        };
-
-        const loadVideoSize = async () => {
-            if (parameters.videoId) {
-                try {
-                    await fetchVideoSize();
-                } catch (error) {
-                    showError(error.message, error.statusCode);
-                }
-            }
-        };
-
-        void loadVideoSize();
-    }, [parameters.videoId, showError]);
 
     return (
         <div className="options-section">

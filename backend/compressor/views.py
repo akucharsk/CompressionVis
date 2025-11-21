@@ -190,7 +190,7 @@ class CompressionView(BaseCompressionView):
 
         video, created = self.get_or_create_video(serializer)
 
-        if not created and video.is_compressed:
+        if not created:
             return self.prepare_response(video, output_filename)
 
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
@@ -265,7 +265,7 @@ class SizeCompressionView(BaseCompressionView):
                 {"message": "Couldn't determine video duration"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
         serializer = serializers.SizeCompressionSerializer(
             data=data,
             context={ "original_video": original_video, "duration": duration }
@@ -393,8 +393,6 @@ class FrameStatusView(APIView):
         else:
             dirname = video.filename.split(".")[0]
 
-        # print(dirname)
-
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:
             if video.frames_extraction_in_progress:
@@ -417,17 +415,11 @@ class FrameStatusView(APIView):
 
 class FrameView(APIView):
     def get(self, request, video_id, frame_number):
-        original = request.GET.get("original")
         try:
             video = models.Video.objects.get(id=video_id)
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # if original:
-        #     print({ "original": video.original, "video": video })
-        #     sys.stdout.flush()
-        #     dirname = video.original.filename.split(".")[0]
-        # else:
+        
         dirname = video.filename.split(".")[0]
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
