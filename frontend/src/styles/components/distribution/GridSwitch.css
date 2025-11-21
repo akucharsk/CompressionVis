@@ -53,3 +53,66 @@
 .custom-switch .slider.disappear {
     left: calc(50% + 0px);
 }
+
+.grid-triple-switch {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    width: 95%;
+    margin: 5px auto 15px;
+    height: 40px;
+    background: var(--background-second);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.grid-triple-switch.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.grid-triple-switch span {
+    flex: 1;
+    text-align: center;
+    color: var(--font-color);
+    font-size: 12px;
+    font-weight: 400;
+    z-index: 2;
+    transition: color 0.3s ease;
+    line-height: 32px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.grid-triple-switch span.active {
+    color: #000;
+    font-weight: 500;
+}
+
+.grid-triple-switch .slider {
+    position: absolute;
+    top: 4px;
+    width: calc((100% - 8px) / 3);
+    height: calc(100% - 8px);
+    background: #00bcd4;
+    border-radius: 8px;
+    transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 1;
+}
+
+.grid-triple-switch .slider.previous {
+    left: 4px;
+}
+
+.grid-triple-switch .slider.both {
+    left: calc(4px + (100% - 8px) / 3);
+}
+
+.grid-triple-switch .slider.next {
+    left: calc(4px + ((100% - 8px) / 3) * 2);
+}

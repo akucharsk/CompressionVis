@@ -13,7 +13,8 @@ const Frame = ({
                    setSelectedBlock,
                    mode,
                    macroblocks,
-                   fullscreenHandler
+                   fullscreenHandler,
+                   vectorsMode
                }) => {
     const [blocks, setBlocks] = useState([]);
     const {frames, selectedIdx} = useFrames();
@@ -121,15 +122,23 @@ const Frame = ({
                     ctx.shadowBlur = 0;
                 };
 
-                drawVector(block.src_x, block.src_y);
+                const tryDrawVector = (source, x, y) => {
+                    if (source == null) return;
 
-                if (block.src_x2 != null && block.src_y2 != null) {
-                    drawVector(block.src_x2, block.src_y2);
-                }
+                    const showPrev = source < 0 && (vectorsMode === "previous" || vectorsMode === "both");
+                    const showNext = source > 0 && (vectorsMode === "next" || vectorsMode === "both");
+
+                    if (showPrev || showNext) {
+                        drawVector(x, y);
+                    }
+                };
+
+                tryDrawVector(block.source, block.src_x, block.src_y);
+                tryDrawVector(block.source2, block.src_x2, block.src_y2);
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
+    }, [blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode, vectorsMode]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;
@@ -148,22 +157,6 @@ const Frame = ({
         if (candidates.length > 0) {
             return candidates[0];
         }
-
-        const overlapCandidates = newBlocks.filter(block => {
-            const x0 = block.x - block.width / 2;
-            const y0 = block.y - block.height / 2;
-            const x1 = oldBlock.x - oldBlock.width / 2;
-            const y1 = oldBlock.y - oldBlock.height / 2;
-
-            const overlapX = Math.max(0, Math.min(x0 + block.width, x1 + oldBlock.width) - Math.max(x0, x1));
-            const overlapY = Math.max(0, Math.min(y0 + block.height, y1 + oldBlock.height) - Math.max(y0, y1));
-            return overlapX > 0 && overlapY > 0;
-        });
-
-        if (overlapCandidates.length > 0) {
-            return overlapCandidates[0];
-        }
-
         return null;
     }, [macroblocks]);
 

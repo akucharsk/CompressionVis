@@ -14,7 +14,7 @@ import { fetchImage } from "../api/fetchImage";
 import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks, vectorsMode }) => {
     const { displayMode, setDisplayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     // const [ params ] = useSearchParams();
@@ -119,7 +119,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
                     setPrevImageUrl={setPrevImageUrl}
                     mode={mode}
                     macroblocks={macroblocks}
-
+                    vectorsMode={vectorsMode}
                 />
             ) : displayMode === "video" ? (
                 <Video 

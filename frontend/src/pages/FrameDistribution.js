@@ -15,6 +15,7 @@ const FramesDistribution = () => {
     const [showVectors, setShowVectors] = useState(false);
     const [selectedBlock, setSelectedBlock] = useState(null);
     const [mode, setMode] = useState("grid");
+    const [vectorsMode, setVectorsMode] = useState("both");
     const [visibleCategories, setVisibleCategories] = useState({
         intra: true,
         inter: true,
@@ -63,6 +64,7 @@ const FramesDistribution = () => {
                         setSelectedBlock={setSelectedBlock}
                         mode={mode}
                         macroblocks={true}
+                        vectorsMode={vectorsMode}
                     />
                     <MacroblockHistory
                         selectedBlock={selectedBlock}
@@ -84,6 +86,8 @@ const FramesDistribution = () => {
                     selectedBlock={selectedBlock}
                     mode={mode}
                     setMode={setMode}
+                    vectorsMode={vectorsMode}
+                    setVectorsMode={setVectorsMode}
                 />
             </div>
 
