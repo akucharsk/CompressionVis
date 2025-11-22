@@ -251,7 +251,7 @@
     align-items: center;
     gap: 0.25rem;
     font-size: 0.9rem;
-    padding: 0 1.25rem;
+    padding: 0 0.5rem;
 }
 
 .frame-counter input::-webkit-outer-spin-button,

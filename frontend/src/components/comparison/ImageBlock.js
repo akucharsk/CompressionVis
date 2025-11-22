@@ -74,7 +74,6 @@ const ImageBlock = ({
                             ))}
                         </select>
                         <SlaveImageVideoBlock 
-                            isConst={isConst}
                             videoId={selectedVideoId}
                             videoRef={videoRef}
                             fullscreenHandler={openFullscreen}
