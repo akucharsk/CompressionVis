@@ -15,6 +15,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
 import {queryClient} from "./utils/queryClient";
+import './styles/App.css'
 
 function Layout() {
   const location = useLocation();
@@ -30,15 +31,17 @@ function Layout() {
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
                       <MacroblocksProvider>
-                  {!hideNavbar && <NavigationTabs />}
-                    <Routes>
-                      <Route path="*" element={<Navigate to="/" />} />
-                      <Route path="/" element={<Menu />} />
-                      <Route path="/compress" element={<FramesDistribution />} />
-                      <Route path="/comparison" element={<Comparison />} />
-                      <Route path="/quiz" element={<Quiz />} />
-                      <Route path="/admin" element={<Admin />} />
-                    </Routes>
+                          <div className={"app-container"}>
+                          {!hideNavbar && <NavigationTabs />}
+                            <Routes>
+                              <Route path="*" element={<Navigate to="/" />} />
+                              <Route path="/" element={<Menu />} />
+                              <Route path="/compress" element={<FramesDistribution />} />
+                              <Route path="/comparison" element={<Comparison />} />
+                              <Route path="/quiz" element={<Quiz />} />
+                              <Route path="/admin" element={<Admin />} />
+                            </Routes>
+                          </div>
                 </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>

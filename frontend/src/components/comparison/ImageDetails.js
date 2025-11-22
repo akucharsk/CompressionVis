@@ -66,15 +66,29 @@ const ImageDetails = ({
 
     return (
         <div className="image-details">
-            <h3>Video Metrics</h3>
-            {isOriginalChosen
-                ? renderEntries(maxMetricsValues)
-                : renderEntries(videoMetrics)}
+            <div className="metrics-grid">
+                <div className="metric-header">Metric</div>
+                <div className="metric-header">Video</div>
+                <div className="metric-header">Frame</div>
 
-            <h3>Frame Metrics</h3>
-            {isOriginalChosen
-                ? renderEntries(maxMetricsValues)
-                : renderEntries(selectedFrame)}
+                {["PSNR", "SSIM", "VMAF"].map((key) => (
+                    <React.Fragment key={key}>
+                        <div className="metric-cell">{key}</div>
+
+                        <div className="metric-cell">
+                            {isOriginalChosen
+                                ? maxMetricsValues[key]
+                                : formatValue(videoMetrics?.[key])}
+                        </div>
+
+                        <div className="metric-cell">
+                            {isOriginalChosen
+                                ? maxMetricsValues[key]
+                                : formatValue(selectedFrame?.[key])}
+                        </div>
+                    </React.Fragment>
+                ))}
+            </div>
 
             {!isOriginalChosen &&
             <h3
