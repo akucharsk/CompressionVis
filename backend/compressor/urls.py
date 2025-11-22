@@ -8,6 +8,7 @@ urlpatterns = [
     path('video/example/', views.ExampleVideosView.as_view(), name='example_videos'),
     path('video/thumbnail/<int:video_id>/', views.ThumbnailView.as_view(), name='thumbnail'),
     path('frames/<int:video_id>/<int:frame_number>/', views.FrameView.as_view(), name='frames'),
+    path('frames/<int:video_id>/<int:frame_number>/url', views.FrameStatusView.as_view(), name='frames-status'),
     path('metrics/<int:video_id>/', views.MetricView.as_view(), name='metrics'),
     path('metrics/frames/<int:video_id>/<int:frame_number>', views.FrameMetricView.as_view(), name='frame_metrics'),
     path('metrics/frames/<int:video_id>/all', views.AllFramesMetricsView.as_view(), name='all_metrics'),

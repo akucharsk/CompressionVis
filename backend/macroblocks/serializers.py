@@ -15,3 +15,17 @@ class MacroBlockSerializer(serializers.Serializer):
             raise serializers.ValidationError("Frame number must be a non-negative integer.")
 
         return attrs
+    
+class MacroblockHistorySerializer(serializers.Serializer):
+    x = serializers.IntegerField(required=True, help_text="The x coordinate of the block.")
+    y = serializers.IntegerField(required=True, help_text="The y coordinate of the block.")
+
+    def validate(self, attrs):
+        x = attrs.get('x')
+        y = attrs.get('y')
+
+        if not x or not y:
+            raise serializers.ValidationError("x and y are required.")
+        
+        
+        return attrs

@@ -1,75 +1,20 @@
-// Ist WAY
-
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
-import { useError } from "../context/ErrorContext";
 import { apiUrl } from "../utils/urls";
 import { useFrames } from "../context/FramesContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import { useFps } from "../context/FpsContext";
 import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
-import { fetchImage } from "../api/fetchImage";
-import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
 const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
-    const { displayMode, setDisplayMode } = useDisplayMode();
+    const { displayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx } = useFrames();
     const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
-    const { showError } = useError();
 
-    // const videoRef = useRef(null);
-
-    const [imageUrl, setImageUrl] = useState(null);
-
-    // const videoId = parseInt(params.get("videoId"));
     const videoUrl = `${apiUrl}/video/${videoId}`;
-
-    const frameRequestPath = isConst ? `${apiUrl}/frames/${videoId}/${selectedIdx}/?original=true` : `${apiUrl}/frames/${videoId}/${selectedIdx}/`
-    console.log(frameRequestPath);
-
-    useEffect(() => {
-
-    }, [])
-
-    useEffect(() => {
-        if (selectedIdx === null || isVideoPlaying) {
-            setImageUrl(null);
-            return;
-        }
-
-        const controller = new AbortController();
-        let isMounted = true;
-
-        const loadImage = async () => {
-
-            try {
-                const url = await fetchImage(
-                    MAX_RETRIES,
-                    frameRequestPath,
-                    controller
-                );
-                if (isMounted) {
-                    setImageUrl(url);
-                    if (!isVideoPlaying) {
-                        setDisplayMode("frames");
-                    }
-                }
-            } catch (error) {
-                if (error.name === "AbortError") return;
-                if (isMounted) showError(error.message, error.statusCode);
-            }
-        };
-
-        loadImage();
-
-        return () => {
-            controller.abort();
-            isMounted = false;
-        };
-    }, [selectedIdx, videoId, frames, showError, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -85,7 +30,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
             video.pause();
         }
 
-    }, [isVideoPlaying, videoRef.current])
+    }, [isVideoPlaying, videoRef, fps, frames, selectedIdx])
 
     useEffect(() => {
         const video = videoRef.current;
@@ -95,7 +40,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
             video.currentTime=frames[selectedIdx].pts_time;
         }
     
-    }, [selectedIdx, videoRef.current, isVideoPlaying, frames])
+    }, [selectedIdx, videoRef, isVideoPlaying, frames])
 
     useEffect(() => {
         const video = videoRef.current;
@@ -103,7 +48,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
         if (!video) return;
         video.playbackRate = fps / 30;
 
-    }, [fps, videoRef.current])
+    }, [fps, videoRef])
 
     if (framesQuery.isPending) {
         return (
@@ -113,15 +58,13 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
         );
     }
 
-    // console.log(videoId);
-
     return (
         <div className="slave">
             {displayMode === "frames" ? (
                 <Frame
-                    imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
                     macroblocks={false}
+                    videoId={videoId}
                 />
             ) : displayMode === "video" ? (
                 <Video 

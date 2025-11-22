@@ -11,18 +11,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Build and install VMAF inside backend
 WORKDIR /vmaf
 RUN git clone --depth 1 https://github.com/Netflix/vmaf.git . \
     && pip install -r python/requirements.txt \
     && cd libvmaf && meson setup --buildtype=release build \
     && ninja -C build && ninja -C build install
 
-RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
-COPY requirements.uv /app/
-RUN pip install --upgrade pip && pip install -r requirements.uv
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . /app
 

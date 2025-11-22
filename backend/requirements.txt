@@ -9,3 +9,5 @@ django-cors-headers
 django-redis
 
 motion-vector-extractor
+opencv-python
+psycopg2-binary

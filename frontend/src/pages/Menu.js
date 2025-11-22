@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/pages/Menu.css';
 import { useSettings } from "../context/SettingsContext";
@@ -6,26 +6,19 @@ import VideoPlayer from "../components/videoPreview/VideoPlayer";
 import VideoSelect from "../components/videoPreview/VideoSelect";
 import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
-import {DEFAULT_RETRY_TIMEOUT_MS, MAX_RETRIES} from "../utils/constants";
-import {STATUS} from "../utils/enums/status";
 import {useError} from "../context/ErrorContext";
-import {handleApiError} from "../utils/errorHandler";
 import {addVideoIdToCache} from "../utils/videoIdsCache";
+import { useMutation } from '@tanstack/react-query';
+import { genericFetch } from '../api/genericFetch';
+import { defaultRetryPolicy, defaultRefetchIntervalPolicy } from '../utils/retryUtils';
+import Spinner from '../components/Spinner';
 
 function Menu() {
     const navigate = useNavigate();
     const { parameters, setParameters } = useSettings();
-    const [isLoading, setIsLoading] = useState(false);
     const {showError} = useError();
 
-    useEffect(() => {
-        sessionStorage.removeItem('frames');
-        sessionStorage.removeItem('frameMetrics');
-    }, []);
-
-    const handleCompress = async (retries) => {
-        setIsLoading(true);
-
+    const mutationFn = useCallback(async () => {
         let endpoint, requestBody;
 
         if (parameters.mode === "compressedSize") {
@@ -48,57 +41,49 @@ function Menu() {
                 ...(parameters.qualityMode === "bandwidth" && {bandwidth: parameters.bandwidth}),
             };
         }
+        const data = await genericFetch(endpoint, {
+            method: "POST",
+            body: JSON.stringify(requestBody),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        return data;
+    }, [ parameters ]);
 
-        try {
-            const resp = await fetch(endpoint, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(requestBody),
-            });
-
-            if (resp.status === STATUS.HTTP_202_ACCEPTED) {
-                if (retries === 0) {
-                    showError("Failed to acquire compressed video ID. Please try again later!");
-                    return;
-                }
-                await new Promise(resolve => setTimeout(resolve, DEFAULT_RETRY_TIMEOUT_MS))
-                handleCompress(retries - 1);
-                return;
-            } else if (!resp.ok) {
-                const data = await resp.text();
-                throw new Error(`${resp.status}: ${data}`);
-            }
-
-            await handleApiError(resp);
-
-            const data = await resp.json();
-            const videoId = data.videoId;
-            if (!videoId) {
-                showError("Invalid data received. " + data?.message);
-                return;
-            }
-
-            if (data.resultingSize) {
-                setParameters((prev) => ({
-                    ...prev,
-                    resultingSize: data.resultingSize,
-                }));
-            }
-            addVideoIdToCache(parameters.videoId, videoId);
-
-            navigate(`/compress?videoId=${videoId}&originalVideoId=${parameters.videoId}`);
-        } catch (error) {
-            showError(error.message, error.statusCode);
-        } finally {
-            setIsLoading(false);
+    const onSuccess = useCallback((data) => {
+        const videoId = data.videoId;
+        if (!videoId) {
+            showError("Invalid data received. " + data?.message);
+            return;
         }
-    }
+        if (data.resultingSize) {
+            setParameters((prev) => ({
+                ...prev,
+                resultingSize: data.resultingSize,
+            }));
+        }
+        addVideoIdToCache(parameters.videoId, videoId);
+        navigate(`/compress?videoId=${videoId}&originalVideoId=${parameters.videoId}`);
+    }, [ parameters, setParameters, navigate, showError ]);
+
+    const compressionMutation = useMutation({
+        mutationFn,
+        onSuccess,
+        retry: defaultRetryPolicy,
+        refetchInterval: defaultRefetchIntervalPolicy
+    });
+
+    useEffect(() => {
+        sessionStorage.removeItem('frames');
+        sessionStorage.removeItem('frameMetrics');
+    }, []);
 
     return (
         <div className="container">
-            {isLoading && (
+            {compressionMutation.isPending && (
                 <div className="loading-overlay">
-                    <div className="spinner"></div>
+                    <Spinner />
                 </div>
             )}
             <div className="video-section">
@@ -107,7 +92,7 @@ function Menu() {
                 <h2>Video Source</h2>
                 <VideoSelect />
             </div>
-            <OptionsSection handleCompress={() => handleCompress(MAX_RETRIES)} />
+            <OptionsSection handleCompress={() => compressionMutation.mutate()} />
         </div>
     );
 }
