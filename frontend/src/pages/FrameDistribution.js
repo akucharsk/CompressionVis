@@ -8,7 +8,8 @@ import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
 import { useMacroblockHistoryQuery } from '../hooks/macroblock-history-query';
-import { apiUrl } from '../utils/urls';
+import {useComparisonImage} from "../components/comparison/useComparisonImage";
+import {useAdjacentFrames} from "../components/comparison/useAdjacentFrames";
 
 const FramesDistribution = () => {
     const [showGrid, setShowGrid] = useState(false);
