@@ -2,42 +2,59 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
-import { useComparisonImage, useImage } from "./useComparisonImage";
-import { useSettings } from "../../context/SettingsContext";
-import Frame from "../frameDistribution/Frame";
+import { useComparisonImage } from "./useComparisonImage";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
+import {getVideoIdsFromCache} from "../../utils/videoIdsCache";
+import {useVideoPlaying} from "../../context/VideoPlayingContext";
+import {useDisplayMode} from "../../context/DisplayModeContext";
 
 const ImageBlock = ({
                         isConst = true,
-                        selectedIdx = 0,
                         navigation = {},
                         fullscreen = {},
                         videoRef
                     }) => {
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const { imgSrc, compressedIds, fetchImagesForComparison, setImgSrc } = useComparisonImage(isConst, selectedIdx);
-    const { parameters } = useSettings();
+    const { imgSrc, fetchImagesForComparison } = useComparisonImage(isConst);
+
     const [searchParams] = useSearchParams();
-
-    const originalVideoId = parameters.videoId;
+    const originalVideoId =  parseInt(searchParams.get("originalVideoId"));
     const compressedVideoId = parseInt(searchParams.get("videoId"));
-    let isOriginalChosen = !isConst;
+    const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
 
-    const [selectedVideoId, setSelectedVideoId] = useState(originalVideoId);
+    const {isVideoPlaying} = useVideoPlaying();
+    const {setDisplayMode} = useDisplayMode();
 
+    const compressedIds = getVideoIdsFromCache(originalVideoId).filter(id => id !== compressedVideoId);
+    const [isOriginal , setIsOriginal] = useState(true);
 
+    const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
     useEffect(() => {
         setIsFullscreen(fullscreen.is);
     }, [fullscreen.is]);
 
+    useEffect(() => {
+        if (!isVideoPlaying) {
+            fetchImagesForComparison(isOriginal, selectedVideoId);
+            setDisplayMode('frames');
+        }
+    }, [selectedIdx, isOriginal, isVideoPlaying]);
+
     const handleSelectChange = (e) => {
+        console.log("XD", e.target.value)
         const val = parseInt(e.target.value);
-        isOriginalChosen = Number(val) === Number(originalVideoId);
+        setIsOriginal(Number(val) === Number(originalVideoId));
         setSelectedVideoId(val);
-        fetchImagesForComparison(isOriginalChosen, val);
+        fetchImagesForComparison(isOriginal, selectedVideoId);
     };
+
+    useEffect(() => {
+        if (!isVideoPlaying) {
+            fetchImagesForComparison(isOriginal, selectedVideoId);
+        }
+    }, [isVideoPlaying]);
 
     const openFullscreen = () => {
         if (fullscreen.onOpen) fullscreen.onOpen();
@@ -49,14 +66,12 @@ const ImageBlock = ({
         else setIsFullscreen(false);
     };
 
-    // console.log(parameters.videoId, selectedVideoId);
-
     return (
         <div className="image-block">
             <div className="image-block-content">
                 {isConst ? (
                     <>
-                        <div className="static-name">Active param</div>
+                        <div className="static-name">Current compression</div>
                         <ImageVideoBlock 
                             isConst={isConst}
                             videoId={compressedVideoId}
@@ -83,8 +98,9 @@ const ImageBlock = ({
                 )}
 
                 <ImageDetails
-                    isOriginalChosen={isOriginalChosen}
-                    selectedIdx={selectedIdx}
+                    isOriginalChosen={isOriginal}
+                    isConst={isConst}
+                    selectedVideoId={selectedVideoId}
                 />
 
             </div>

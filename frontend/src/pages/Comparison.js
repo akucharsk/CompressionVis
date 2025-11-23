@@ -49,7 +49,7 @@ const Comparison = () => {
             <FrameBox />
             <div className="comparison-container">
                 <ImageBlock
-                    selectedIdx={selectedIdx}
+                    isConst={true}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "left",
@@ -62,7 +62,6 @@ const Comparison = () => {
 
                 <ImageBlock
                     isConst={false}
-                    selectedIdx={selectedIdx}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "right",
