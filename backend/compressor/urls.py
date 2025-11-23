@@ -17,4 +17,5 @@ urlpatterns = [
     path('video/parameters/<int:video_id>/', views.VideoParameters.as_view(), name='video_parameters'),
     path('video/all-compressed-videos/', views.AllCompressed.as_view(), name='all_compressed_video'),
     path('video/delete/<int:video_id>/', views.DeleteVideoView.as_view(), name='delete_video'),
+    path('frame/size/<int:video_id>/<int:frame_number>/', views.FrameSizeView.as_view(), name='frame_size'),
 ]

@@ -30,6 +30,18 @@ function loadPersistentCache() {
 
 loadPersistentCache();
 
+if (typeof window !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            loadPersistentCache();
+        }
+    });
+
+    window.addEventListener('focus', () => {
+        loadPersistentCache();
+    });
+}
+
 function saveToLocalStorage(map) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
     localStorage.setItem(EXPIRY_KEY, (Date.now() + ONE_DAY_MS).toString());
@@ -74,9 +86,18 @@ export const removeVideoIdFromCache = (originalId, compressedId) => {
 };
 
 export const getVideoIdsFromCache = (originalId) => {
-    return queryClient.getQueryData(VIDEO_MAP_KEY)?.[originalId] || [];
+    const cached = queryClient.getQueryData(VIDEO_MAP_KEY);
+    if (!cached || Object.keys(cached).length === 0) {
+        const loaded = loadPersistentCache();
+        return loaded[originalId] || [];
+    }
+    return cached[originalId] || [];
 };
 
 export const getAllVideoIdsMap = () => {
-    return queryClient.getQueryData(VIDEO_MAP_KEY) || {};
+    const cached = queryClient.getQueryData(VIDEO_MAP_KEY);
+    if (!cached || Object.keys(cached).length === 0) {
+        return loadPersistentCache();
+    }
+    return cached;
 };

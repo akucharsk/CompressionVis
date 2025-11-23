@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import { useFrames } from "../context/FramesContext";
 import SidePanel from "../components/frameDistribution/SidePanel";
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
@@ -26,6 +26,8 @@ const FramesDistribution = () => {
     const { frames, framesQuery, selectedIdx } = useFrames();
     const macroblockHistoryQuery = useMacroblockHistoryQuery(selectedBlock);
     const [ params ] = useSearchParams();
+    const { imgSrc, fetchImagesForComparison } = useComparisonImage();
+    const { prevUrl, nextUrl } = useAdjacentFrames(selectedIdx, selectedBlock, frames)
 
     const videoRef = useRef(null);
 
@@ -42,8 +44,12 @@ const FramesDistribution = () => {
         }
     }, [macroblockHistoryQuery.data]);
 
+    useEffect(() => {
+        fetchImagesForComparison(false)
+    }, []);
+
     const videoId = parseInt(params.get("videoId"));
-    const imgSrc = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
+
 
     if (framesQuery.isPending) {
         return (

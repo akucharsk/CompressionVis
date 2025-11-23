@@ -125,8 +125,8 @@ class BaseCompressionView(APIView):
             file_size = os.path.getsize(output_path)
             video.is_compressed = True
             video.size = file_size
-            video.width = original_video.width
-            video.height = original_video.height
+            video.width = video.width
+            video.height = video.height
             video.save()
             return True
         except FileNotFoundError:
@@ -543,7 +543,6 @@ class VideoParameters(APIView):
             "aq_mode": video.aq_mode,
             "aq_strength": float(video.aq_strength) if video.aq_strength is not None else None,
             "preset": video.preset,
-            "name": video.title,
             "size": video.size,
         }
 
@@ -571,3 +570,18 @@ class DeleteVideoView(APIView):
         shutil.rmtree(frames_path)
         models.Video.objects.filter(id=video_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class FrameSizeView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            frame = models.FrameMetadata.objects.get(
+                video__id=video_id,
+                frame_number=frame_number
+            )
+        except models.FrameMetadata.DoesNotExist:
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if frame.pkt_size is None:
+            return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
