@@ -80,10 +80,10 @@ const ImageBlock = ({
                     </>
                 )}
 
-                <ImageDetails
+                {<ImageDetails
                     isOriginalChosen={isOriginalChosen}
                     selectedIdx={selectedIdx}
-                />
+                />}
 
             </div>
 

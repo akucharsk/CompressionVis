@@ -5,6 +5,7 @@ import {apiUrl} from "../utils/urls";
 import { defaultRefetchIntervalPolicy, defaultRetryPolicy } from "../utils/retryUtils";
 import {createContext, useContext, useEffect} from "react";
 import {useError} from "./ErrorContext";
+import {useDisplayMode} from "./DisplayModeContext";
 
 const MacroblocksContext = createContext(null);
 
@@ -13,13 +14,14 @@ export const MacroblocksProvider = ({ children }) => {
     const videoId = searchParams.get("videoId");
     const frameNumber = parseInt(searchParams.get("frameNumber")) || 0;
     const { showError } = useError();
+    const { displayMode } = useDisplayMode();
 
     const frameMacroBlocksQuery = useQuery({
         queryKey: ["macroblocks", videoId, frameNumber],
         queryFn: async () => await genericFetch(`${apiUrl}/macroblocks/${videoId}/${frameNumber}`),
         refetchInterval: defaultRefetchIntervalPolicy,
         retry: defaultRetryPolicy,
-        enabled: !!videoId
+        enabled: !!videoId && displayMode === "frames"
     });
 
     useEffect(() => {

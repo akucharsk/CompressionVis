@@ -22,25 +22,21 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
         if (!video) return;
 
         if (isVideoPlaying) {
-            video.playbackRate = fps / 30;
-            video.currentTime = frames[selectedIdx].pts_time;
             video.play().catch(() => {});
         }
         else {
             video.pause();
         }
 
-    }, [isVideoPlaying, videoRef, fps, frames, selectedIdx])
+    }, [isVideoPlaying, videoRef, fps, frames])
 
     useEffect(() => {
         const video = videoRef.current;
-        if (!video)
+        if (!video || displayMode === "frames" || !isVideoPlaying) {
             return;
-        if (!isVideoPlaying) {
-            video.currentTime=frames[selectedIdx].pts_time;
         }
-    
-    }, [selectedIdx, videoRef, isVideoPlaying, frames])
+        video.currentTime = frames[selectedIdx].pts_time;
+    }, [videoRef, frames, displayMode, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
