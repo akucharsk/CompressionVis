@@ -11,7 +11,6 @@ import os
 import sys
 import subprocess
 import shutil
-import sys
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from . import models
 from . import serializers
@@ -101,6 +100,9 @@ class BaseCompressionView(APIView):
         resp = {
             "compressed_filename": filename,
             "is_compressed": video.is_compressed,
+            "frames_extraction_in_progress": video.frames_extraction_in_progress,
+            "macroblocks_extraction_in_progress": video.macroblocks_extraction_in_progress,
+            "metrics": models.VideoMetrics.objects.get(video=video).vmaf_mean,
             "video_id": video.id
         }
 
@@ -322,12 +324,16 @@ class CompressionFramesView(APIView):
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        frames = models.FrameMetadata.objects.filter(video__id=video_id)
+        frames = models.FrameMetadata.objects.filter(video=video)
         video_name = os.path.splitext(video.filename)[0]
         extracted_count = len(os.listdir(finders.find(os.path.join("frames", video_name))))
         if not frames.exists() or extracted_count == 0:
             if video.frames_extraction_in_progress:
                 return Response({ "message": "processing" }, status=status.HTTP_202_ACCEPTED)
+            print("FRAMES EXTRACTOR ENCOUNTERED AN ERROR", extracted_count, frames.exists())
+            print(os.listdir(finders.find(os.path.join("frames", video_name))), os.path.exists(finders.find(os.path.join("frames", video_name))))
+            print(frames.exists())
+            
             return Response({"message": "Frames extractor encountered an error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         info = serializers.FrameSerializer(instance=frames, many=True).data

@@ -19,15 +19,16 @@ class FramesExtractor:
         self.video_path = finders.find(os.path.join("compressed_videos", video.filename))
 
     def _get_frames_info(self):
-        result = subprocess.run([
+        process = subprocess.Popen([
             "ffprobe",
             "-show_frames",
             "-select_streams", "v",
             "-print_format", "json",
             self.video_path
-        ], capture_output=True, text=True)
+        ], stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        result, _ = process.communicate()
 
-        data = json.loads(result.stdout)
+        data = json.loads(result)
 
         frames = []
         i = 0
@@ -55,7 +56,6 @@ class FramesExtractor:
 
     def _extract_and_update_status(self):
         try:
-            self._get_frames_info()
             os.makedirs(self.frames_dir, exist_ok=True)
             process = subprocess.Popen([
                 "ffmpeg", "-i", self.video_path,
@@ -65,11 +65,11 @@ class FramesExtractor:
             process.wait()
 
             self.video.frames_extraction_completed = True
-        except Exception as e:
-            print(f"Error during frame extraction: {e}")
-        finally:
-            print("Extraction completed")
             sys.stdout.flush()
+        except Exception as e:
+            print(f"ERROR DURING FRAMES EXTRACTION: {e}")
+            sys.stdout.flush()
+        finally:
             self.video.frames_extraction_in_progress = False
             self.video.save()
             print(models.Video.objects.get(id=self.video.id).frames_extraction_in_progress)
@@ -78,5 +78,6 @@ class FramesExtractor:
     def start_extraction_job(self):
         self.video.frames_extraction_in_progress = True
         self.video.save()
+        self._get_frames_info()
         thread = threading.Thread(target=self._extract_and_update_status, daemon=True)
         thread.start()
