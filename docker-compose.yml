@@ -1,4 +1,15 @@
 services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=compression_vis
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
 
   backend:
     platform: linux/amd64
@@ -12,10 +23,18 @@ services:
              python manage.py migrate &&
              python manage.py shell < /app/startup.py &&
              python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=compression_vis
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
     env_file:
       - .env
     ports:
       - "8000:8000"
+    depends_on:
+      - db
     
   frontend:
     build:
@@ -26,6 +45,6 @@ services:
       - /app/node_modules
     ports:
       - "3000:3000"
-
-  
-  
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000

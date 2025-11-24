@@ -1,4 +1,4 @@
-const Macroblock = ({ name, url, width, height }) => {
+const Macroblock = ({ name, src, width, height }) => {
     const maxSize = 120;
     const aspectRatio = width && height ? width / height : 1;
 
@@ -14,9 +14,9 @@ const Macroblock = ({ name, url, width, height }) => {
 
     return (
         <div className="macroblock">
-            {url ? (
+            {src ? (
                 <img
-                    src={url}
+                    src={src}
                     alt={`${name || ""} macroblock`}
                     style={{
                         width: `${displayWidth}px`,

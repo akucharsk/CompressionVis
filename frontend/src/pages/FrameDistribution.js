@@ -7,8 +7,9 @@ import './../styles/pages/FrameDistribution.css';
 import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
-import { useComparisonImage } from '../components/comparison/useComparisonImage';
-import {useAdjacentFrames} from "../components/comparison/useAdjacentFrames";
+import { useMacroblockHistoryQuery } from '../hooks/macroblock-history-query';
+import { useEffect } from 'react';
+import { apiUrl } from '../utils/urls';
 
 const FramesDistribution = () => {
     const [showGrid, setShowGrid] = useState(false);
@@ -21,10 +22,10 @@ const FramesDistribution = () => {
         skip: true,
         direct: true
     });
+    const [history, setHistory] = useState(null);
     const { frames, framesQuery, selectedIdx } = useFrames();
+    const macroblockHistoryQuery = useMacroblockHistoryQuery(selectedBlock);
     const [ params ] = useSearchParams();
-    const { imgSrc } = useComparisonImage(true, selectedIdx);
-    const { prevUrl, nextUrl } = useAdjacentFrames(selectedIdx, selectedBlock, frames)
 
     const videoRef = useRef(null);
 
@@ -35,8 +36,14 @@ const FramesDistribution = () => {
         }));
     };
 
-    const videoId = parseInt(params.get("videoId"));
+    useEffect(() => {
+        if (macroblockHistoryQuery.data) {
+            setHistory(macroblockHistoryQuery.data);
+        }
+    }, [macroblockHistoryQuery.data]);
 
+    const videoId = parseInt(params.get("videoId"));
+    const imgSrc = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
 
     if (framesQuery.isPending) {
         return (
@@ -67,9 +74,7 @@ const FramesDistribution = () => {
                     <MacroblockHistory
                         selectedBlock={selectedBlock}
                         setSelectedBlock={setSelectedBlock}
-                        frameImageUrl={imgSrc}
-                        prevFrameImageUrl={prevUrl}
-                        nextFrameImageUrl={nextUrl}
+                        history={history}
                     />
                 </div>
                 <SidePanel

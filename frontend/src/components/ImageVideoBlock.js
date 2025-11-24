@@ -1,66 +1,63 @@
-// Ist WAY
-
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect } from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
-import { useSearchParams } from "react-router-dom";
-import { useError } from "../context/ErrorContext";
 import { apiUrl } from "../utils/urls";
 import { useFrames } from "../context/FramesContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 import { useFps } from "../context/FpsContext";
 import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
-import { fetchImage } from "../api/fetchImage";
-import { MAX_RETRIES } from "../utils/constants";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
-    const { displayMode, setDisplayMode } = useDisplayMode();
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGrid, showVectors, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks }) => {
+    const { displayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
-    // const [ params ] = useSearchParams();
     const { isVideoPlaying } = useVideoPlaying();
     const { fps } = useFps();
 
     const videoUrl = `${apiUrl}/video/${videoId}`;
 
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || displayMode === "frames" || !isVideoPlaying) {
+            return;
+        }
+        video.play().catch(() => {});
+    }, [fps, videoRef, frames, selectedIdx, displayMode, isVideoPlaying]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || displayMode === "frames" || !isVideoPlaying) {
+            return;
+        }
+        video.currentTime = frames[selectedIdx].pts_time;
+    }, [videoRef, frames, displayMode, isVideoPlaying]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || displayMode === "video" || isVideoPlaying) return;
+        console.log("Setting current time");
+        video.currentTime = frames[selectedIdx].pts_time;
+    }, [selectedIdx, videoRef, frames, displayMode, isVideoPlaying]);
 
     useEffect(() => {
         const video = videoRef.current;
         
-        if (!video) return;
+        if (!video || displayMode === "video" || isVideoPlaying) return;
+        video.pause();
+        const currentTime = video.currentTime;
+        let closestIdx = 0;
 
-        if (isVideoPlaying) {
-            video.playbackRate = fps / 30;
-            video.currentTime = frames[selectedIdx].pts_time;
-            video.play().catch(() => {});
-        }
-        else {
-            video.pause();
-            const currentTime = video.currentTime;
-            let closestIdx = 0;
-
-            for (let i = 0; i < frames.length; i++) {
-                const nextTime = frames[i + 1]?.pts_time ?? Infinity;
-                if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
-                    closestIdx = i;
-                    break;
-                }
+        for (let i = 0; i < frames.length; i++) {
+            const nextTime = frames[i + 1]?.pts_time ?? Infinity;
+            if (currentTime >= frames[i].pts_time && currentTime < nextTime) {
+                closestIdx = i;
+                break;
             }
-
-            setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
         }
 
-    }, [isVideoPlaying, videoRef.current])
+        setSelectedIdx(prev => (prev !== closestIdx ? closestIdx : prev));
 
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video)
-            return;
-        if (!isVideoPlaying) {
-            video.currentTime=frames[selectedIdx].pts_time;
-        }
-    
-    }, [selectedIdx, videoRef.current, isVideoPlaying, frames])
+    }, [isVideoPlaying, videoRef, fps, frames, setSelectedIdx, displayMode]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -68,11 +65,11 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
         if (!video) return;
         video.playbackRate = fps / 30;
 
-    }, [fps, videoRef.current])
+    }, [fps, videoRef])
 
     useEffect(() => {
         const video = videoRef.current;
-        if (!video || !frames.length) return;
+        if (!video || !frames.length || !isVideoPlaying || displayMode === "frmaes") return;
 
         const handleTimeUpdate = () => {
             const currentTime = video.currentTime;
@@ -89,8 +86,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
 
         video.addEventListener("timeupdate", handleTimeUpdate);
         return () => video.removeEventListener("timeupdate", handleTimeUpdate);
-    }, [frames, isVideoPlaying, videoRef.current]);
-
+    }, [frames, isVideoPlaying, videoRef, setSelectedIdx, displayMode]);
 
     if (framesQuery.isPending) {
         return (
@@ -100,15 +96,10 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
         );
     }
 
-
-
-    // console.log(videoId);
-
     return (
         <>
             {displayMode === "frames" ? (
                 <Frame
-                    imageUrl={imgSrc}
                     fullscreenHandler={fullscreenHandler}
                     showGrid={showGrid}
                     showVectors={showVectors}
@@ -119,7 +110,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc
                     setPrevImageUrl={setPrevImageUrl}
                     mode={mode}
                     macroblocks={macroblocks}
-
+                    videoId={videoId}
                 />
             ) : displayMode === "video" ? (
                 <Video 

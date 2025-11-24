@@ -23,26 +23,26 @@ function Layout() {
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-              <FpsProvider>
-                <FramesProvider>
+            <FpsProvider>  
+              <FramesProvider>
                 <MetricsProvider>
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
                       <MacroblocksProvider>
-                  {!hideNavbar && <NavigationTabs />}
-                    <Routes>
-                      <Route path="*" element={<Navigate to="/" />} />
-                      <Route path="/" element={<Menu />} />
-                      <Route path="/compress" element={<FramesDistribution />} />
-                      <Route path="/comparison" element={<Comparison />} />
-                      <Route path="/quiz" element={<Quiz />} />
-                    </Routes>
-                </MacroblocksProvider>
+                        {!hideNavbar && <NavigationTabs />}
+                          <Routes>
+                            <Route path="*" element={<Navigate to="/" />} />
+                            <Route path="/" element={<Menu />} />
+                            <Route path="/compress" element={<FramesDistribution />} />
+                            <Route path="/comparison" element={<Comparison />} />
+                            <Route path="/quiz" element={<Quiz />} />
+                          </Routes>
+                      </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
-                  </MetricsProvider>
-                </FramesProvider>
-              </FpsProvider>
+                </MetricsProvider>
+              </FramesProvider>
+            </FpsProvider>
           </SettingsProvider>
         </QueryClientProvider>
       </ErrorProvider>

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import IntegrityError
 
 import os
+import sys
 import subprocess
 import shutil
 import sys
@@ -189,7 +190,7 @@ class CompressionView(BaseCompressionView):
 
         video, created = self.get_or_create_video(serializer)
 
-        if not created and video.is_compressed:
+        if not created:
             return self.prepare_response(video, output_filename)
 
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
@@ -264,7 +265,7 @@ class SizeCompressionView(BaseCompressionView):
                 {"message": "Couldn't determine video duration"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
         serializer = serializers.SizeCompressionSerializer(
             data=data,
             context={ "original_video": original_video, "duration": duration }
@@ -321,19 +322,16 @@ class CompressionFramesView(APIView):
         if not video_file:
             return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if video.frames_extraction_in_progress:
-            return Response(
-                {"message": "processing"},
-                status=status.HTTP_202_ACCEPTED
-            )
-
         frames = models.FrameMetadata.objects.filter(video__id=video_id)
-        if not frames.exists():
+        video_name = os.path.splitext(video.filename)[0]
+        extracted_count = len(os.listdir(finders.find(os.path.join("frames", video_name))))
+        if not frames.exists() or extracted_count == 0:
+            if video.frames_extraction_in_progress:
+                return Response({ "message": "processing" }, status=status.HTTP_202_ACCEPTED)
             return Response({"message": "Frames extractor encountered an error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         info = serializers.FrameSerializer(instance=frames, many=True).data
-
-        return Response({"frames": info}, status=status.HTTP_200_OK)
+        return Response({ "frames": info[:extracted_count], "total": len(info) }, status=status.HTTP_200_OK)
 
 class ExampleVideosView(APIView):
     def get(self, request):
@@ -374,8 +372,8 @@ class ThumbnailView(APIView):
             return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(file_path, 'rb'), content_type="image/png", status=status.HTTP_200_OK)
-
-class FrameView(APIView):
+    
+class FrameStatusView(APIView):
     def get(self, request, video_id, frame_number):
         original = request.GET.get("original")
         try:
@@ -395,13 +393,11 @@ class FrameView(APIView):
         else:
             dirname = video.filename.split(".")[0]
 
-        # print(dirname)
-
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:
             if video.frames_extraction_in_progress:
                 return Response(
-                    {"message": "Frame is being processed"},
+                    {"message": "processing"},
                     status=status.HTTP_202_ACCEPTED
                 )
 
@@ -415,7 +411,35 @@ class FrameView(APIView):
                 {"message": "processing"},
                 status=status.HTTP_202_ACCEPTED
             )
+        return Response({ "url": f"frames/{video_id}/{frame_number}" }, status=status.HTTP_200_OK)
 
+class FrameView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        dirname = video.filename.split(".")[0]
+
+        frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
+        if not frame:
+            if video.frames_extraction_in_progress:
+                return Response(
+                    {"message": "processing"},
+                    status=status.HTTP_202_ACCEPTED
+                )
+
+            if video.frames_extraction_completed:
+                return Response(
+                    {"message": "Frame not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            return Response(
+                {"message": "processing"},
+                status=status.HTTP_202_ACCEPTED
+            )
         return FileResponse(
             open(frame, 'rb'),
             content_type="image/png",
