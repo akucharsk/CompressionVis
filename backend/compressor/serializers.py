@@ -1,9 +1,10 @@
-
 from rest_framework import serializers
 from . import models
 
 import os
 import sys
+
+
 class VideoSerializer(serializers.Serializer):
     range_header = serializers.CharField()
     video_url = serializers.CharField()
@@ -26,6 +27,7 @@ class VideoSerializer(serializers.Serializer):
             raise serializers.ValidationError('Start of range is too high')
         content_length = end - start + 1
         chunk_size = 4096
+
         def video_iterator():
             nonlocal start
             with open(video_url, 'rb') as f:
@@ -105,12 +107,18 @@ class CompressSerializer(serializers.Serializer):
         validated_data['width'] = int(validated_data['width'])
         validated_data['height'] = int(validated_data['height'])
         validated_data["original_id"] = self.context["original_video"].id
+        validated_data["title"] = self.context["original_video"].title
+
+        if validated_data.get('aq_mode') == 0:
+            validated_data['aq_strength'] = None
 
         video = models.Video.objects.create(**validated_data)
         return video
-    
+
+
 class SizeCompressionSerializer(serializers.Serializer):
     target_size = serializers.FloatField()
+
     def validate(self, attrs):
         target_size = attrs.get("target_size", -1)
         duration = self.context.get("duration")
@@ -138,6 +146,7 @@ class SizeCompressionSerializer(serializers.Serializer):
     def create(self, validated_data):
         data = validated_data.copy()
         data.pop("target_size")
+        data["title"] = self.context["original_video"].title
         video = models.Video.objects.create(**data)
         return video
 

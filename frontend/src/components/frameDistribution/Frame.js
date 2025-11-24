@@ -8,7 +8,6 @@ import { useSearchParams } from "react-router-dom";
 
 const Frame = ({
                    showGrid,
-                   showVectors,
                    visibleCategories,
                    selectedBlock,
                    setSelectedBlock,
@@ -16,7 +15,9 @@ const Frame = ({
                    macroblocks,
                    fullscreenHandler,
                    videoId,
-                   vectorsMode
+                   vectorsMode,
+                   showPast,
+                   showFuture
                }) => {
     const [ params ] = useSearchParams();
     if(!videoId) {
@@ -84,7 +85,9 @@ const Frame = ({
             ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
 
-        if (showVectors && blocks.length > 0) {
+        const isAnyVectorActive = showPast || showFuture;
+
+        if (isAnyVectorActive && blocks.length > 0) {
             blocks.forEach(block => {
                 if (block.src_x == null || block.src_y == null) return;
 
@@ -132,10 +135,10 @@ const Frame = ({
                 const tryDrawVector = (source, x, y) => {
                     if (source == null) return;
 
-                    const showPrev = source < 0 && (vectorsMode === "previous" || vectorsMode === "both");
-                    const showNext = source > 0 && (vectorsMode === "next" || vectorsMode === "both");
+                    const isPrev = source < 0;
+                    const isNext = source > 0;
 
-                    if (showPrev || showNext) {
+                    if ((isPrev && showPast) || (isNext && showFuture)) {
                         drawVector(x, y);
                     }
                 };
@@ -145,7 +148,7 @@ const Frame = ({
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [frameMacroBlocksQuery.data?.blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode, vectorsMode]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;

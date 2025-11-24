@@ -8,16 +8,16 @@ const SidePanel = ({
                        frames,
                        selectedIdx,
                        setShowGrid,
-                       setShowVectors,
                        showGrid,
-                       showVectors,
                        toggleCategory,
                        visibleCategories,
                        selectedBlock,
                        mode,
                        setMode,
-                       vectorsMode,
-                       setVectorsMode
+                       showPast,
+                       setShowPast,
+                       showFuture,
+                       setShowFuture
                    }) => {
     return (
         <div className="right-section">
@@ -34,15 +34,15 @@ const SidePanel = ({
             </div>
             <MacroblockControl
                 setShowGrid={setShowGrid}
-                setShowVectors={setShowVectors}
                 showGrid={showGrid}
-                showVectors={showVectors}
                 toggleCategory={toggleCategory}
                 visibleCategories={visibleCategories}
                 mode={mode}
                 setMode={setMode}
-                vectorsMode={vectorsMode}
-                setVectorsMode={setVectorsMode}
+                showPast={showPast}
+                setShowPast={setShowPast}
+                showFuture={showFuture}
+                setShowFuture={setShowFuture}
             />
             <MacroblockInfo selectedBlock={selectedBlock} frames={frames} currentFrameIdx={selectedIdx}/>
         </div>
