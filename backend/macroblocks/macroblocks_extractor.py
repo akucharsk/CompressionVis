@@ -269,5 +269,4 @@ class MacroblocksExtractor:
     def start_extraction_job(self):
         self.video.macroblocks_extraction_in_progress = True
         self.video.save()
-        thread = threading.Thread(target=self._extract_macroblocks)
-        thread.start()
+        self._extract_macroblocks()

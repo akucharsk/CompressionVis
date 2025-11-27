@@ -21,9 +21,8 @@ class MetricsExtractor:
             original_video_name = os.path.splitext(original.filename)[0]
             distorted_path = os.path.join("static", "compressed_videos", self.video.filename)
             original_path = os.path.join("static", "original_videos", f"{original_video_name}.y4m")
-            ffqm = FfmpegQualityMetrics(distorted_path, original_path, threads=os.cpu_count(), verbose=True, progress=True)
+            ffqm = FfmpegQualityMetrics(distorted_path, original_path, threads=8, verbose=True, progress=True)
             metrics = ffqm.calculate(["vmaf", "ssim", "psnr"])
-            sys.stdout.flush()
             vmaf = {value["n"]: value["vmaf"] for value in metrics["vmaf"]}
             ssim = {value["n"]: value["ssim_avg"] for value in metrics["ssim"]}
             psnr = {value["n"]: value["psnr_avg"] for value in metrics["psnr"]}
@@ -52,5 +51,4 @@ class MetricsExtractor:
         except IntegrityError:
             sys.stdout.flush()
             return
-        thread = threading.Thread(target=self._extract_metrics_and_save, daemon=True)
-        thread.start()
+        self._extract_metrics_and_save()

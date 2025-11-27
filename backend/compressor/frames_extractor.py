@@ -79,5 +79,4 @@ class FramesExtractor:
         self.video.frames_extraction_in_progress = True
         self.video.save()
         self._get_frames_info()
-        thread = threading.Thread(target=self._extract_and_update_status, daemon=True)
-        thread.start()
+        self._extract_and_update_status()

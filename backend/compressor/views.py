@@ -14,10 +14,14 @@ import shutil
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from . import models
 from . import serializers
+from . import tasks
 from .frames_extractor import FramesExtractor
+
+from macroblocks import tasks as macroblocks_tasks
 
 from utils.camel import camelize, decamelize
 from .metrics_extractor import MetricsExtractor
+from celery import group, chain
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -232,8 +236,24 @@ class CompressionView(BaseCompressionView):
             "-aq-strength", str(validated_data['aq_strength']),
             output
         ]
+        
+        compression_input = {
+            "ffmpeg_command": ffmpeg_command,
+            "video_id": video.id,
+            "output_path": output,
+            "output_filename": output_filename,
+        }
+        
+        chain(
+            tasks.compress_video.si(compression_input).set(queue="video"),
+            group(
+                tasks.extract_frames.si(video.id).set(queue="frames"),
+                tasks.extract_metrics.si(video.id).set(queue="metrics"),
+                macroblocks_tasks.extract_macroblocks.si(video.id).set(queue="macroblocks")
+            )
+        ).apply_async()
 
-        return self.execute_compression(ffmpeg_command, video, output, output_filename, original_video)
+        return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
     
 class SizeCompressionView(BaseCompressionView):
     def post(self, request):
@@ -317,13 +337,6 @@ class CompressionFramesView(APIView):
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        video_file = finders.find(os.path.join("compressed_videos", video.filename))
-        if not video_file:
-            video_file = finders.find(os.path.join("videos", video.filename))
-
-        if not video_file:
-            return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
-
         frames = models.FrameMetadata.objects.filter(video=video)
         video_name = os.path.splitext(video.filename)[0]
         extracted_count = len(os.listdir(finders.find(os.path.join("frames", video_name))))
@@ -334,7 +347,7 @@ class CompressionFramesView(APIView):
             print(os.listdir(finders.find(os.path.join("frames", video_name))), os.path.exists(finders.find(os.path.join("frames", video_name))))
             print(frames.exists())
             
-            return Response({"message": "Frames extractor encountered an error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
         info = serializers.FrameSerializer(instance=frames, many=True).data
         return Response({ "frames": info[:extracted_count], "total": len(info) }, status=status.HTTP_200_OK)
