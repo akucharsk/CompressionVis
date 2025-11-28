@@ -8,6 +8,11 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -20,6 +25,12 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   
   backend:
     platform: linux/amd64
@@ -45,8 +56,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - rabbitmq
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   celery_worker:
     platform: linux/amd64
@@ -55,7 +68,8 @@ services:
       dockerfile: celery.Dockerfile
     image: celery_worker
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     profiles:
       - build-only
   
