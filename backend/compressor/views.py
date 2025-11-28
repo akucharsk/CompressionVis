@@ -244,11 +244,20 @@ class CompressionView(BaseCompressionView):
             "output_filename": output_filename,
         }
         
+        video.frames_extraction_in_progress = True
+        video.macroblocks_extraction_in_progress = True
+        video.save()
+        
+        try:
+            metrics = models.VideoMetrics.objects.create(video=video)
+        except IntegrityError:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        
         chain(
             tasks.compress_video.si(compression_input).set(queue="video"),
             group(
                 tasks.extract_frames.si(video.id).set(queue="frames"),
-                tasks.extract_metrics.si(video.id).set(queue="metrics"),
+                tasks.extract_metrics.si(video.id, metrics.id).set(queue="metrics"),
                 macroblocks_tasks.extract_macroblocks.si(video.id).set(queue="macroblocks")
             )
         ).apply_async()
@@ -339,18 +348,20 @@ class CompressionFramesView(APIView):
 
         frames = models.FrameMetadata.objects.filter(video=video)
         video_name = os.path.splitext(video.filename)[0]
-        extracted_count = len(os.listdir(finders.find(os.path.join("frames", video_name))))
+        frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
+        os.makedirs(frames_dir, exist_ok=True)
+        extracted_count = len(os.listdir(frames_dir))
         if not frames.exists() or extracted_count == 0:
             if video.frames_extraction_in_progress:
                 return Response({ "message": "processing" }, status=status.HTTP_202_ACCEPTED)
             print("FRAMES EXTRACTOR ENCOUNTERED AN ERROR", extracted_count, frames.exists())
             print(os.listdir(finders.find(os.path.join("frames", video_name))), os.path.exists(finders.find(os.path.join("frames", video_name))))
             print(frames.exists())
-            
-            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"message": "Frames extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         info = serializers.FrameSerializer(instance=frames, many=True).data
-        return Response({ "frames": info[:extracted_count], "total": len(info) }, status=status.HTTP_200_OK)
+        result = list(sorted(info[:extracted_count], key=lambda x: x["frame_number"]))
+        return Response({ "frames": result, "total": len(info) }, status=status.HTTP_200_OK)
 
 class ExampleVideosView(APIView):
     def get(self, request):
@@ -490,7 +501,7 @@ class MetricView(APIView):
         try:
             metrics = models.VideoMetrics.objects.get(video=video)
         except models.VideoMetrics.DoesNotExist:
-            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "Metrics extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         wrapped_metrics = self.wrap_metrics(metrics)
         if wrapped_metrics:
@@ -519,7 +530,7 @@ class AllFramesMetricsView(APIView):
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
         except models.VideoMetrics.DoesNotExist:
-            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
         if not MetricView.wrap_metrics(metrics):
             return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)

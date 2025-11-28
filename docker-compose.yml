@@ -63,7 +63,7 @@ services:
     image: celery_worker
     platform: linux/amd64
     command: >
-      celery -A compression_vis worker -l info -Q video
+      celery -A compression_vis worker -l info -Q video --concurrency=2
     env_file:
       - .env
     volumes:
@@ -73,7 +73,7 @@ services:
     image: celery_worker
     platform: linux/amd64
     command: >
-      celery -A compression_vis worker -l info -Q frames
+      celery -A compression_vis worker -l info -Q frames --concurrency=2
     env_file:
       - .env
     volumes:
@@ -83,7 +83,7 @@ services:
     image: celery_worker
     platform: linux/amd64
     command: >
-      celery -A compression_vis worker -l info -Q metrics
+      celery -A compression_vis worker -l info -Q metrics --concurrency=2
     env_file:
       - .env
     volumes:
@@ -93,11 +93,12 @@ services:
     image: celery_worker
     platform: linux/amd64
     command: >
-      celery -A compression_vis worker -l info -Q macroblocks
+      celery -A compression_vis worker -l info -Q macroblocks --concurrency=2
     env_file:
       - .env
     volumes:
       - ./backend:/app
+
   frontend:
     build:
       context: ./frontend

@@ -57,7 +57,7 @@ async function compressVideo(id, isHeavy = false, isIntegrityTest = false) {
 }
 
 async function main() {
-  const CONCURRENT_VIDEO_COUNT = 30;
+  const CONCURRENT_VIDEO_COUNT = parseInt(process.argv[2]) || 30;
   const { result, error } = await asyncTryCatch(() => fetch(`${BASE_URL}/video/example/`));
   if (error) {
     logger.error(`Error getting video ids`, { error });

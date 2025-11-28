@@ -1,19 +1,14 @@
 import os
-import subprocess
-import json
 import sys
-import threading
-from django.db import IntegrityError
 from ffmpeg_quality_metrics import FfmpegQualityMetrics
 
 
-from utils.psnr import weighted_psnr_420
 from . import models
 
 class MetricsExtractor:
-    def __init__(self, video):
+    def __init__(self, video: models.Video, metrics: models.VideoMetrics):
         self.video = video
-        self.metrics: models.VideoMetrics | None = None
+        self.metrics = metrics
 
     def _extract_metrics_and_save(self):
         try:
@@ -46,9 +41,4 @@ class MetricsExtractor:
             sys.stdout.flush()
 
     def start_extraction_job(self):
-        try:
-            self.metrics = models.VideoMetrics.objects.create(video=self.video)
-        except IntegrityError:
-            sys.stdout.flush()
-            return
         self._extract_metrics_and_save()

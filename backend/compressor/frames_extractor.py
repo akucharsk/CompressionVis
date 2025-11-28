@@ -76,7 +76,5 @@ class FramesExtractor:
             sys.stdout.flush()
 
     def start_extraction_job(self):
-        self.video.frames_extraction_in_progress = True
-        self.video.save()
         self._get_frames_info()
         self._extract_and_update_status()

@@ -48,8 +48,9 @@ def extract_frames(video_id):
   return True
 
 @shared_task
-def extract_metrics(video_id):
+def extract_metrics(video_id, metrics_id):
   video = models.Video.objects.get(id=video_id)
-  extractor = MetricsExtractor(video)
+  metrics = models.VideoMetrics.objects.get(id=metrics_id)
+  extractor = MetricsExtractor(video, metrics)
   extractor.start_extraction_job()
   return True
