@@ -8,7 +8,7 @@ import { useCallback } from "react";
 export function useMacroblockHistoryQuery(selectedBlock) {
   const [ params ] = useSearchParams();
   const videoId = params.get("videoId");
-  const frameNumber = parseInt(params.get("frameNumber"));
+    const frameNumber = parseInt(params.get("frameNumber") ?? "0");
   const x = selectedBlock?.x;
   const y = selectedBlock?.y;
 
@@ -24,7 +24,7 @@ export function useMacroblockHistoryQuery(selectedBlock) {
       queryFn,
       retry: defaultRetryPolicy,
       refetchInterval: defaultRefetchIntervalPolicy,
-      enabled: !!videoId && !!frameNumber && !!x && !!y
+      enabled: !!videoId && !isNaN(frameNumber) && x != null && y != null
   });
   macroblockHistoryQuery.isPending = macroblockHistoryQuery.isPending || macroblockHistoryQuery.data?.message === "processing";
   return macroblockHistoryQuery;

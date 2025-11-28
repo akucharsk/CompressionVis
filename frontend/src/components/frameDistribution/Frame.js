@@ -15,7 +15,6 @@ const Frame = ({
                    macroblocks,
                    fullscreenHandler,
                    videoId,
-                   vectorsMode,
                    showPast,
                    showFuture
                }) => {

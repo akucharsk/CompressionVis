@@ -125,8 +125,6 @@ class BaseCompressionView(APIView):
             file_size = os.path.getsize(output_path)
             video.is_compressed = True
             video.size = file_size
-            video.width = original_video.width
-            video.height = original_video.height
             video.save()
             return True
         except FileNotFoundError:

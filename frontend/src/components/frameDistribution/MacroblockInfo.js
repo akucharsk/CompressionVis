@@ -58,9 +58,14 @@ const MacroblockInfo = ({ selectedBlock, frames, currentFrameIdx }) => {
             <p><strong>Size:</strong> {displayBlock?.width}x{displayBlock?.height}</p>
             <p><strong>Ffmpeg debug type:</strong> {displayBlock?.ftype}</p>
 
-            <p><strong>Reference frame:</strong> #{getRefFrameNumber(displayBlock?.source)}</p>
-            <p><strong>Vector:</strong> ({displayBlock?.x - displayBlock?.src_x}, {displayBlock?.y - displayBlock?.src_y})</p>
-
+            <p>
+                <strong>{displayBlock?.more === true ? "Reference frame 1" : "Reference frame"}: </strong>
+                #{getRefFrameNumber(displayBlock?.source)}
+            </p>
+            <p>
+                <strong>{displayBlock?.more === true ? "Vector 1" : "Vector"}: </strong>
+                ({displayBlock?.x - displayBlock?.src_x}, {displayBlock?.y - displayBlock?.src_y})
+            </p>
             <div className={`more-info ${displayBlock?.more === true ? "visible" : ""}`}>
                 <p><strong>Reference frame 2:</strong> #{getRefFrameNumber(moreBlock?.source2)}</p>
                 <p><strong>Vector 2:</strong> ({displayBlock?.x - moreBlock?.src_x2}, {displayBlock?.y - moreBlock?.src_y2})</p>

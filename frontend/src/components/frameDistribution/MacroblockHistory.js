@@ -35,7 +35,7 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 <div className="mb-slot">
                     {hasPrev ? (
                         <Macroblock
-                            name="Previous reference"
+                            name="Moved Past"
                             src={history?.prev}
                             width={blockWidth}
                             height={blockHeight}
@@ -55,8 +55,8 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 <div className="mb-slot">
                     {hasPrev ? (
                         <Macroblock
-                            name="Moved macroblock"
-                            src={history?.prev_moved}
+                            name="Diff Past"
+                            src={history?.prev_diff}
                             width={blockWidth}
                             height={blockHeight}
                         />
@@ -72,12 +72,12 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 <div className="mb-slot center-slot">
                     {isBiDir ? (
                         <div className="center-stack">
-                            <Macroblock name="Interpolation" url={history?.result} width={blockWidth} height={blockHeight} />
-                            <div className="arrow-down">↓</div>
-                            <Macroblock name="Result" url={history?.result} width={blockWidth} height={blockHeight} />
+                            <Macroblock name="Interpolation" src={history?.interpolated} width={blockWidth} height={blockHeight} />
+                            {/*<div className="arrow-down">↓</div>*/}
+                            <Macroblock name="Original" src={history?.original} width={blockWidth} height={blockHeight} />
                         </div>
                     ) : (
-                        <Macroblock name="Result" url={history?.result} width={blockWidth} height={blockHeight} />
+                        <Macroblock name="Original" src={history?.original} width={blockWidth} height={blockHeight} />
                     )}
                 </div>
 
@@ -88,8 +88,8 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 <div className="mb-slot">
                     {hasNext ? (
                         <Macroblock
-                            name="Moved macroblock"
-                            src={history?.next_moved}
+                            name="Diff Future"
+                            src={history?.next_diff}
                             width={blockWidth}
                             height={blockHeight}
                         />
@@ -108,7 +108,7 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                 <div className="mb-slot">
                     {hasNext ? (
                         <Macroblock
-                            name="Next reference"
+                            name="Moved Future"
                             src={history?.next}
                             width={blockWidth}
                             height={blockHeight}
