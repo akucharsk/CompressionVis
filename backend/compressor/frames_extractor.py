@@ -65,15 +65,12 @@ class FramesExtractor:
             process.wait()
 
             self.video.frames_extraction_completed = True
-            sys.stdout.flush()
         except Exception as e:
             print(f"ERROR DURING FRAMES EXTRACTION: {e}")
             sys.stdout.flush()
         finally:
             self.video.frames_extraction_in_progress = False
             self.video.save()
-            print(models.Video.objects.get(id=self.video.id).frames_extraction_in_progress)
-            sys.stdout.flush()
 
     def start_extraction_job(self):
         self._get_frames_info()

@@ -30,12 +30,10 @@ class MetricsExtractor:
                 frame.ssim_score = ssim[frame.frame_number + 1]
                 frame.psnr_score = psnr[frame.frame_number + 1]
             models.FrameMetadata.objects.bulk_update(frames, fields=["vmaf_score", "ssim_score", "psnr_score"])
-            sys.stdout.flush()
             self.metrics.vmaf_mean = vmaf_mean
             self.metrics.ssim_mean = ssim_mean
             self.metrics.psnr_mean = psnr_mean
             self.metrics.save()
-            sys.stdout.flush()
         except Exception as e:
             print(f"Error during metrics extraction: {e}")
             sys.stdout.flush()

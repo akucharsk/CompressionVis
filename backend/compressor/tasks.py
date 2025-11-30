@@ -37,8 +37,17 @@ def compress_video(compression_input):
   print(f"Video {video.id} compressed successfully")
   
 @shared_task
-def compress_video_by_size(size_serializer):
-  print("compress_video_by_size")
+def get_video_duration(video_path):
+  result = subprocess.Popen(
+      ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", video_path],
+      stdout=subprocess.PIPE,
+      stderr=subprocess.STDOUT
+  )
+  result, error = result.communicate()
+  if error:
+    raise Exception(error)
+  return float(result)
 
 @shared_task
 def extract_frames(video_id):

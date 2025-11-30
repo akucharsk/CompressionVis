@@ -100,62 +100,23 @@ class BaseCompressionView(APIView):
                 video = models.Video.objects.get(filename=filename)
                 return video, False
 
-    def prepare_response(self, video, filename):
-        resp = {
-            "compressed_filename": filename,
-            "is_compressed": video.is_compressed,
-            "frames_extraction_in_progress": video.frames_extraction_in_progress,
-            "macroblocks_extraction_in_progress": video.macroblocks_extraction_in_progress,
-            "metrics": models.VideoMetrics.objects.get(video=video).vmaf_mean,
-            "video_id": video.id
-        }
-
-        if video.is_compressed and video.size:
-            resp["resulting_size"] = round(video.size / (1024 * 1024), 2)
-
-        response_status = status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
-        return Response(camelize(resp), status=response_status)
-
-    def run_post_compression_jobs(self, video):
-        frames_extractor = FramesExtractor(video)
-        frames_extractor.start_extraction_job()
-
-        metrics_extractor = MetricsExtractor(video)
-        metrics_extractor.start_extraction_job()
-
-        macroblocks_extractor = MacroblocksExtractor(video)
-        macroblocks_extractor.start_extraction_job()
-
-    def finalize_video(self, video, output_path, original_video):
+    def execute_compression(self, compression_input, video):
+        video.frames_extraction_in_progress = True
+        video.macroblocks_extraction_in_progress = True
+        video.save()
         try:
-            file_size = os.path.getsize(output_path)
-            video.is_compressed = True
-            video.size = file_size
-            video.width = original_video.width
-            video.height = original_video.height
-            video.save()
-            return True
-        except FileNotFoundError:
-            return False
-
-    def execute_compression(self, ffmpeg_command, video, output_path, output_filename, original_video):
-        process = subprocess.Popen(ffmpeg_command)
-        return_code = process.wait()
-
-        if return_code != 0:
-            return Response(
-                {"message": "FFmpeg compression failed"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            metrics = models.VideoMetrics.objects.create(video=video)
+        except IntegrityError:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        chain(
+            tasks.compress_video.si(compression_input).set(queue="video"),
+            group(
+                tasks.extract_frames.si(video.id).set(queue="frames"),
+                tasks.extract_metrics.si(video.id, metrics.id).set(queue="metrics"),
+                macroblocks_tasks.extract_macroblocks.si(video.id).set(queue="macroblocks")
             )
-
-        if not self.finalize_video(video, output_path, original_video):
-            return Response(
-                {"message": "Couldn't access compressed file"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        self.run_post_compression_jobs(video)
-        return self.prepare_response(video, output_filename)
+        ).apply_async()
+        return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
 
 class CompressionView(BaseCompressionView):
 
@@ -244,25 +205,7 @@ class CompressionView(BaseCompressionView):
             "output_filename": output_filename,
         }
         
-        video.frames_extraction_in_progress = True
-        video.macroblocks_extraction_in_progress = True
-        video.save()
-        
-        try:
-            metrics = models.VideoMetrics.objects.create(video=video)
-        except IntegrityError:
-            metrics = models.VideoMetrics.objects.get(video=video)
-        
-        chain(
-            tasks.compress_video.si(compression_input).set(queue="video"),
-            group(
-                tasks.extract_frames.si(video.id).set(queue="frames"),
-                tasks.extract_metrics.si(video.id, metrics.id).set(queue="metrics"),
-                macroblocks_tasks.extract_macroblocks.si(video.id).set(queue="macroblocks")
-            )
-        ).apply_async()
-
-        return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
+        return self.execute_compression(compression_input, video)
     
 class SizeCompressionView(BaseCompressionView):
     def post(self, request):
@@ -289,8 +232,7 @@ class SizeCompressionView(BaseCompressionView):
                 {"message": "Video not present in the file system. Please contact management!"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        duration = self.get_video_duration(video_url)
+        duration = tasks.get_video_duration.apply_async(args=[video_url], queue="video").get()
         if duration is None:
             return Response(
                 {"message": "Couldn't determine video duration"},
@@ -308,7 +250,7 @@ class SizeCompressionView(BaseCompressionView):
         output_filename = validated_data["filename"]
         video, created = self.get_or_create_video(serializer)
 
-        if not created and video.is_compressed:
+        if not created:
             return self.prepare_response(video, output_filename)
 
         output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
@@ -323,20 +265,33 @@ class SizeCompressionView(BaseCompressionView):
             "-b:v", f"{validated_data['bandwidth']}k",
             output_path
         ]
+        
+        compression_input = {
+            "ffmpeg_command": ffmpeg_command,
+            "video_id": video.id,
+            "video_path": video_url,
+            "output_path": output_path,
+            "output_filename": output_filename,
+        }
 
-        return self.execute_compression(ffmpeg_command, video, output_path, output_filename, original_video)
+        return self.execute_compression(compression_input, video)
 
     @staticmethod
     def get_video_duration(video_path):
         try:
-            result = subprocess.run(
+            result = subprocess.Popen(
                 ["ffprobe", "-v", "error", "-show_entries", "format=duration",
                  "-of", "default=noprint_wrappers=1:nokey=1", video_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
+            result, error = result.communicate()
+            if error:
+                raise Exception(error)
             return float(result.stdout)
-        except Exception:
+        except Exception as e:
+            print(f"Error getting video duration: {e}")
+            sys.stdout.flush()
             return None
 
 class CompressionFramesView(APIView):

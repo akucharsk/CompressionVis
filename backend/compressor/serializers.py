@@ -64,7 +64,6 @@ class CompressSerializer(serializers.Serializer):
         gop_size = attrs.get("gop_size")
         filename = self.context.get("original_video").filename
         bf = attrs.get("bf")
-        sys.stdout.flush()
         aq_mode = attrs.get("aq_mode")
         aq_strength = attrs.get("aq_strength")
         preset = attrs.get("preset")
@@ -115,8 +114,6 @@ class SizeCompressionSerializer(serializers.Serializer):
         target_size = attrs.get("target_size", -1)
         duration = self.context.get("duration")
         original_video = self.context.get("original_video")
-        print(attrs)
-        sys.stdout.flush()
         try:
             target_size_bytes = float(target_size)
             if target_size_bytes <= 0:
