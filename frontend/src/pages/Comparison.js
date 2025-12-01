@@ -1,7 +1,9 @@
 import FrameBox from "../components/FrameBox";
 import {useEffect, useRef, useState} from "react";
 import './../styles/pages/Comparison.css';
+
 import {useFrames} from "../context/FramesContext";
+import "../styles/pages/Comparison.css";
 import ImageBlock from "../components/comparison/ImageBlock";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 
