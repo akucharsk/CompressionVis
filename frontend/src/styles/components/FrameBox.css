@@ -90,14 +90,15 @@
 }
 
 .i-frame, .next-scene {
-    width: 220px;
-    min-width: 120px;
+    /* width: 220px; */
+    /* min-width: 120px; */
+    height: 2rem;
     flex: 0 0 auto;
 }
 
 .i-frame p, .next-scene p {
     margin: 0;
-    font-size: 1.1rem;
+    /* font-size: 1.1rem; */
     white-space: nowrap;
 }
 
@@ -164,7 +165,6 @@
     min-width: 0;
     height: 8px;
     -webkit-appearance: none;
-    background: var(--border-color);
     border-radius: 6px;
     background: linear-gradient(to right, var(--netflix-red) 0%, var(--netflix-red) var(--percent), var(--border-color) var(--percent), var(--border-color) 100%);
     outline: none;
@@ -431,11 +431,11 @@ input::-webkit-inner-spin-button {
     display: flex;
     flex-direction: column;
     width: fit-content;
-    gap: 1rem;
+    gap: 0.5rem;
     margin-top: 0;
     border-radius: 10px;
     border: 1px solid var(--border-color);
-    padding: 10px;
+    padding: 0.5rem;
     z-index: 2;
     background-color: var(--background-third);
 }
