@@ -156,11 +156,6 @@ const OptionsSection = ({ handleCompress }) => {
         ],
     };
 
-    const { data, isPending, error } = useQuery({
-        queryKey: [ "videoSize", parameters.videoId ],
-        queryFn: () => genericFetch(`${apiUrl}/video/size/${parameters.videoId}/`),
-    })
-
     const renderContent = () => {
         switch (parameters.mode) {
             case "parameters":
@@ -287,6 +282,36 @@ const OptionsSection = ({ handleCompress }) => {
             ...defaultOptions,
         }));
     }, [setParameters]);
+
+    useEffect(() => {
+        const fetchVideoSize = async () => {
+            if (!parameters.videoId) return;
+
+            setLoadingSize(true);
+            try {
+                const resp = await fetch(`${apiUrl}/video/size/${parameters.videoId}/`);
+                await handleApiError(resp);
+                const data = await resp.json();
+                setOriginalSize(data.size);
+            } catch (error) {
+                showError(error.message, error.statusCode);
+            } finally {
+                setLoadingSize(false);
+            }
+        };
+
+        const loadVideoSize = async () => {
+            if (parameters.videoId) {
+                try {
+                    await fetchVideoSize();
+                } catch (error) {
+                    showError(error.message, error.statusCode);
+                }
+            }
+        };
+
+        void loadVideoSize();
+    }, [parameters.videoId, showError]);
 
     return (
         <div className="options-section">
