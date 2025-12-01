@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import './../styles/pages/Admin.css';
+import QuestionsUpload from "../components/admin/QuestionsUpload";
+import {apiUrl} from "../utils/urls";
 
 const Admin = () => {
     const [videos, setVideos] = useState([]);
@@ -7,13 +9,13 @@ const Admin = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const response = await fetch("http://localhost:8000/video/all-compressed-videos/");
+                const response = await fetch(`${apiUrl}/video/all-compressed-videos/`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const data = await response.json();
-                setVideos(data.videos || []);   // ⬅ WAŻNE!
+                setVideos(data.videos || []);
             } catch (error) {
-                console.error("Błąd podczas pobierania danych:", error);
+                console.error("Error while fetching videos:", error);
             }
         };
 
@@ -22,7 +24,7 @@ const Admin = () => {
 
     const handleDelete = async (videoId) => {
         try {
-            const response = await fetch(`http://localhost:8000/video/delete/${videoId}/`, {
+            const response = await fetch(`${apiUrl}/video/delete/${videoId}/`, {
                 method: "DELETE",
             });
 
@@ -30,7 +32,7 @@ const Admin = () => {
 
             setVideos((prev) => prev.filter((v) => v.id !== videoId));
         } catch (error) {
-            console.error(`Błąd przy usuwaniu video ${videoId}:`, error);
+            console.error(`Error deleting video ${videoId}:`, error);
         }
     };
 
@@ -40,24 +42,28 @@ const Admin = () => {
 
             <div>
                 {videos.length === 0 ? (
-                    <p>Brak skompresowanych filmów.</p>
+                    <p>No compressed videos available.</p>
                 ) : (
                     videos.map((video) => (
                         <div key={video.id} className="video-row">
                             <span><b>Video ID:</b> {video.id}</span>
-                            <span><b>Plik:</b> {video.filename}</span>
-                            <span><b>Oryginalny film:</b> {video.original_filename}</span>
-                            <span><b>Rozmiar pliku:</b> {video.size}</span>
+                            <span><b>File:</b> {video.filename}</span>
+                            <span><b>Original file:</b> {video.original_filename}</span>
+                            <span><b>File size:</b> {video.size}</span>
                             <button
                                 onClick={() => handleDelete(video.id)}
-                                style={{padding: "4px 10px", cursor: "pointer"}}
+                                style={{ padding: "4px 10px", cursor: "pointer" }}
                             >
-                                Usuń
+                                Delete
                             </button>
                         </div>
                     ))
                 )}
             </div>
+
+            <hr />
+
+            <QuestionsUpload />
         </div>
     );
 };

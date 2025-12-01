@@ -43,7 +43,6 @@ const ImageBlock = ({
     }, [selectedIdx, isOriginal, isVideoPlaying]);
 
     const handleSelectChange = (e) => {
-        console.log("XD", e.target.value)
         const val = parseInt(e.target.value);
         setIsOriginal(Number(val) === Number(originalVideoId));
         setSelectedVideoId(val);
