@@ -8,9 +8,9 @@ export async function timeExtractor(url) {
     const { result, error } = await asyncTryCatch(() => fetch(url));
     if (error) {
       logger.error(`Error fetching extractor data`, { error, url });
-      return;
+      break;
     }
-    if (!result.ok && result.status >= 429) {
+    if (result.status >= 429) {
       const { result: jsonResult, error: jsonError } = await asyncTryCatch(() => result.json());
       logger.warn("Received error response from extractor, retrying...", { status: result.status, url, jsonResult });
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -19,7 +19,7 @@ export async function timeExtractor(url) {
     const { result: jsonResult, error: jsonError } = await asyncTryCatch(() => result.json());
     if (jsonError) {
       logger.error(`Error parsing extractor data`, { error: jsonError, url });
-      return;
+      break;
     }
     data = jsonResult;
     if (data?.message === "processing") {

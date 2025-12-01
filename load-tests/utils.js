@@ -62,3 +62,22 @@ export function generateRandomRequestBody(videoId) {
     body: JSON.stringify(body),
   };
 }
+
+export function generateIntegrityTestRequestBody(videoId) {
+  return {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      videoId,
+      bandwidth: "1M",
+      resolution: "1920x1080",
+      gop_size: 60,
+      preset: "medium",
+      bf: "default",
+      aq_mode: 0,
+      aq_strength: 0.8,
+    }),
+  };
+}
