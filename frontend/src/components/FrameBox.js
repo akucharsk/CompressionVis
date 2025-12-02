@@ -27,6 +27,7 @@ const FrameBox = () => {
 
     const [searchParams] = useSearchParams();
     const indicators = searchParams.get("indicators")?.split(",")?.filter(indicator => indicator in INDICATOR_OPTIONS) || [];
+    const [sceneThreshold, setSceneThreshold] = useState(0.4);
 
     const {
         frames,
@@ -34,13 +35,6 @@ const FrameBox = () => {
         selectedIdx,
         setSelectedIdx,
     } = useFrames();
-    const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
-    const { videoMetricsQuery } = useMetrics();
-
-
-    useEffect(() => {
-        setFrameInput((selectedIdx + 1).toString());
-    }, [selectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -70,7 +64,7 @@ const FrameBox = () => {
 
     return (
         <div className="frames-container">
-            <FrameBoxNavigation />
+            <FrameBoxNavigation sceneThreshold={sceneThreshold} setSceneThreshold={setSceneThreshold} />
             <div className="timeline-content">
                 <div className="indicator-labels">
                     {[...indicators].reverse().map((indicator, i) => (
@@ -83,7 +77,7 @@ const FrameBox = () => {
                     {frames?.map((frame, idx) => (
                         <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
                             <div
-                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
+                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''} ${frame.scene_score >= sceneThreshold ? 'scene' : ''}`}
                                 onClick={() => setSelectedIdx(idx)}
                                 title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
                             >

@@ -36,11 +36,23 @@ class FramesExtractor:
             "-show_frames",
             "-select_streams", "v",
             "-print_format", "json",
+            self.video_path,
+        ], stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        result, _ = process.communicate()
+        data = json.loads(result).get("frames", [])
+        process = subprocess.Popen([
+            "ffprobe",
+            "-show_frames",
+            "-select_streams", "v",
+            "-print_format", "json",
             "-f", "lavfi",
             f"movie={self.video_path},select=gte(scene\\,0)",
         ], stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
         result, _ = process.communicate()
-        data = json.loads(result).get("frames", [])
+        scene_data = json.loads(result).get("frames", [])
+        
+        for frame, scene_frame in zip(data, scene_data):
+            frame["tags"] = scene_frame.get("tags", {})
         return data
 
     def _save_frames_metadata(self):
@@ -50,7 +62,7 @@ class FramesExtractor:
         frames = []
         i = 0
         frames_dir = self.video.filename.split(".")[0]
-        
+
         for frame in frames_meta:
             packet = min(packets_meta, key=lambda pkt: abs(float(pkt.get("pts_time")) - float(frame.get("pts_time"))))
             frames.append({
@@ -63,8 +75,6 @@ class FramesExtractor:
                 "pkt_size": frame.get("pkt_size"),
                 "scene_score": frame.get("tags", {}).get("lavfi.scene_score", 0.0),
             })
-            print(f"Frame {i} scene score: {frames[-1]['scene_score']}")
-            sys.stdout.flush()
             i += 1
 
         frames_serializer = serializers.CreateFramesSerializer(data={ "frames": frames })

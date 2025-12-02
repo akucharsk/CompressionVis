@@ -6,7 +6,7 @@ import { useVideoPlaying } from "../context/VideoPlayingContext";
 import IndicatorConfig from "./indicators/IndicatorConfig";
 import {useMetrics} from "../context/MetricsContext";
 
-const FrameBoxNavigation = () => {
+const FrameBoxNavigation = ({ sceneThreshold, setSceneThreshold }) => {
     const { frames, selectedIdx, setSelectedIdx } = useFrames();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { setDisplayMode } = useDisplayMode();
@@ -14,8 +14,6 @@ const FrameBoxNavigation = () => {
     const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
     const inputSelectedIdxRef = useRef(null);
     const { videoMetricsQuery } = useMetrics();
-    const [sceneThreshold, setSceneThreshold] = useState(0.4);
-
     const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
 
     const iFramePositions = useMemo(() => {
@@ -133,6 +131,13 @@ const FrameBoxNavigation = () => {
     }, [fps]);
 
     useEffect(() => {
+        const min = 0;
+        const max = 1;
+        const percent = ((sceneThreshold - min) / (max - min)) * 100;
+        document.documentElement.style.setProperty("--scene-percent", `${percent}%`);
+    }, [sceneThreshold]);
+
+    useEffect(() => {
         const handleKeyDown = (e) => {
             const inputSelectedIdx = inputSelectedIdxRef.current;
 
@@ -224,7 +229,7 @@ const FrameBoxNavigation = () => {
                             <p>Next Scene</p>
                         </button>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div className="scene-slider-container">
                         <input
                             type="range" 
                             min={0} 
@@ -232,9 +237,12 @@ const FrameBoxNavigation = () => {
                             step={0.01} 
                             value={sceneThreshold} 
                             onChange={(e) => setSceneThreshold(Number(e.target.value))} 
-                            style={{ background: "var(--netflix-red)", cursor: "pointer" }}
+                            className="scene-slider"
                         />
-                        <label>Scene Threshold: {sceneThreshold}</label>
+                        <div style={{ margin: "auto", fontWeight: "bold", display: "flex", justifyContent: "space-between", width: "100%" }}>
+                            <span>Scene Threshold: </span>
+                            <span style={{ color: "var(--netflix-red)" }}>{sceneThreshold.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
                 <IndicatorConfig loadingFields={loadingFields} />
