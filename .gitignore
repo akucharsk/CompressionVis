@@ -1,3 +1,5 @@
 .idea
 .vscode
 postgres_data
+**/node_modules
+rabbitmq_data

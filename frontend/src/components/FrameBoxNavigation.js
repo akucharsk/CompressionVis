@@ -38,6 +38,7 @@ const FrameBoxNavigation = () => {
 
     const handlePause = () => {
         setIsVideoPlaying(false);
+        setDisplayMode("frames");
     };
 
     const handleRestart = () => {

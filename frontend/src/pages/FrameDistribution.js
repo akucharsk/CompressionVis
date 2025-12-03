@@ -8,8 +8,7 @@ import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
 import { useMacroblockHistoryQuery } from '../hooks/macroblock-history-query';
-import {useComparisonImage} from "../components/comparison/useComparisonImage";
-import {useAdjacentFrames} from "../components/comparison/useAdjacentFrames";
+import { apiUrl } from '../utils/urls';
 
 const FramesDistribution = () => {
     const [showGrid, setShowGrid] = useState(false);
@@ -26,8 +25,6 @@ const FramesDistribution = () => {
     const { frames, framesQuery, selectedIdx } = useFrames();
     const macroblockHistoryQuery = useMacroblockHistoryQuery(selectedBlock);
     const [ params ] = useSearchParams();
-    const { imgSrc, fetchImagesForComparison } = useComparisonImage();
-    const { prevUrl, nextUrl } = useAdjacentFrames(selectedIdx, selectedBlock, frames)
 
     const videoRef = useRef(null);
 
@@ -44,12 +41,8 @@ const FramesDistribution = () => {
         }
     }, [macroblockHistoryQuery.data]);
 
-    useEffect(() => {
-        fetchImagesForComparison(false)
-    }, []);
-
     const videoId = parseInt(params.get("videoId"));
-
+    const imgSrc = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
 
     if (framesQuery.isPending) {
         return (

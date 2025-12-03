@@ -42,7 +42,7 @@ function Layout() {
                               <Route path="/admin" element={<Admin />} />
                             </Routes>
                           </div>
-                </MacroblocksProvider>
+                        </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
                 </MetricsProvider>

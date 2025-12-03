@@ -156,6 +156,27 @@ const OptionsSection = ({ handleCompress }) => {
         ],
     };
 
+    useEffect(() => {
+        const defaultOptions = {
+            resolution: "1280x720",
+            pattern: "default",
+            crf: "20",
+            preset: "medium",
+            bFrames: "default",
+            aqMode: "0",
+            aqStrength: "1.0",
+            bandwidth: "5M",
+            compressedSize: (1024 * 1024).toString(),
+            qualityMode: "crf",
+            mode: "parameters",
+        };
+
+        setParameters((prev) => ({
+            ...prev,
+            ...defaultOptions,
+        }));
+    }, [setParameters]);
+
     const { data, isPending, error } = useQuery({
         queryKey: [ "videoSize", parameters.videoId ],
         queryFn: () => genericFetch(`${apiUrl}/video/size/${parameters.videoId}/`),
@@ -266,27 +287,6 @@ const OptionsSection = ({ handleCompress }) => {
                 return null;
         }
     };
-
-    useEffect(() => {
-        const defaultOptions = {
-            resolution: "1280x720",
-            pattern: "default",
-            crf: "20",
-            preset: "medium",
-            bFrames: "default",
-            aqMode: "0",
-            aqStrength: "1.0",
-            bandwidth: "5M",
-            compressedSize: (1024 * 1024).toString(),
-            qualityMode: "crf",
-            mode: "parameters",
-        };
-
-        setParameters((prev) => ({
-            ...prev,
-            ...defaultOptions,
-        }));
-    }, [setParameters]);
 
     return (
         <div className="options-section">

@@ -46,6 +46,18 @@ const VideoSelect = () => {
         refetchInterval: defaultRefetchIntervalPolicy
     });
 
+    const handleFileChange = (file) => {
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith("video/")) {
+            setParameters(prev => ({
+                ...prev,
+                videoLink: url
+            }));
+        } else {
+            showError("Unsupported file format", 400);
+        }
+    };
+
     useEffect(() => {
         if (error) {
             showError(error.message, error.status);
