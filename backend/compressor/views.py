@@ -542,24 +542,6 @@ class AllCompressed(APIView):
         videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
         return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
 
-class DeleteVideoView(APIView):
-    def delete(self, request, video_id):
-        try:
-            video = models.Video.objects.get(id=video_id)
-        except models.Video.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        dot_idx = video.filename.find(".")
-        if dot_idx == -1:
-            return Response({"message": "Invalid filename"}, status=status.HTTP_400_BAD_REQUEST)
-        frames_dirname = video.filename[:dot_idx]
-        video_path = finders.find(os.path.join("compressed_videos", video.filename))
-        frames_path = finders.find(os.path.join("frames", frames_dirname))
-
-        os.remove(video_path)
-        shutil.rmtree(frames_path)
-        models.Video.objects.filter(id=video_id).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 class FrameSizeView(APIView):
     def get(self, request, video_id, frame_number):
         try:
@@ -574,22 +556,21 @@ class FrameSizeView(APIView):
             return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
-
-QUIZ_DIR = "/STATIC/QUIZ"
+# QUIZ_DIR = "/STATIC/QUIZ"
 
 class UploadQuestionsView(APIView):
 
-    def post(self, request):
+    def post(self, request, quiz_dir="QUIZ_DIR"):
         if "file" not in request.FILES:
             return Response({"message": "Brak pliku ZIP"}, status=status.HTTP_400_BAD_REQUEST)
 
         uploaded_file = request.FILES["file"]
 
-        if os.path.exists(QUIZ_DIR):
-            shutil.rmtree(QUIZ_DIR)
-        os.makedirs(QUIZ_DIR, exist_ok=True)
+        if os.path.exists(quiz_dir):
+            shutil.rmtree(quiz_dir)
+        os.makedirs(quiz_dir, exist_ok=True)
 
-        zip_path = os.path.join(QUIZ_DIR, "source.zip")
+        zip_path = os.path.join(quiz_dir, "source.zip")
         with open(zip_path, "wb") as f:
             for chunk in uploaded_file.chunks():
                 f.write(chunk)
@@ -598,16 +579,22 @@ class UploadQuestionsView(APIView):
 
         try:
             with zipfile.ZipFile(uploaded_file) as z:
-                z.extractall(QUIZ_DIR)
+                z.extractall(quiz_dir)
         except zipfile.BadZipFile:
             return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "OK – pliki nadpisane"}, status=status.HTTP_201_CREATED)
+    def get(self, request, quiz_dir="QUIZ_DIR"):
+        zip_path = os.path.join(quiz_dir, "source.zip")
 
+        if not os.path.exists(zip_path):
+            return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(open(zip_path, "rb"), filename="questions.zip")
 
 class GetQuestionsView(APIView):
-    def get(self, request, number):
-        file_path = os.path.join(QUIZ_DIR, f"questions{number}.json")
+    def get(self, request, number, quiz_dir="QUIZ_DIR"):
+        file_path = os.path.join(quiz_dir, f"questions{number}.json")
 
         if not os.path.exists(file_path):
             return Response({"message": "Plik nie istnieje"}, status=status.HTTP_404_NOT_FOUND)
@@ -616,14 +603,3 @@ class GetQuestionsView(APIView):
             data = json.load(f)
 
         return Response(data, status=status.HTTP_200_OK)
-
-
-class DownloadQuestionsZipView(APIView):
-
-    def get(self, request):
-        zip_path = os.path.join(QUIZ_DIR, "source.zip")
-
-        if not os.path.exists(zip_path):
-            return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
-
-        return FileResponse(open(zip_path, "rb"), filename="questions.zip")

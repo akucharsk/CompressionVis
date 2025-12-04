@@ -41,7 +41,7 @@ const QuestionsUpload = () => {
     };
 
     const handleDownloadZip = () => {
-        window.open(`${apiUrl}/download-questions/`, "_blank");
+        window.open(`${apiUrl}/upload-questions/`, "_blank");
     };
 
     return (

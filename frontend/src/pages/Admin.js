@@ -24,11 +24,9 @@ const Admin = () => {
 
     const handleDelete = async (videoId) => {
         try {
-            const response = await fetch(`${apiUrl}/video/delete/${videoId}/`, {
+            const response = await fetch(`${apiUrl}/video/${videoId}/`, {
                 method: "DELETE",
             });
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             setVideos((prev) => prev.filter((v) => v.id !== videoId));
         } catch (error) {
