@@ -75,6 +75,7 @@ class MacroBlockView(APIView):
 
         return Response({"blocks": data}, status=status.HTTP_200_OK)
 
+
 class MacroblockHistoryView(APIView):
     def _get_block(self, image, block, x_key="x", y_key="y"):
         x = block[x_key]
@@ -86,7 +87,7 @@ class MacroblockHistoryView(APIView):
         if image is None:
             return None
 
-        cropped_image = image[y-h2:y+h2, x-w2:x+w2]
+        cropped_image = image[y - h2:y + h2, x - w2:x + w2]
 
         if cropped_image.size == 0:
             return None
@@ -99,7 +100,7 @@ class MacroblockHistoryView(APIView):
         b64_data = base64.b64encode(png_data).decode("utf-8")
         return f"data:image/png;base64,{b64_data}"
 
-    def _get_decoded_frame(self, video_name, frame_number):
+    def _get_frame(self, video_name, frame_number):
         frame_location = finders.find(os.path.join("frames", video_name, f"frame_{frame_number}.png"))
         if not frame_location:
             return None
@@ -117,52 +118,6 @@ class MacroblockHistoryView(APIView):
             return None
         b64_data = base64.b64encode(png_data).decode("utf-8")
         return f"data:image/png;base64,{b64_data}"
-
-    def _get_frame_from_y4m(self, video_path, frame_number, target_width, target_height):
-        cap = cv2.VideoCapture(video_path)
-
-        if not cap.isOpened():
-            return None
-
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-        ret, frame = cap.read()
-        cap.release()
-
-        if not ret:
-            return None
-
-        current_height, current_width, _ = frame.shape
-
-        if current_width == target_width and current_height == target_height:
-            return frame
-
-        command = [
-            'ffmpeg',
-            '-f', 'rawvideo',
-            '-vcodec', 'rawvideo',
-            '-s', f'{current_width}x{current_height}',
-            '-pix_fmt', 'bgr24',
-            '-i', '-',
-            '-vf', f'scale={target_width}:{target_height}',
-            '-f', 'image2pipe',
-            '-pix_fmt', 'bgr24',
-            '-vcodec', 'rawvideo',
-            '-'
-        ]
-
-        try:
-            pipe = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                    bufsize=10 ** 8)
-            raw_image, _ = pipe.communicate(input=frame.tobytes())
-
-            if not raw_image:
-                return None
-
-            image = np.frombuffer(raw_image, dtype='uint8')
-            image = image.reshape((target_height, target_width, 3))
-            return image
-        except Exception:
-            return None
 
     def get_reference_frame_number(self, video, current_frame_num, offset):
         if offset == 0:
@@ -229,30 +184,28 @@ class MacroblockHistoryView(APIView):
         if not block:
             return Response({"message": "Block not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        frame_location = finders.find(os.path.join("frames", video_name, f"frame_{frame_number}.png"))
-        frame_rgb = cv2.imread(frame_location)
-        if frame_rgb is None:
+        current_frame = self._get_frame(video_name, frame_number) # compressed video frame
+        if current_frame is None:
             return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
 
         response_payload = {
-            "result": self._get_block(frame_rgb, block)
+            "current": self._get_block(current_frame, block)
         }
 
-        original_video_obj = VideoModel.objects.get(id=video.original_id)
-        original_video_path = finders.find(os.path.join('original_videos', original_video_obj.original_filename))
-
-        curr_original_frame = self._get_frame_from_y4m(original_video_path, frame_number, video.width, video.height)
-        curr_original_block_raw = None
-
         w2, h2 = block["width"] // 2, block["height"] // 2
+
+
+        original_video_obj = VideoModel.objects.get(id=video.original_id)
+        original_video_name = original_video_obj.original_filename[:-4] + f"_{video.width}x{video.height}"
+
+        curr_original_frame = self._get_frame(original_video_name, frame_number) # original video frame
+        curr_original_block_raw = None
 
         if curr_original_frame is not None:
             response_payload["original"] = self._get_block(curr_original_frame, block)
             curr_original_block_raw = curr_original_frame[y - h2:y + h2, x - w2:x + w2]
 
-
         prev_reference_num, next_reference_num = None, None
-        prev_raw_block, next_raw_block = None, None
 
         prev_keys = ("src_x", "src_y")
         next_keys = ("src_x", "src_y")
@@ -274,36 +227,58 @@ class MacroblockHistoryView(APIView):
             next_reference_num = self.get_reference_frame_number(video, frame_number, src2)
             next_keys = ("src_x2", "src_y2")
 
+        prev_diff = None
         if prev_reference_num is not None:
-            prev_frame_rgb = self._get_decoded_frame(video_name, prev_reference_num)
+            prev_frame_rgb = self._get_frame(video_name, prev_reference_num)
 
             if prev_frame_rgb is not None:
-                prev_moved_macroblock = self._get_block(prev_frame_rgb, block, prev_keys[0], prev_keys[1])
-                response_payload["prev"] = prev_moved_macroblock
+                response_payload["prev"] = self._get_block(prev_frame_rgb, block, prev_keys[0], prev_keys[1])
+                response_payload["prev_not_moved"] = self._get_block(prev_frame_rgb, block)
 
                 px, py = block[prev_keys[0]], block[prev_keys[1]]
-                prev_raw_block = prev_frame_rgb[py - h2:py + h2, px - w2:px + w2]
+                prev_raw_moved_block = prev_frame_rgb[py - h2:py + h2, px - w2:px + w2]
 
-                if curr_original_block_raw is not None and prev_raw_block is not None and curr_original_block_raw.shape == prev_raw_block.shape:
-                    diff = cv2.absdiff(curr_original_block_raw, prev_raw_block)
-                    response_payload["prev_diff"] = self._to_base64(diff)
+                prev_raw_not_moved_block = prev_frame_rgb[y - h2:y + h2, x - w2:x + w2]
 
+                if curr_original_block_raw is not None and prev_raw_moved_block is not None \
+                  and curr_original_block_raw.shape == prev_raw_moved_block.shape:
+                    prev_diff = cv2.absdiff(curr_original_block_raw, prev_raw_moved_block)
+                    response_payload["prev_diff"] = self._to_base64(prev_diff)
+
+                if curr_original_block_raw is not None and prev_raw_not_moved_block is not None \
+                  and curr_original_block_raw.shape == prev_raw_not_moved_block.shape:
+                    not_moved_diff = cv2.absdiff(curr_original_block_raw, prev_raw_not_moved_block)
+                    response_payload["prev_not_moved_diff"] = self._to_base64(not_moved_diff)
+
+        next_diff = None
         if next_reference_num is not None:
-            next_frame_rgb = self._get_decoded_frame(video_name, next_reference_num)
+            next_frame_rgb = self._get_frame(video_name, next_reference_num)
 
             if next_frame_rgb is not None:
-                next_moved_macroblock = self._get_block(next_frame_rgb, block, next_keys[0], next_keys[1])
-                response_payload["next"] = next_moved_macroblock
+                response_payload["next"] = self._get_block(next_frame_rgb, block, next_keys[0], next_keys[1])
+                response_payload["next_not_moved"] = self._get_block(next_frame_rgb, block)
 
                 nx, ny = block[next_keys[0]], block[next_keys[1]]
-                next_raw_block = next_frame_rgb[ny - h2:ny + h2, nx - w2:nx + w2]
+                next_raw_moved_block = next_frame_rgb[ny - h2:ny + h2, nx - w2:nx + w2]
 
-                if curr_original_block_raw is not None and next_raw_block is not None and curr_original_block_raw.shape == next_raw_block.shape:
-                    diff = cv2.absdiff(curr_original_block_raw, next_raw_block)
-                    response_payload["next_diff"] = self._to_base64(diff)
+                next_raw_not_moved_block = next_frame_rgb[y - h2:y + h2, x - w2:x + w2]
 
-        if prev_raw_block is not None and next_raw_block is not None and prev_raw_block.shape == next_raw_block.shape:
-            interpolated = cv2.addWeighted(prev_raw_block, 0.5, next_raw_block, 0.5, 0)
-            response_payload["interpolated"] = self._to_base64(interpolated)
+                if curr_original_block_raw is not None and next_raw_moved_block is not None \
+                  and curr_original_block_raw.shape == next_raw_moved_block.shape:
+                    next_diff = cv2.absdiff(curr_original_block_raw, next_raw_moved_block)
+                    response_payload["next_diff"] = self._to_base64(next_diff)
+
+                if curr_original_block_raw is not None and next_raw_not_moved_block is not None \
+                  and curr_original_block_raw.shape == next_raw_not_moved_block.shape:
+                    not_moved_diff = cv2.absdiff(curr_original_block_raw, next_raw_not_moved_block)
+                    response_payload["next_not_moved_diff"] = self._to_base64(not_moved_diff)
+
+        if curr_original_block_raw is not None and prev_diff is not None and next_diff is not None \
+          and prev_diff.shape == next_diff.shape:
+            blended = cv2.addWeighted(prev_diff, 0.5, next_diff, 0.5, 0)
+            response_payload["interpolation"] = self._to_base64(blended)
+            # interpolation_diff = cv2.absdiff(curr_original_block_raw, blended)
+            # response_payload["interpolation_diff"] = self._to_base64(interpolation_diff)
+
 
         return Response(response_payload, status=status.HTTP_200_OK)

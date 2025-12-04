@@ -14,7 +14,7 @@ export function useMacroblockHistoryQuery(selectedBlock) {
 
   const queryFn = useCallback(async () => {
       const response = await genericFetch(`${apiUrl}/macroblocks/${videoId}/${frameNumber}/history/?x=${x}&y=${y}`);
-      console.log({ response });
+      // console.log({ response });
       return response;
 
   }, [ videoId, frameNumber, x, y ]);

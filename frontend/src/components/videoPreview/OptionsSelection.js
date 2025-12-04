@@ -58,7 +58,6 @@ const OptionsSection = ({ handleCompress }) => {
             value: parameters.resolution,
             onChange: updateParam("resolution"),
             options: [
-                { value: "1920x1080", label: "1920x1080" },
                 { value: "1280x720", label: "1280x720" },
                 { value: "960x540", label: "960x540" },
                 { value: "854x480", label: "854x480" },

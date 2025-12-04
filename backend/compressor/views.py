@@ -219,7 +219,7 @@ class CompressionView(BaseCompressionView):
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
-            "-vf", f'scale={scale}',
+            "-vf", f'scale={scale}:flags=lanczos',
             *bitrate_param,
             *gop_params,
             "-preset", validated_data['preset'],
@@ -388,6 +388,11 @@ class FrameStatusView(APIView):
             else:
                 dirname = video.filename.split(".")[0]
 
+            width = request.query_params.get('width')
+            height = request.query_params.get('height')
+
+            if width and height:
+                dirname = f"{dirname}_{width}x{height}"
         else:
             dirname = video.filename.split(".")[0]
 
@@ -417,8 +422,15 @@ class FrameView(APIView):
             video = models.Video.objects.get(id=video_id)
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         dirname = video.filename.split(".")[0]
+
+        if video.original is None:
+            width = request.query_params.get('width')
+            height = request.query_params.get('height')
+
+            if width and height:
+                dirname = f"{dirname}_{width}x{height}"
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:

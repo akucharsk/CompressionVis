@@ -5,6 +5,7 @@ import Spinner from "../Spinner";
 import { useFrames } from "../../context/FramesContext";
 import { apiUrl } from "../../utils/urls";
 import { useSearchParams } from "react-router-dom";
+import {useSettings} from "../../context/SettingsContext";
 
 const Frame = ({
                    showGrid,
@@ -26,7 +27,8 @@ const Frame = ({
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
     const {frameMacroBlocksQuery} = useMacroblocks();
-    const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
+    const { resolutionWidth, resolutionHeight } = useSettings();
+    const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}?width=${resolutionWidth}&height=${resolutionHeight}`;
 
     const drawCanvas = useCallback(() => {
         if (!frameMacroBlocksQuery.data?.blocks) return;
