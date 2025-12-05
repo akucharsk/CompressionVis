@@ -79,6 +79,31 @@ function Menu() {
         sessionStorage.removeItem('frameMetrics');
     }, []);
 
+    const handleShowDifferences = () => {
+        if (!parameters.videoId) {
+            showError("Please select a video first.");
+            return;
+        }
+
+        setParameters({
+            videoId: parameters.videoId,
+            resolution: "1280x720",
+            mode: "framesDifferences",
+            pattern: null,
+            preset: null,
+            bFrames: null,
+            aqMode: null,
+            aqStrength: null,
+            crf: null,
+            bandwidth: null,
+            qualityMode: null,
+            compressedSize: null,
+            resultingSize: null
+        });
+
+        navigate(`/differences?videoId=${parameters.videoId}`);
+    };
+
     return (
         <div className="container">
             {compressionMutation.isPending && (
@@ -92,7 +117,10 @@ function Menu() {
                 <h2>Video Source</h2>
                 <VideoSelect />
             </div>
-            <OptionsSection handleCompress={() => compressionMutation.mutate()} />
+            <OptionsSection
+                handleCompress={() => compressionMutation.mutate()}
+                handleShowDifferences={handleShowDifferences}
+            />
         </div>
     );
 }

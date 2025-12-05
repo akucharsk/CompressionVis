@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { useSearchParams } from "react-router-dom";
+import {useLocation, useSearchParams} from "react-router-dom";
 import { apiUrl } from "../utils/urls";
 import { useQuery } from "@tanstack/react-query";
 import { genericFetch } from "../api/genericFetch";
@@ -10,13 +10,15 @@ const MetricsContext = createContext(null);
 export const MetricsProvider = ({ children }) => {
   const [ searchParams ] = useSearchParams();
   const videoId = searchParams.get("videoId");
+  const location = useLocation();
+  const isExcludedPath = location.pathname === "/differences";
 
   const videoMetricsQuery = useQuery({
     queryKey: [ "metrics", videoId ],
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/${videoId}`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy,
-    enabled: !!videoId
+    enabled: !!videoId && !isExcludedPath
   });
 
   videoMetricsQuery.isPending = videoMetricsQuery.isPending || videoMetricsQuery.data?.message === "processing";
@@ -26,7 +28,7 @@ export const MetricsProvider = ({ children }) => {
     queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy,
-    enabled: !!videoId
+    enabled: !!videoId && !isExcludedPath
   });
 
   frameMetricsQuery.isPending = frameMetricsQuery.isPending || frameMetricsQuery.data?.message === "processing";

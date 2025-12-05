@@ -7,7 +7,7 @@ import {useError} from "../../context/ErrorContext";
 import { useQuery } from "@tanstack/react-query";
 import { genericFetch } from "../../api/genericFetch";
 
-const OptionsSection = ({ handleCompress }) => {
+const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
     const { parameters, setParameters } = useSettings();
     const {showError} = useError();
     const [sizeInput, setSizeInput] = useState("");
@@ -283,6 +283,20 @@ const OptionsSection = ({ handleCompress }) => {
                         </p>
                     </div>
                 );
+            case "framesDifferences":
+                return (
+                    <div className="frames-differences-info">
+                        <p>
+                            In this mode, the compression algorithm focuses on minimizing differences between consecutive frames.
+                            This is particularly effective for videos with static backgrounds or minimal motion, as it reduces redundant data.
+                        </p>
+                        <p>
+                            By optimizing for frame-to-frame similarity, the encoder can achieve better compression ratios while maintaining visual quality.
+                            This mode is ideal for surveillance footage, screen recordings, or any content where changes between frames are subtle.
+                        </p>
+                    </div>
+                );
+
             default:
                 return null;
         }
@@ -314,11 +328,37 @@ const OptionsSection = ({ handleCompress }) => {
                 >
                     Compressed Size
                 </button>
+                <button
+                    className={parameters.mode === "framesDifferences" ? "active" : ""}
+                    onClick={() => {
+                        setParameters((prev) => ({
+                            ...prev,
+                            mode: "framesDifferences"
+                        }));
+                    }}
+                >
+                    Differences
+                </button>
             </div>
             {renderContent()}
-            <button className="compress-btn" onClick={handleCompress}>
-                COMPRESS
-            </button>
+
+            {parameters.mode === "framesDifferences" ? (
+                <button
+                    key="diff-btn"
+                    className="differences-btn"
+                    onClick={handleShowDifferences}
+                >
+                    SHOW DIFFERENCES
+                </button>
+            ) : (
+                <button
+                    key="compress-btn"
+                    className="compress-btn"
+                    onClick={handleCompress}
+                >
+                    COMPRESS
+                </button>
+            )}
         </div>
     );
 };

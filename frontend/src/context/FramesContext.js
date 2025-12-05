@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext } from "react";
-import { useSearchParams } from "react-router-dom";
+import {useLocation, useSearchParams} from "react-router-dom";
 import { apiUrl } from "../utils/urls";
 import { DEFAULT_RETRY_TIMEOUT_MS } from "../utils/constants";
 import { genericFetch } from "../api/genericFetch";
@@ -12,6 +12,8 @@ export const useFrames = () => useContext(FramesContext);
 
 export const FramesProvider = ({ children }) => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+    const isExcludedPath = location.pathname === "/differences";
 
     const videoId = searchParams.get("videoId");
     const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
@@ -48,7 +50,7 @@ export const FramesProvider = ({ children }) => {
         queryFn: async () => genericFetch(`${apiUrl}/video/frames/${videoId}`),
         refetchInterval,
         retry: defaultRetryPolicy,
-        enabled: !!videoId
+        enabled: !!videoId && !isExcludedPath
     });
 
     framesQuery.isPending = framesQuery.isPending || framesQuery.data?.message === "processing";

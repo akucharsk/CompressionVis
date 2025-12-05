@@ -1,3 +1,6 @@
+import base64
+
+import cv2
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -558,3 +561,76 @@ class VideoParameters(APIView):
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
+
+
+class DifferenceView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        filename = video.filename
+        if filename.endswith(".y4m"):
+            folder_name = filename[:-4] + "_1280x720"
+        else:
+            folder_name = os.path.splitext(filename)[0] + "_1280x720"
+
+        frames_path = finders.find(os.path.join("frames", folder_name))
+
+        if not frames_path or not os.path.exists(frames_path):
+            return Response({"count": 0}, status=status.HTTP_200_OK)
+
+        count = len([name for name in os.listdir(frames_path) if os.path.isfile(os.path.join(frames_path, name))])
+        return Response({"count": count}, status=status.HTTP_200_OK)
+
+
+class DifferenceFrameView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        filename = video.filename
+        if filename.endswith(".y4m"):
+            folder_name = filename[:-4] + "_1280x720"
+        else:
+            folder_name = os.path.splitext(filename)[0] + "_1280x720"
+
+        current_frame_path = finders.find(os.path.join("frames", folder_name, f"frame_{frame_number}.png"))
+        if not current_frame_path:
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        def encode_image(image_path_or_array, is_array=False):
+            if is_array:
+                _, buffer = cv2.imencode('.png', image_path_or_array)
+                return base64.b64encode(buffer).decode('utf-8')
+            else:
+                with open(image_path_or_array, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+
+        original_b64 = encode_image(current_frame_path, is_array=False)
+
+        diff_prev_b64 = None
+
+        diff_third_b64 = None
+
+        if frame_number > 0:
+            prev_frame_path = finders.find(os.path.join("frames", folder_name, f"frame_{frame_number - 1}.png"))
+
+            if prev_frame_path:
+                img_curr = cv2.imread(current_frame_path)
+                img_prev = cv2.imread(prev_frame_path)
+
+                if img_curr is not None and img_prev is not None:
+                    diff = cv2.absdiff(img_curr, img_prev)
+
+                    diff_prev_b64 = encode_image(diff, is_array=True)
+                    diff_third_b64 = diff_prev_b64
+
+        return Response({
+            "original_frame": original_b64,
+            "diff_prev_frame": diff_prev_b64,
+            "diff_third_frame": diff_third_b64
+        }, status=status.HTTP_200_OK)
