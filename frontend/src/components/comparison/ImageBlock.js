@@ -17,12 +17,10 @@ const ImageBlock = ({
     const [searchParams] = useSearchParams();
     const originalVideoId =  parseInt(searchParams.get("originalVideoId"));
     const compressedVideoId = parseInt(searchParams.get("videoId"));
-    let isOriginalChosen = !isConst;
-    const [isOriginal , setIsOriginal] = useState(true);
     const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
-    const videoId = isOriginal ? originalVideoId : searchParams.get("videoId");
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const compressedIds = getVideoIdsFromCache(originalVideoId);
+    const [isOriginal , setIsOriginal] = useState(true);
+    const compressedIds = getVideoIdsFromCache(originalVideoId).filter(id => id !== compressedVideoId);
 
     const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
     useEffect(() => {
@@ -74,10 +72,11 @@ const ImageBlock = ({
                     </>
                 )}
 
-                {<ImageDetails
-                    isOriginalChosen={isOriginalChosen}
-                    selectedIdx={selectedIdx}
-                />}
+                <ImageDetails
+                    isOriginalChosen={isOriginal}
+                    isConst={isConst}
+                    selectedVideoId={selectedVideoId}
+                />
 
             </div>
 
