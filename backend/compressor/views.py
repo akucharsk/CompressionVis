@@ -162,7 +162,7 @@ class CompressionView(BaseCompressionView):
         video, created = self.get_or_create_video(serializer)
 
         if not created:
-            return self.prepare_response(video, output_filename)
+            return Response({ "message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
@@ -208,7 +208,6 @@ class CompressionView(BaseCompressionView):
             "output_path": output,
             "output_filename": output_filename,
         }
-
         return self.execute_compression(compression_input, video)
     
 class SizeCompressionView(BaseCompressionView):
@@ -255,8 +254,7 @@ class SizeCompressionView(BaseCompressionView):
         video, created = self.get_or_create_video(serializer)
 
         if not created:
-            return self.prepare_response(video, output_filename)
-
+            return Response({ "message": "processing"}, status=status.HTTP_202_ACCEPTED)
         output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
         os.makedirs(compressed_dir, exist_ok=True)

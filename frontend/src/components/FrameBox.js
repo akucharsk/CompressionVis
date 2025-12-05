@@ -1,29 +1,16 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFrames } from "../context/FramesContext";
 import {useSearchParams} from "react-router-dom";
 import '../styles/components/FrameBox.css';
-import {handleApiError} from "../utils/errorHandler";
-import {useError} from "../context/ErrorContext";
-import PlayCompressedVideoNav from "./frameDistribution/PlayCompressedVideoNav";
 import FrameBoxNavigation from "./FrameBoxNavigation";
-import { useDisplayMode } from "../context/DisplayModeContext";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
-import { useFps } from "../context/FpsContext";
 import Spinner from "./Spinner";
 import IndicatorBlock from "./indicators/IndicatorBlock";
-import { useMetrics } from "../context/MetricsContext";
 import { INDICATOR_OPTIONS } from "../utils/constants";
 
 const FrameBox = () => {
-    const { displayMode, setDisplayMode } = useDisplayMode();
-    const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
-    const { showError } = useError();
-
-    const [isLoading, setIsLoading] = useState(true);
+    const { isVideoPlaying } = useVideoPlaying();
     const containerRef = useRef(null);
-
-    const [params] = useSearchParams();
-    const videoId = params.get("videoId");
 
     const [searchParams] = useSearchParams();
     const indicators = searchParams.get("indicators")?.split(",")?.filter(indicator => indicator in INDICATOR_OPTIONS) || [];
@@ -33,20 +20,17 @@ const FrameBox = () => {
         framesQuery,
         selectedIdx,
         setSelectedIdx,
+        sceneThreshold,
+        setSceneThreshold,
+        scenePositions,
     } = useFrames();
-    const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
-    const { videoMetricsQuery } = useMetrics();
-
-
-    useEffect(() => {
-        setFrameInput((selectedIdx + 1).toString());
-    }, [selectedIdx]);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
         const container = containerRef.current;
-        const selectedFrame = container.children[selectedIdx];
+        const nearestScene = scenePositions.reduce((acc, idx) => idx < selectedIdx ? idx : acc);
+        const selectedFrame = container.children[selectedIdx + scenePositions.indexOf(nearestScene)];
         if (!selectedFrame) return;
 
         const containerLeft = container.scrollLeft;
@@ -58,7 +42,7 @@ const FrameBox = () => {
             const targetScroll = frameLeft - (containerWidth / 2) + (frameWidth / 2);
             container.scrollTo({ left: targetScroll, behavior: isVideoPlaying ? 'auto' : 'smooth' });
         }
-    }, [selectedIdx, isVideoPlaying]);
+    }, [selectedIdx, isVideoPlaying, scenePositions]);
 
     if (framesQuery.isPending) {
         return (
@@ -70,7 +54,7 @@ const FrameBox = () => {
 
     return (
         <div className="frames-container">
-            <FrameBoxNavigation />
+            <FrameBoxNavigation sceneThreshold={sceneThreshold} setSceneThreshold={setSceneThreshold} />
             <div className="timeline-content">
                 <div className="indicator-labels">
                     {[...indicators].reverse().map((indicator, i) => (
@@ -81,20 +65,23 @@ const FrameBox = () => {
                 </div>
                 <div className="scrollable-frameBox" ref={containerRef}>
                     {frames?.map((frame, idx) => (
-                        <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
-                            <div
-                                className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''}`}
-                                onClick={() => setSelectedIdx(idx)}
-                                title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
-                            >
-                                <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
-                                <div className="frame-type">{frame.type}</div>
-                                <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
+                        <>
+                        { frame.scene_score >= sceneThreshold && <div className="scene-indicator"></div> }
+                            <div key={idx} className={`frame-container ${selectedIdx === idx ? 'selected' : ''}`}>
+                                <div
+                                    className={`frame ${frame.type} ${selectedIdx === idx ? 'selected' : ''} ${frame.scene_score >= sceneThreshold ? 'scene' : ''}`}
+                                    onClick={() => setSelectedIdx(idx)}
+                                    title={`Frame ${idx} (${frame.type}), Time: ${parseFloat(frame.pts_time).toFixed(2)}s`}
+                                >
+                                    <div className="frame-time">{parseFloat(frame.pts_time).toFixed(2)}s</div>
+                                    <div className="frame-type">{frame.type}</div>
+                                    <div className="frame-number">#{String(idx + 1).padStart(3, '0')}</div>
+                                </div>
+                                { indicators.map((indicator, i) => (
+                                    <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
+                                )) }
                             </div>
-                            { indicators.map((indicator, i) => (
-                                <IndicatorBlock indicator={indicator} key={i} frameNumber={idx} />
-                            )) }
-                        </div>
+                        </>
                     ))}
                 </div>
             </div>

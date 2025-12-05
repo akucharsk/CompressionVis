@@ -27,8 +27,7 @@ const SlaveImageVideoBlock = ({ videoId, videoRef, fullscreenHandler }) => {
         else {
             video.pause();
         }
-
-    }, [isVideoPlaying, videoRef, fps, frames, selectedIdx])
+    }, [isVideoPlaying, videoRef, fps, frames])
 
     useEffect(() => {
         const video = videoRef.current;
