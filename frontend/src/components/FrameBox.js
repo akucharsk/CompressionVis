@@ -54,7 +54,7 @@ const FrameBox = () => {
 
     return (
         <div className="frames-container">
-            <FrameBoxNavigation sceneThreshold={sceneThreshold} setSceneThreshold={setSceneThreshold} />
+            <FrameBoxNavigation />
             <div className="timeline-content">
                 <div className="indicator-labels">
                     {[...indicators].reverse().map((indicator, i) => (
