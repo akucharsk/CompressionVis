@@ -41,7 +41,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGr
 
     useEffect(() => {
         const video = videoRef.current;
-        
+
         if (!video || displayMode === "video" || isVideoPlaying) return;
         video.pause();
         const currentTime = video.currentTime;

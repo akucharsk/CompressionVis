@@ -129,19 +129,16 @@ const FrameBoxNavigation = () => {
 
     return (
         <div className="timeline-header">
-            <div className="control-group navigation-group">
-                <div className="navigation">
-                    <button className="scroll-button left" onClick={handleScrollLeft}>&lt;</button>
-                    {isVideoPlaying ? (
-                        <button className="play-button playing" onClick={handlePause}>❚❚</button>
-                    ) : selectedIdx === frames.length - 1 ? (
-                        <button className="play-button" onClick={handleRestart}>⟳</button>
-                    ) : (
-                        <button className="play-button" onClick={handlePlay}>▶</button>
-                    )}
-                    <button className="scroll-button right" onClick={handleScrollRight}>&gt;</button>
-                </div>
+            <div className="control-buttons">
+                <button className="scroll-button i-frame" onClick={handleNextIFrame}>
+                    <p>Next I-Frame</p>
+                </button>
+                <button className="scroll-button next-scene">
+                    <p>Next Scene</p>
+                </button>
+            </div>
 
+            <div className="control-group navigation-group">
                 <div className="speed-control">
                     <label>Speed: </label>
                     <div className="speed-slider-container">
@@ -157,36 +154,40 @@ const FrameBoxNavigation = () => {
                         <div className="speed-value"> {fps} FPS</div>
                     </div>
                 </div>
-            </div>
-
-            <div className="control-group playback-group">
-                <div className="frame-counter">
-                    <div className="frame-counter-label">Frame</div>
-                    <div className="frame-counter-content">
-                        <input
-                            type="number"
-                            min={1}
-                            max={frames.length}
-                            value={frameInput}
-                            onChange={handleFrameInputChange}
-                            onBlur={handleFrameInputBlur}
-                            onKeyDown={handleFrameInputKeyDown}
-                        />
-                        <span>/ {frames.length}</span>
-                    </div>
+                <div className="navigation">
+                    <button className="scroll-button left" onClick={handleScrollLeft}>&lt;</button>
+                    {isVideoPlaying ? (
+                        <button className="play-button playing" onClick={handlePause}>❚❚</button>
+                    ) : selectedIdx === frames.length - 1 ? (
+                        <button className="play-button" onClick={handleRestart}>⟳</button>
+                    ) : (
+                        <button className="play-button" onClick={handlePlay}>▶</button>
+                    )}
+                    <button className="scroll-button right" onClick={handleScrollRight}>&gt;</button>
                 </div>
+
             </div>
 
             <div className="control-group additional-group">
-                <div className="control-buttons">
-                    <button className="scroll-button i-frame" onClick={handleNextIFrame}>
-                        <p>Next I-Frame</p>
-                    </button>
-                    <button className="scroll-button next-scene">
-                        <p>Next Scene</p>
-                    </button>
+                <IndicatorConfig loadingFields={loadingFields}/>
+                <div className="control-group playback-group">
+                    <div className="frame-counter">
+                        <div className="frame-counter-label">Frame</div>
+                        <div className="frame-counter-content">
+                            <input
+                                type="number"
+                                min={1}
+                                max={frames.length}
+                                value={frameInput}
+                                onChange={handleFrameInputChange}
+                                onBlur={handleFrameInputBlur}
+                                onKeyDown={handleFrameInputKeyDown}
+                            />
+                            <span>/ {frames.length}</span>
+                        </div>
+                    </div>
                 </div>
-                <IndicatorConfig loadingFields={loadingFields} />
+
             </div>
         </div>
     )

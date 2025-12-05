@@ -1,9 +1,7 @@
 import FrameBox from "../components/FrameBox";
 import {useEffect, useRef, useState} from "react";
 import './../styles/pages/Comparison.css';
-
 import {useFrames} from "../context/FramesContext";
-import "../styles/pages/Comparison.css";
 import ImageBlock from "../components/comparison/ImageBlock";
 import { useVideoPlaying } from "../context/VideoPlayingContext";
 
@@ -49,7 +47,7 @@ const Comparison = () => {
             <FrameBox />
             <div className="comparison-container">
                 <ImageBlock
-                    selectedIdx={selectedIdx}
+                    isConst={true}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "left",
@@ -62,7 +60,6 @@ const Comparison = () => {
 
                 <ImageBlock
                     isConst={false}
-                    selectedIdx={selectedIdx}
                     navigation={makeNavigation()}
                     fullscreen={{
                         is: fullscreenSide === "right",

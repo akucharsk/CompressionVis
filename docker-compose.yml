@@ -31,7 +31,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-  
+
   backend:
     platform: linux/amd64
     build:
@@ -72,7 +72,7 @@ services:
         condition: service_healthy
     profiles:
       - build-only
-  
+
   celery_worker_video:
     image: celery_worker
     platform: linux/amd64

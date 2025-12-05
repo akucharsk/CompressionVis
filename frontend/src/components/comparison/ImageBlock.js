@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
-import { useSettings } from "../../context/SettingsContext";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
@@ -11,31 +10,26 @@ import { apiUrl } from "../../utils/urls";
 
 const ImageBlock = ({
                         isConst = true,
-                        selectedIdx = 0,
                         navigation = {},
                         fullscreen = {},
                         videoRef
                     }) => {
-    const { parameters } = useSettings();
     const [searchParams] = useSearchParams();
-
-    const originalVideoId = parameters.videoId;
+    const originalVideoId =  parseInt(searchParams.get("originalVideoId"));
     const compressedVideoId = parseInt(searchParams.get("videoId"));
-    let isOriginalChosen = !isConst;
-    const [ isOriginal, setIsOriginal ] = useState(isOriginalChosen);
-    const videoId = isOriginal ? originalVideoId : searchParams.get("videoId");
+    const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [ selectedVideoId, setSelectedVideoId ] = useState(videoId);
-    const compressedIds = getVideoIdsFromCache(originalVideoId);
+    const [isOriginal , setIsOriginal] = useState(true);
+    const compressedIds = getVideoIdsFromCache(originalVideoId).filter(id => id !== compressedVideoId);
 
+    const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
     useEffect(() => {
         setIsFullscreen(fullscreen.is);
     }, [fullscreen.is]);
 
     const handleSelectChange = (e) => {
         const val = parseInt(e.target.value);
-        isOriginalChosen = val === originalVideoId;
-        setIsOriginal(isOriginalChosen);
+        setIsOriginal(Number(val) === Number(originalVideoId));
         setSelectedVideoId(val);
     };
 
@@ -49,13 +43,12 @@ const ImageBlock = ({
         else setIsFullscreen(false);
     };
 
-
     return (
         <div className="image-block">
             <div className="image-block-content">
                 {isConst ? (
                     <>
-                        <div className="static-name">Active param</div>
+                        <div className="static-name">Current compression</div>
                         <ImageVideoBlock 
                             isConst={isConst}
                             videoId={compressedVideoId}
@@ -71,8 +64,7 @@ const ImageBlock = ({
                                 <option key={idx} value={id}>ID: {id}</option>
                             ))}
                         </select>
-                        <SlaveImageVideoBlock 
-                            isConst={isConst}
+                        <SlaveImageVideoBlock
                             videoId={selectedVideoId}
                             videoRef={videoRef}
                             fullscreenHandler={openFullscreen}
@@ -80,10 +72,11 @@ const ImageBlock = ({
                     </>
                 )}
 
-                {<ImageDetails
-                    isOriginalChosen={isOriginalChosen}
-                    selectedIdx={selectedIdx}
-                />}
+                <ImageDetails
+                    isOriginalChosen={isOriginal}
+                    isConst={isConst}
+                    selectedVideoId={selectedVideoId}
+                />
 
             </div>
 

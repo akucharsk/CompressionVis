@@ -8,7 +8,7 @@ import { useCallback } from "react";
 export function useMacroblockHistoryQuery(selectedBlock) {
   const [ params ] = useSearchParams();
   const videoId = params.get("videoId");
-  const frameNumber = params.get("frameNumber");
+  const frameNumber = parseInt(params.get("frameNumber"));
   const x = selectedBlock?.x;
   const y = selectedBlock?.y;
 

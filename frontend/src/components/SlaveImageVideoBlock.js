@@ -8,7 +8,7 @@ import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
 import Video from "./frameDistribution/Video";
 
-const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, imgSrc }) => {
+const SlaveImageVideoBlock = ({ videoId, videoRef, fullscreenHandler }) => {
     const { displayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx } = useFrames();
     const { isVideoPlaying } = useVideoPlaying();
@@ -28,7 +28,7 @@ const SlaveImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, i
             video.pause();
         }
 
-    }, [isVideoPlaying, videoRef, fps, frames])
+    }, [isVideoPlaying, videoRef, fps, frames, selectedIdx])
 
     useEffect(() => {
         const video = videoRef.current;

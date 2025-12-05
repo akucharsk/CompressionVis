@@ -1,23 +1,35 @@
 @import '../shared/Shared.css';
 
 .nav-container {
+    position: fixed;
+    top: 0;
+    left: -460px;
+    width: 250px;
+    height: 100vh;
+    background-color: var(--background-first);
+    border-right: 1px solid var(--border-color);
+    padding: 5em 1em ;
     display: flex;
-    justify-content: center;
-    gap: 30px;
-    padding: 20px;
-    position: relative;
+    flex-direction: column;
+    gap: 15px;
+    transition: left 0.3s ease;
+    z-index: 999;
+}
+
+.nav-container.open {
+    left: 0;
 }
 
 .nav-tab {
     display: flex;
     align-items: center;
-    justify-content: center;
     background-color: var(--background-second);
     color: var(--font-color);
     text-decoration: none;
     font-size: 1.2rem;
     font-weight: bold;
-    padding: 12px 24px;
+    padding: 0.5em;
+    justify-content: center;
     border-radius: 10px;
     border: 2px solid transparent;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -35,13 +47,72 @@
     box-shadow: var(--shadow-red-active);
 }
 
-.nav-back {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+.nav-container.collapsed {
+    width: 3.2em;
+    overflow: hidden;
+    padding: 1em 0.3em;
 }
 
-.nav-back:hover {
-    transform: translateY(-50%) scale(1.05);
+.nav-container.collapsed .nav-tab {
+    font-size: 0;
+    padding: 0.5em;
+}
+
+.nav-container.collapsed .nav-tab::after {
+    display: none;
+}
+
+.nav-container.collapsed .nav-tab {
+    justify-content: center;
+}
+
+.nav-toggle-btn {
+    background: var(--background-second);
+    border: 1px solid var(--border-color);
+    color: var(--font-color);
+    padding: 0.5em;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+
+.nav-toggle-btn:hover {
+    background: #232323;
+}
+
+.nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s ease;
+    z-index: 998;
+}
+
+.nav-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.nav-dots-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1000;
+    background: var(--background-second);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.4em 0.6em;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.2s;
+    color: var(--font-color);
 }

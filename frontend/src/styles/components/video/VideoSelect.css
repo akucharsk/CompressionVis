@@ -1,15 +1,14 @@
 .video-select {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 2em;
-    width: 100%;
+    justify-content: space-between;
+    width: 90%;
     box-sizing: border-box;
     margin: auto;
 }
 
 .video-thumbnail {
-    width: 16em;
+    width: 20%;
     height: auto;
     display: flex;
     flex-direction: column;

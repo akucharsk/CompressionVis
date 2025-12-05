@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {useSettings} from "../../context/SettingsContext";
-import FileDropZone from "./FileDropZone";
 import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/VideoSelect.css";
 import {useError} from "../../context/ErrorContext";
@@ -93,7 +92,6 @@ const VideoSelect = () => {
                     </div>
                 );
             })}
-            <FileDropZone onFileSelected={handleFileChange}/>
         </div>
     );
 };

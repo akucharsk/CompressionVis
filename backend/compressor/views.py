@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.http import FileResponse, StreamingHttpResponse
 from django.contrib.staticfiles import finders
 from django.conf import settings
-
+from django.core.files.base import ContentFile
 from django.db import IntegrityError
 
 import os
@@ -22,6 +22,10 @@ from macroblocks import tasks as macroblocks_tasks
 from utils.camel import camelize, decamelize
 from .metrics_extractor import MetricsExtractor
 from celery import group, chain
+
+import json
+import zipfile
+from io import BytesIO
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -197,14 +201,14 @@ class CompressionView(BaseCompressionView):
             "-aq-strength", str(validated_data['aq_strength']),
             output
         ]
-        
+
         compression_input = {
             "ffmpeg_command": ffmpeg_command,
             "video_id": video.id,
             "output_path": output,
             "output_filename": output_filename,
         }
-        
+
         return self.execute_compression(compression_input, video)
     
 class SizeCompressionView(BaseCompressionView):
@@ -265,7 +269,7 @@ class SizeCompressionView(BaseCompressionView):
             "-b:v", f"{validated_data['bandwidth']}k",
             output_path
         ]
-        
+
         compression_input = {
             "ffmpeg_command": ffmpeg_command,
             "video_id": video.id,
@@ -357,7 +361,7 @@ class ThumbnailView(APIView):
             return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(file_path, 'rb'), content_type="image/png", status=status.HTTP_200_OK)
-    
+
 class FrameStatusView(APIView):
     def get(self, request, video_id, frame_number):
         original = request.GET.get("original")
@@ -404,7 +408,7 @@ class FrameView(APIView):
             video = models.Video.objects.get(id=video_id)
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         dirname = video.filename.split(".")[0]
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
@@ -528,8 +532,74 @@ class VideoParameters(APIView):
             "aq_mode": video.aq_mode,
             "aq_strength": float(video.aq_strength) if video.aq_strength is not None else None,
             "preset": video.preset,
-            "name": video.title,
             "size": video.size,
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
+
+class AllCompressed(APIView):
+    def get(self, request):
+        videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
+        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+
+class FrameSizeView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            frame = models.FrameMetadata.objects.get(
+                video__id=video_id,
+                frame_number=frame_number
+            )
+        except models.FrameMetadata.DoesNotExist:
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if frame.pkt_size is None:
+            return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
+# QUIZ_DIR = "/STATIC/QUIZ"
+
+class UploadQuestionsView(APIView):
+
+    def post(self, request, quiz_dir="QUIZ_DIR"):
+        if "file" not in request.FILES:
+            return Response({"message": "Brak pliku ZIP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        uploaded_file = request.FILES["file"]
+
+        if os.path.exists(quiz_dir):
+            shutil.rmtree(quiz_dir)
+        os.makedirs(quiz_dir, exist_ok=True)
+
+        zip_path = os.path.join(quiz_dir, "source.zip")
+        with open(zip_path, "wb") as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+
+        uploaded_file.seek(0)
+
+        try:
+            with zipfile.ZipFile(uploaded_file) as z:
+                z.extractall(quiz_dir)
+        except zipfile.BadZipFile:
+            return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "OK – pliki nadpisane"}, status=status.HTTP_201_CREATED)
+    def get(self, request, quiz_dir="QUIZ_DIR"):
+        zip_path = os.path.join(quiz_dir, "source.zip")
+
+        if not os.path.exists(zip_path):
+            return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(open(zip_path, "rb"), filename="questions.zip")
+
+class GetQuestionsView(APIView):
+    def get(self, request, number, quiz_dir="QUIZ_DIR"):
+        file_path = os.path.join(quiz_dir, f"questions{number}.json")
+
+        if not os.path.exists(file_path):
+            return Response({"message": "Plik nie istnieje"}, status=status.HTTP_404_NOT_FOUND)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return Response(data, status=status.HTTP_200_OK)

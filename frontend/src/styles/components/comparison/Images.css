@@ -36,7 +36,6 @@ img{
 
 .collapse-btn {
     appearance: none;
-    border: none;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
     color: var(--font-color);
     padding: 6px 12px;
@@ -170,11 +169,6 @@ img{
     border-color: #00ffff;
 }
 
-:root {
-    --image-display-height: 800px; /* domyślna wyświetlana wysokość obrazów — łatwo zmienić */
-}
-
-/* Responsive: on narrow screens stack vertically again */
 @media (max-width: 700px) {
     .image-block {
         flex-direction: column;
@@ -281,4 +275,30 @@ img{
     padding: 8px 12px;
     font-size: 1rem;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    column-gap: 20px;
+    row-gap: 12px;
+    margin-bottom: 1rem;
+}
+
+.metrics-grid .metric-header {
+    font-weight: 700;
+    margin-bottom: 4px;
+    font-size: 1rem;
+}
+
+.metrics-grid .metric-cell {
+    background-color: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+
+.metrics-grid .metric-row {
+    display: contents;
 }
