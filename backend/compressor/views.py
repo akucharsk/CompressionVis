@@ -609,8 +609,6 @@ class UploadQuestionsView(APIView):
 class GetQuestionsView(APIView):
     permission_classes = [IsSuperuser]
     def get(self, request, number, quiz_dir="QUIZ_DIR"):
-        print(request.user)
-        sys.stdout.flush()
         file_path = os.path.join(quiz_dir, f"questions{number}.json")
 
         if not os.path.exists(file_path):
