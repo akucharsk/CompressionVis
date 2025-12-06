@@ -42,12 +42,12 @@ export default function Login() {
 
   const renderLoginError = useCallback(() => {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "var(--background-second)", color: "var(--font-color)", border: "1px solid var(--netflix-red)", borderRadius: "8px", padding: "1.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="error-box">
+        <div className="error-box-header">
           <MdError size={20} style={{ color: "var(--netflix-red)" }} />
-          <p style={{ color: "var(--netflix-red)", fontWeight: "bold" }}>{loginMutation?.error?.message || "Unexpected error occurred"}</p>
+          <p>{loginMutation?.error?.message || "Unexpected error occurred"}</p>
         </div>
-        <p style={{ color: "var(--font-color)", fontWeight: "bold" }}>Reason: {loginMutation?.error?.response?.data?.message || "Unknown reason"}</p>
+        <p>Reason: {loginMutation?.error?.response?.data?.message || "Unknown reason"}</p>
       </div>
     )
   }, [loginMutation.error]);
