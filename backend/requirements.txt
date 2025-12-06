@@ -5,13 +5,10 @@ celery
 
 django
 djangorestframework
-djangorestframework-simplejwt
 redis
 django-cors-headers
 django-redis
 django-celery-results
-
-datetime
 
 motion-vector-extractor
 opencv-python
