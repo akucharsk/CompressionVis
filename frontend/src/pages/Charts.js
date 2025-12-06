@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import ChartsOptions from '../components/charts/ChartsOptions';
 import CompressionsRank from '../components/charts/CompressionsRank';
 import MetricChart from '../components/charts/MetricChart';
 import '../styles/pages/Charts.css';
@@ -17,8 +19,8 @@ const Charts = () => {
                 )}
             </div>
             <div className="charts-rightside">
-                <div className="charts-choice">
-                    {/* threshold */}
+                <div className="charts-options">
+                    <ChartsOptions />
                 </div>
                 <div className="charts-compressions-rank">
                     <CompressionsRank />
