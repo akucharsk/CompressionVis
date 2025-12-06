@@ -5,6 +5,7 @@ import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 import Admin from "./pages/Admin";
+import Charts from './pages/Charts';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
@@ -40,6 +41,7 @@ function Layout() {
                               <Route path="/comparison" element={<Comparison />} />
                               <Route path="/quiz" element={<Quiz />} />
                               <Route path="/admin" element={<Admin />} />
+                              <Route path="/charts" element={<Charts />}/>
                             </Routes>
                           </div>
                         </MacroblocksProvider>

@@ -28,6 +28,20 @@ const Navigation = () => {
                          onClick={() => setOpen(false)}>
                     QUIZ
                 </NavLink>
+
+                {/* 
+                po co wgl jest isActive? 
+                To jest pozostałość po czymś? 
+                */}
+
+                <NavLink 
+                    to={`/charts${search}`} 
+                    className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
+                    onClick={() => setOpen(false)}
+                >
+                    CHARTS
+                </NavLink>
+                
                 <NavLink to="/" className="nav-tab"
                          onClick={() => setOpen(false)}>
                     ↩ BACK

@@ -1,0 +1,46 @@
+@import '../shared/Shared.css';
+
+.charts-container {
+    display: flex;
+    overflow: hidden;
+    padding: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    gap:1em;
+    width: 100%;
+    margin: 1em auto;
+    height: auto;
+}
+
+.charts-leftside {
+    direction: rtl;
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding: 0.5rem;
+    direction: left;
+    scrollbar-width: thin;
+    scrollbar-color: var(--netflix-red) var(--background-second);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    height: 90vh;
+}
+
+.charts-leftside > * {
+    direction: ltr;
+}
+
+.charts-rightside {
+    width: 35%;
+    max-width: 400px;
+    min-height: 90vh;
+    display: grid;
+    grid-template-columns: 50% auto;
+    padding: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.charts-choice {
+}
