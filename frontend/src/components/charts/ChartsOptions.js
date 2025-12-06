@@ -4,7 +4,7 @@ const ChartsOptions = () => {
 
     const [compressedVideos, setCompressedVideos] = useState([]);
 
-    useEffect = (() => {
+    useEffect(() => {
 
     }, [compressedVideos])
 
@@ -14,7 +14,6 @@ const ChartsOptions = () => {
                 {/* threshold */}
             </div>
             <div className="charts-compressions-select">
-                <h3>Choose compressions to compare</h3>
                 <div></div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-// import "../../styles/components/charts/CompressionsRank.ccs";
+import "../../styles/components/charts/CompressionsRank.css";
 
 import { useState } from "react";
 
@@ -20,26 +20,31 @@ const CompressionsRank = () => {
 
 
     return (
-        <div className="rank-panel">
-            <select></select>
-            <div className="rank-sorting">
-                <h3>Rank of average values for certain compressed videos</h3>
-                <div className="rank-sorting-buttons">
+        <>
+            <div className="rank-panel">
+                <select></select>
+                <div className="rank-sorting-container">
+                    <div className="rank-sorting-buttons">
+                        
+                    </div>
                     <button 
                         onClick={handleAscendingButton}
-                        className={`order-button ${orderOfSorting === "Ascending" ? "selected" : ""}`}    
+                        className={`order-button ${orderOfSorting === "Ascending" ? "active" : ""}`}    
                     >
                         Ascending
                     </button>
                     <button 
                         onClick={handleDescendingButton} 
-                        className={`order-button ${orderOfSorting === "Descending" ? "selected" : ""}`}
+                        className={`order-button ${orderOfSorting === "Descending" ? "active" : ""}`}
                     >
                         Descending
                     </button>
                 </div>
             </div>
-        </div>
+            <div className="sorted-rank">
+                
+            </div>
+        </>
     )
 }
 

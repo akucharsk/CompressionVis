@@ -19,11 +19,20 @@ const Charts = () => {
                 )}
             </div>
             <div className="charts-rightside">
-                <div className="charts-options">
-                    <ChartsOptions />
+                <div className="charts-rightside-top">
+                    <button className="refresh-compressions-button">
+                        ⟳
+                    </button>
                 </div>
-                <div className="charts-compressions-rank">
-                    <CompressionsRank />
+                <div className="charts-rightside-bottom">
+                    <h4>Choose compressions to compare</h4>
+                    <h4>Video compressions rank (by average video value)</h4>
+                    <div className="charts-options">
+                        <ChartsOptions />
+                    </div>
+                    <div className="charts-compressions-rank">
+                        <CompressionsRank />
+                    </div>
                 </div>
             </div>
         </div>

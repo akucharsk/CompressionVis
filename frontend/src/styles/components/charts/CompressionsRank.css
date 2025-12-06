@@ -1,0 +1,58 @@
+@import '../../shared/Shared.css';
+
+.rank-panel {
+    padding: 0 0 20px 0;
+}
+
+.rank-panel select {
+    width: 100%;
+    height: 30px;
+    margin-bottom: 10px;
+}
+
+.rank-sorting-container {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.rank-sorting-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.rank-sorting-container button {
+    margin: auto;
+    background-color: #444;
+    color: #eee;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-size: 9px;
+    font-weight: 700;
+    flex: 1;
+    max-width: 90px;
+}
+
+.rank-sorting-container button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    border-color: var(--netflix-red);
+}
+
+.rank-sorting-container button.active {
+    background-color: var(--netflix-red);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
+    border-color: var(--netflix-red);
+}
+
+.sorted-rank {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    height: auto;
+}
