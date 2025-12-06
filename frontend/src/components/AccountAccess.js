@@ -57,7 +57,7 @@ export default function AccountAccess({ setOpen, includeHome = false }) {
       )}
       <NavLink to="/admin" className="nav-tab"
               onClick={() => setOpen(false)}>
-          ADMIN
+          ADMIN PANEL
           <MdAdminPanelSettings size={20} />
       </NavLink>
       <button className="nav-tab" onClick={handleLogout}>

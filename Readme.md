@@ -68,7 +68,7 @@ docker-compose up --build
 
 If you encounter some problems, for example some containers didn't build you might want to manually build them:
 ```bash
-docker-compose up build db backend rabbitmq celery_worker frontend --no-cache
+docker-compose build db backend rabbitmq celery_worker frontend --no-cache
 ```
 And then
 ```bash
