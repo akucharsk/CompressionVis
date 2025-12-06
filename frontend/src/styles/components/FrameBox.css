@@ -132,7 +132,7 @@
     border-color: var(--netflix-red);
 }
 
-.speed-control {
+.speed-control, .scene-control {
     flex: 1;
     display: flex;
     align-items: center;
@@ -145,7 +145,11 @@
     height: 100%;
 }
 
-.speed-control label {
+.scene-control {
+    padding: 0.5rem
+}
+
+.speed-control label, .scene-control label {
     font-size: 0.9rem;
     font-weight: 600;
     white-space: nowrap;
@@ -228,6 +232,7 @@
     outline: none;
     cursor: pointer;
     transition: background 0.3s ease;
+    width: 100%;
 }
 
 .scene-slider::-webkit-slider-thumb {

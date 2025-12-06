@@ -1,6 +1,7 @@
 import { useState } from "react";
 import QuestionsFormatInfo from "./QuestionsFormatInfo";
 import { apiUrl } from "../../utils/urls";
+import { fetchWithCredentials } from "../../api/genericFetch";
 
 const QuestionsUpload = () => {
     const [file, setFile] = useState(null);
@@ -14,7 +15,7 @@ const QuestionsUpload = () => {
         formData.append("file", file);
 
         try {
-            const res = await fetch(`${apiUrl}/upload-questions/`, {
+            const res = await fetchWithCredentials(`${apiUrl}/upload-questions/`, {
                 method: "POST",
                 body: formData,
             });
@@ -29,7 +30,7 @@ const QuestionsUpload = () => {
 
     const handleFetchQuestions = async () => {
         try {
-            const res = await fetch(`${apiUrl}/questions/${selectedSet}/`);
+            const res = await fetchWithCredentials(`${apiUrl}/questions/${selectedSet}/`);
             if (!res.ok) throw new Error("Failed to fetch questions");
 
             const data = await res.json();

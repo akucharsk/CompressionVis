@@ -1,3 +1,6 @@
+import { getCookie } from "../utils/cookie";
+import axios from "axios";
+
 export async function genericFetch(url, fetchOptions = {}) {
   try {
     const resp = await fetch(url, fetchOptions);
@@ -19,4 +22,20 @@ export async function genericFetch(url, fetchOptions = {}) {
     error.status = error.status || 500;
     throw error;
   }
+}
+
+export async function fetchWithCredentials(url, fetchOptions = {}) {
+  const csrfToken = getCookie("csrftoken");
+  const method = fetchOptions.method || "GET";
+  const body = fetchOptions.body || {};
+  const headers = fetchOptions.headers || {};
+  headers["X-CSRFToken"] = csrfToken;
+  const response = await axios.request({
+    url,
+    method,
+    data: body,
+    headers,
+    withCredentials: true,
+  });
+  return response.data;
 }

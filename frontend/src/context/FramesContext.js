@@ -87,7 +87,7 @@ export const FramesProvider = ({ children }) => {
     const contextValue = {
         selectedIdx,
         setSelectedIdx,
-        frames: frames || [],
+        frames,
         framesQuery,
         sizeRange,
         sceneThreshold,

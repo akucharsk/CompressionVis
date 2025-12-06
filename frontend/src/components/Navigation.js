@@ -1,39 +1,26 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useState } from "react";
 import "../styles/pages/Navigation.css";
+import AccountAccess from "./AccountAccess";
+import GeneralAccess from "./GeneralAccess";
 
 const Navigation = () => {
     const [open, setOpen] = useState(false);
-    const location = useLocation();
-    const search = location.search;
+    const { pathname } = useLocation();
+    const hideGeneralAccess = [ "/login", "/admin", "/" ].includes(pathname);
 
     return (
-        <>
-            <button className="nav-dots-btn" onClick={() => setOpen(!open)}>⋮</button>
+        <div style={{ height: "100vh" }}>
+            <button className={`nav-dots-btn ${open ? "active" : ""}`} onClick={() => setOpen(!open)}>⋮</button>
             <div
                 className={`nav-overlay ${open ? "active" : ""}`}
                 onClick={() => setOpen(!open)}
             />
             <div className={`nav-container ${open ? "open" : ""}`}>
-                <NavLink to={`/compress${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
-                         onClick={() => setOpen(false)}
-                >
-                    MACROBLOCKS
-                </NavLink>
-                <NavLink to={`/comparison${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
-                         onClick={() => setOpen(false)}>
-                    COMPARISON
-                </NavLink>
-                <NavLink to={`/quiz${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
-                         onClick={() => setOpen(false)}>
-                    QUIZ
-                </NavLink>
-                <NavLink to="/" className="nav-tab"
-                         onClick={() => setOpen(false)}>
-                    ↩ BACK
-                </NavLink>
+                { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
+                <AccountAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
             </div>
-        </>
+        </div>
     );
 };
 

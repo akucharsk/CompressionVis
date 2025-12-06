@@ -141,15 +141,20 @@ const FrameBoxNavigation = () => {
     return (
         <div className="timeline-header">
             <div className="control-buttons">
-                <div style={{ display: "flex"}}>
-                    <button className="scroll-button i-frame" onClick={() => switchIFrame("prev")}>
-                        <p>Prev I-Frame</p>
-                    </button>
-                    <button className="scroll-button i-frame" onClick={() => switchIFrame("next")}>
-                        <p>Next I-Frame</p>
-                    </button>
+                <div className="scene-control">
+                    <label>Scene Threshold: </label>
+                    <input
+                        type="range" 
+                        min={0} 
+                        max={1} 
+                        step={0.01} 
+                        value={sceneThreshold} 
+                        onChange={(e) => setSceneThreshold(Number(e.target.value))} 
+                        className="scene-slider"
+                    />
+                    <label style={{ color: "var(--netflix-red)" }}>{sceneThreshold.toFixed(2)}</label>
                 </div>
-                <div style={{ display: "flex"}}>
+                <div style={{ display: "flex", gap: "0.5rem"}}>
                     <button 
                         className="scroll-button next-scene" 
                         onClick={() => switchScene("prev")}
@@ -165,20 +170,13 @@ const FrameBoxNavigation = () => {
                         <p>Next Scene</p>
                     </button>
                 </div>
-                <div className="scene-slider-container">
-                    <input
-                        type="range" 
-                        min={0} 
-                        max={1} 
-                        step={0.01} 
-                        value={sceneThreshold} 
-                        onChange={(e) => setSceneThreshold(Number(e.target.value))} 
-                        className="scene-slider"
-                    />
-                    <div style={{ margin: "auto", fontWeight: "bold", display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <span>Scene Threshold: </span>
-                        <span style={{ color: "var(--netflix-red)" }}>{sceneThreshold.toFixed(2)}</span>
-                    </div>
+                <div style={{ display: "flex", gap: "0.5rem"}}>
+                    <button className="scroll-button i-frame" onClick={() => switchIFrame("prev")}>
+                        <p>Prev I-Frame</p>
+                    </button>
+                    <button className="scroll-button i-frame" onClick={() => switchIFrame("next")}>
+                        <p>Next I-Frame</p>
+                    </button>
                 </div>
             </div>
 

@@ -3,17 +3,17 @@
 .nav-container {
     position: fixed;
     top: 0;
-    left: -460px;
-    width: 250px;
+    left: -15vw;
+    width: 15vw;
     height: 100vh;
     background-color: var(--background-first);
     border-right: 1px solid var(--border-color);
-    padding: 5em 1em ;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
     transition: left 0.3s ease;
     z-index: 999;
+    justify-content: space-between;
 }
 
 .nav-container.open {
@@ -22,6 +22,7 @@
 
 .nav-tab {
     display: flex;
+    gap: 0.5rem;
     align-items: center;
     background-color: var(--background-second);
     color: var(--font-color);
@@ -33,6 +34,8 @@
     border-radius: 10px;
     border: 2px solid transparent;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    margin: 0.5rem 1rem;
+    cursor: pointer;
 }
 
 .nav-tab:hover {
@@ -79,6 +82,7 @@
     transition: 0.3s ease;
 }
 
+
 .nav-toggle-btn:hover {
     background: #232323;
 }
@@ -104,8 +108,8 @@
 
 .nav-dots-btn {
     position: fixed;
-    top: 15px;
-    left: 15px;
+    top: 1rem;
+    left: 1rem;
     z-index: 1000;
     background: var(--background-second);
     border: 1px solid var(--border-color);
@@ -115,4 +119,8 @@
     cursor: pointer;
     transition: 0.2s;
     color: var(--font-color);
+}
+
+.nav-dots-btn.active {
+    left: calc(1rem + 15vw);
 }
