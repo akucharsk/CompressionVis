@@ -83,8 +83,8 @@ Once the containers are running, the application will be available at:
 Admin users cannot be created through the UI. To create one execute the following command (assuming the `backend` container is running under the name `django_app`):
 
 ```bash
-docker exec django_app python manage.py shell -c 'from django.contrib.auth.models import User
-User.objects.create_superuser(username="<username>", password="<password>")'
+docker exec django_app python manage.py shell -c "from django.contrib.auth.models import User
+User.objects.create_superuser(username='<username>', password='<password>')"
 ```
 
 substitute the `<username>` and `<password>` for what suits you. Note that the password will be hashed automatically so there is no need to do so manually.
