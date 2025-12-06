@@ -1,10 +1,11 @@
-import { useState } from "react";
-import axios from "axios";
+import { useCallback, useState } from "react";
+import { MdError } from "react-icons/md";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiUrl } from "../utils/urls";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../context/ErrorContext";
 import { fetchWithCredentials } from "../api/genericFetch";
+import "../styles/pages/Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -29,26 +30,40 @@ export default function Login() {
       navigate("/admin");
     },
     onError: (error) => {
+      console.log(error);
       showError(error);
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     loginMutation.mutate();
-  }
+  }, [loginMutation]);
+
+  const renderLoginError = useCallback(() => {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "var(--background-second)", color: "var(--font-color)", border: "1px solid var(--netflix-red)", borderRadius: "8px", padding: "1.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <MdError size={20} style={{ color: "var(--netflix-red)" }} />
+          <p style={{ color: "var(--netflix-red)", fontWeight: "bold" }}>{loginMutation?.error?.message || "Unexpected error occurred"}</p>
+        </div>
+        <p style={{ color: "var(--font-color)", fontWeight: "bold" }}>Reason: {loginMutation?.error?.response?.data?.message || "Unknown reason"}</p>
+      </div>
+    )
+  }, [loginMutation.error]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", margin: "auto", gap: "3rem", padding: "2rem", border: "1px solid var(--border-color)", borderRadius: "8px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+    <div className="main-panel">
+      <div className="header-panel">
         <img src={"/logo192.png"} alt="Logo" style={{ width: "4rem", height: "4rem" }} />
-        <span style={{ fontSize: "2rem", fontWeight: "bold", fontStyle: "italic", color: "#aaa" }}>ViCom</span>
+        <span>ViCom</span>
       </div>
       <h1>Administrator Login</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} style={{ backgroundColor: "var(--background-second)", color: "var(--font-color)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.5rem" }} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ backgroundColor: "var(--background-second)", color: "var(--font-color)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.5rem" }} />
-        <button type="submit" style={{ backgroundColor: "var(--netflix-red)", color: "var(--font-color)", border: "none", borderRadius: "8px", padding: "0.5rem", width: "100%", cursor: "pointer" }}>Login</button>
+      {loginMutation.error && renderLoginError()}
+      <form onSubmit={handleSubmit}>
+        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button type="submit">Login</button>
       </form>
     </div>
   )
