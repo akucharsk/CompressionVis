@@ -1,22 +1,61 @@
+import "../../styles/components/charts/ChartsOptions.css";
 import { useEffect, useState } from "react";
 
 const ChartsOptions = () => {
 
-    const [compressedVideos, setCompressedVideos] = useState([]);
+    // const [compressedVideos, setCompressedVideos] = useState([]);
 
-    useEffect(() => {
+    // useEffect(() => {
 
-    }, [compressedVideos])
+    // }, [compressedVideos])
+
+    const compressedVideos = [
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+    ];
 
     return (
-        <div className="charts-options-panel">
-            <div className="charts-scene-threshold">
-                {/* threshold */}
-            </div>
-            <div className="charts-compressions-select">
-                <div></div>
-            </div>
+        // <div className="chfds">
+        <div className="charts-options">
+            {/* <div className="charts-scene-threshold">
+                threshold
+            </div> */}
+            {compressedVideos.map((name, idx) => (
+                <div className="compression-in-select-panel" key={idx}>
+                    {name}
+                </div>
+            ))}
         </div>
+        // </div>
     )
 }
 

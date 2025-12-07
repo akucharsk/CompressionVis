@@ -27,9 +27,9 @@ const Charts = () => {
                 <div className="charts-rightside-bottom">
                     <h4>Choose compressions to compare</h4>
                     <h4>Video compressions rank (by average video value)</h4>
-                    <div className="charts-options">
-                        <ChartsOptions />
-                    </div>
+                    
+                    <ChartsOptions />
+                    
                     <div className="charts-compressions-rank">
                         <CompressionsRank />
                     </div>

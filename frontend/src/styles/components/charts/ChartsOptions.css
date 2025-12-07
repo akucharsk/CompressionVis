@@ -1,0 +1,30 @@
+@import "../../shared/Shared.css";
+
+/* .chfds {
+    height: 100%;
+    overflow: hidden;
+} */
+
+.charts-options {
+    min-height: 0;
+    padding: 10px 5px 0px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    direction: rtl;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--netflix-red) var(--background-second);   
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.charts-options-panel > * {
+    direction: ltr;
+}
+
+.compression-in-select-panel {
+    height: 100px;
+}
