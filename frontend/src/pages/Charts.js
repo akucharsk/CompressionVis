@@ -7,6 +7,21 @@ import SelectForVideo from '../components/charts/SelectForVideo';
 
 const Charts = () => {
 
+    const [colors, setColors] = useState({});
+    // const [visibleColors, setVisibleColors] = useState({}1);
+
+    const [compressedVideos, setCompressedVideos] = useState( [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9999,
+        0,
+    ]);
+
     const metrics= ["VMAF", "SSIM", "PSNR", "Size"];
 
     return (
@@ -29,7 +44,11 @@ const Charts = () => {
                 <div className="charts-rightside-bottom">
                     <h4>Choose compressions to compare</h4>
                     <h4>Video compressions rank (by average video value)</h4>
-                    <ChartsOptions />
+                    <ChartsOptions 
+                        colors={colors}
+                        setColors={setColors}
+                        compressedVideos={compressedVideos}
+                    />
                     <CompressionsRank />
                 </div>
             </div>

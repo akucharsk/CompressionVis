@@ -1,8 +1,10 @@
 import "../../styles/components/charts/CompressionsRank.css";
-
 import { useState } from "react";
+import { AlphaPicker, SketchPicker } from 'react-color';
 
 const CompressionsRank = () => {
+
+const [color, setColor] = useState("#aabbcc");
 
 const compressedVideos = [
         "kompresja 1",

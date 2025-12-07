@@ -46,15 +46,27 @@
     transition: transform 0.2s ease;
 }
 
+.compression-in-select-panel.active-tapped {
+    border-color: var(--netflix-red);
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.compression-in-select-panel.active-tapped .selection-option-left {
+    border-color: var(--netflix-red);
+}
+
 .compression-in-select-panel.disactive {
     background-color: var(--background-second);
     color: var(--border-color);
 }
 
+.compression-in-select-panel.active-tapped:hover,
 .compression-in-select-panel.active:hover {
     cursor: pointer;
     transform: scale(1.05);
 }
+
+
 
 .selection-option-left {
     display: flex;
@@ -66,4 +78,11 @@
     padding-right: 8px;
     border-right: 0.01rem solid var(--background-fourth);
     width: 70%
+}
+
+.metric-color-picker {
+    width: 10px;
+    height: 10px;
+    border: solid 2px #fff;
+    background-color: var(--netflix-red);
 }
