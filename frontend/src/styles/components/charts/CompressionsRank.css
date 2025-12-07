@@ -1,7 +1,18 @@
 @import '../../shared/Shared.css';
 
+.charts-compressions-rank {
+    padding: 10px 5px 0px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0 5px;
+}
+
 .rank-panel {
     padding: 0 0 20px 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .rank-panel select {
@@ -12,8 +23,11 @@
 
 .rank-sorting-container {
     width: 100%;
-    height: 100%;
+    flex: 1;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .rank-sorting-buttons {
@@ -51,8 +65,16 @@
 }
 
 .sorted-rank {
+    display: flex;
+    flex-direction: column;
+    direction: rtl;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--netflix-red) var(--background-second);  
     flex: 1;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    height: auto;
+    height: 100%;
 }

@@ -90,16 +90,4 @@ h4 {
     border-bottom: solid 0.05rem #fff;
 }
 
-.charts-compressions-rank {
-    padding: 10px 5px 0px;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-}
 
-
-
-.charts-compressions-rank {
-    min-height: 0;
-    padding: 0 5px;
-}

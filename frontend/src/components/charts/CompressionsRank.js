@@ -4,6 +4,41 @@ import { useState } from "react";
 
 const CompressionsRank = () => {
 
+const compressedVideos = [
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+        "kompresja 1",
+    ];
+
+
     const [orderOfSorting, setOrderOfSorting] = useState("Ascending");
 
     const handleAscendingButton = () => {
@@ -20,13 +55,10 @@ const CompressionsRank = () => {
 
 
     return (
-        <>
+        <div className="charts-compressions-rank">
             <div className="rank-panel">
                 <select></select>
                 <div className="rank-sorting-container">
-                    <div className="rank-sorting-buttons">
-                        
-                    </div>
                     <button 
                         onClick={handleAscendingButton}
                         className={`order-button ${orderOfSorting === "Ascending" ? "active" : ""}`}    
@@ -42,9 +74,13 @@ const CompressionsRank = () => {
                 </div>
             </div>
             <div className="sorted-rank">
-                
+                {compressedVideos.map((name, idx) => (
+                    <div className="compression-in-select-panel" key={idx}>
+                        {name}
+                    </div>
+                ))}
             </div>
-        </>
+        </div>
     )
 }
 
