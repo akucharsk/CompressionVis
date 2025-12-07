@@ -3,6 +3,8 @@ import os
 import sys
 import shutil
 import subprocess
+import json
+from mvextractor.videocap import VideoCap
 
 models.Video.objects.all().delete()
 
@@ -42,16 +44,22 @@ for file in os.listdir(os.path.join("static", "frames")):
             os.remove(path)
 
 folder = os.path.join("static", "macroblocks")
+if os.path.exists(folder):
+    for name in os.listdir(folder):
+        path = os.path.join(folder, name)
+        if name == ".gitkeep":
+            continue
 
-for name in os.listdir(folder):
-    path = os.path.join(folder, name)
-    if name == ".gitkeep":
-        continue
+        if os.path.isfile(path) or os.path.islink(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+else:
+    os.makedirs(folder)
 
-    if os.path.isfile(path) or os.path.islink(path):
-        os.remove(path)
-    elif os.path.isdir(path):
-        shutil.rmtree(path)
+diff_root = os.path.join("static", "differences")
+if not os.path.exists(diff_root):
+    os.makedirs(diff_root)
 
 for vid in reserved_filenames:
     name, ext = os.path.splitext(vid)
@@ -88,13 +96,65 @@ for vid in reserved_filenames:
 
             if not os.path.exists(res_dir_path):
                 os.makedirs(res_dir_path)
-                print(f"Generating frames {w}x{h} for: {vid}")
-                sys.stdout.flush()
                 subprocess.run([
                     "ffmpeg", "-i", original_path,
                     "-vf", f"scale={w}:{h}:flags=lanczos",
                     "-frame_pts", "true",
                     f"{res_dir_path}/frame_%d.png"
                 ])
+
+        diff_dir = os.path.join("static", "differences", name)
+        if not os.path.exists(diff_dir):
+            os.makedirs(diff_dir)
+
+            temp_output = os.path.join("static", "original_videos", f"{name}_temp.mp4")
+
+            ffmpeg_command = [
+                "ffmpeg",
+                "-y",
+                "-i", original_path,
+                "-c:v", "libx264",
+                "-preset", "veryslow",
+                "-bf", "0",
+                "-g", "999999",
+                "-crf", "0",
+                "-keyint_min", "999999",
+                "-x264opts", "no-scenecut",
+                temp_output
+            ]
+
+            process = subprocess.Popen(ffmpeg_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return_code = process.wait()
+
+            if return_code == 0:
+                cap = VideoCap()
+                cap.open(temp_output)
+
+                frame_idx = 0
+                while True:
+                    ret, frame, motion_vectors, frame_type = cap.read()
+                    if not ret:
+                        break
+
+                    vectors_data = []
+                    for vector in motion_vectors:
+                        vectors_data.append({
+                            "source": int(vector[0]),
+                            "width": int(vector[1]),
+                            "height": int(vector[2]),
+                            "src_x": int(vector[3]),
+                            "src_y": int(vector[4]),
+                            "dst_x": int(vector[5]),
+                            "dst_y": int(vector[6]),
+                        })
+
+                    json_filename = os.path.join(diff_dir, f"frame_{frame_idx:03d}.json")
+                    with open(json_filename, "w") as f:
+                        json.dump(vectors_data, f)
+
+                    frame_idx += 1
+
+                if os.path.exists(temp_output):
+                    os.remove(temp_output)
 
 exit()

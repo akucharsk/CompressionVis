@@ -1,6 +1,7 @@
 import base64
 
 import cv2
+import json
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,10 +12,8 @@ from django.conf import settings
 from django.db import IntegrityError
 
 import os
-import sys
 import subprocess
 import shutil
-import sys
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from . import models
 from . import serializers
@@ -594,9 +593,11 @@ class DifferenceFrameView(APIView):
 
         filename = video.filename
         if filename.endswith(".y4m"):
-            folder_name = filename[:-4] + "_1280x720"
+            base_name = filename[:-4]
+            folder_name = base_name + "_1280x720"
         else:
-            folder_name = os.path.splitext(filename)[0] + "_1280x720"
+            base_name = os.path.splitext(filename)[0]
+            folder_name = base_name + "_1280x720"
 
         current_frame_path = finders.find(os.path.join("frames", folder_name, f"frame_{frame_number}.png"))
         if not current_frame_path:
@@ -611,9 +612,7 @@ class DifferenceFrameView(APIView):
                     return base64.b64encode(image_file.read()).decode('utf-8')
 
         original_b64 = encode_image(current_frame_path, is_array=False)
-
         diff_prev_b64 = None
-
         diff_third_b64 = None
 
         if frame_number > 0:
@@ -625,9 +624,49 @@ class DifferenceFrameView(APIView):
 
                 if img_curr is not None and img_prev is not None:
                     diff = cv2.absdiff(img_curr, img_prev)
-
                     diff_prev_b64 = encode_image(diff, is_array=True)
-                    diff_third_b64 = diff_prev_b64
+
+                    json_path = os.path.join("static", "differences", base_name, f"frame_{frame_number:03d}.json")
+
+                    if not os.path.exists(json_path):
+                        return Response({"message": f"JSON file not found: {json_path}"},
+                                        status=status.HTTP_404_NOT_FOUND)
+
+                    with open(json_path, 'r') as f:
+                        vectors = json.load(f)
+
+                    final_diff = diff.copy()
+                    loaded_refs = {-1: img_prev}
+
+                    for v in vectors:
+                        source_offset = v['source']
+                        if source_offset == 0:
+                            continue
+
+                        if source_offset not in loaded_refs:
+                            ref_idx = frame_number + source_offset
+                            ref_path = finders.find(os.path.join("frames", folder_name, f"frame_{ref_idx}.png"))
+                            if ref_path:
+                                loaded_refs[source_offset] = cv2.imread(ref_path)
+                            else:
+                                loaded_refs[source_offset] = None
+
+                        img_ref = loaded_refs[source_offset]
+                        if img_ref is None:
+                            continue
+
+                        w, h = v['width'], v['height']
+                        dst_x, dst_y = v['dst_x'], v['dst_y']
+                        src_x, src_y = v['src_x'], v['src_y']
+
+                        if (dst_y + h <= img_curr.shape[0] and dst_x + w <= img_curr.shape[1] and
+                                src_y + h <= img_ref.shape[0] and src_x + w <= img_ref.shape[1]):
+                            block_curr = img_curr[dst_y: dst_y + h, dst_x: dst_x + w]
+                            block_ref = img_ref[src_y: src_y + h, src_x: src_x + w]
+                            block_diff = cv2.absdiff(block_curr, block_ref)
+                            final_diff[dst_y: dst_y + h, dst_x: dst_x + w] = block_diff
+
+                    diff_third_b64 = encode_image(final_diff, is_array=True)
 
         return Response({
             "original_frame": original_b64,

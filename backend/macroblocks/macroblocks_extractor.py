@@ -158,8 +158,8 @@ class MacroblocksExtractor:
                     "y": base_y,
                     "width": 16,
                     "height": 16,
-                    "src_x": base_x,
-                    "src_y": base_y,
+                    "src_x": float(base_x),
+                    "src_y": float(base_y),
                     "type": block_type,
                     "ftype": symbol,
                     "source": 0,
@@ -177,13 +177,21 @@ class MacroblocksExtractor:
 
                 for mvs in sub_dict.values():
                     mv1 = mvs[0]
+
+                    dst_x_val = mv1[5]
+                    dst_y_val = mv1[6]
+                    scale = mv1[9] if mv1[9] != 0 else 1
+
+                    src_x_calc = dst_x_val + (mv1[7] / scale)
+                    src_y_calc = dst_y_val + (mv1[8] / scale)
+
                     block_data.update({
-                        "x": int(mv1[5]),
-                        "y": int(mv1[6]),
+                        "x": int(dst_x_val),
+                        "y": int(dst_y_val),
                         "width": int(mv1[1]),
                         "height": int(mv1[2]),
-                        "src_x": int(mv1[3]),
-                        "src_y": int(mv1[4]),
+                        "src_x": src_x_calc,
+                        "src_y": src_y_calc,
                         "source": int(mv1[0]),
                         "more": len(mvs) > 1,
                         "src_x2": None,
@@ -192,9 +200,13 @@ class MacroblocksExtractor:
                     })
                     if len(mvs) > 1:
                         mv2 = mvs[1]
+                        scale2 = mv2[9] if mv2[9] != 0 else 1
+                        src_x2_calc = mv2[5] + (mv2[7] / scale2)
+                        src_y2_calc = mv2[6] + (mv2[8] / scale2)
+
                         block_data.update({
-                            "src_x2": int(mv2[3]),
-                            "src_y2": int(mv2[4]),
+                            "src_x2": src_x2_calc,
+                            "src_y2": src_y2_calc,
                             "source2": int(mv2[0])
                         })
 
