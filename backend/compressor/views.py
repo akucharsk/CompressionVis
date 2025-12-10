@@ -549,7 +549,6 @@ class VideoParameters(APIView):
         return Response(camelize(params), status=status.HTTP_200_OK)
 
 class AllCompressed(APIView):
-    permission_classes = [IsSuperuser]
     def get(self, request):
         videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
         return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
@@ -607,7 +606,6 @@ class UploadQuestionsView(APIView):
         return FileResponse(open(zip_path, "rb"), filename="questions.zip")
 
 class GetQuestionsView(APIView):
-    permission_classes = [IsSuperuser]
     def get(self, request, number, quiz_dir="QUIZ_DIR"):
         file_path = os.path.join(quiz_dir, f"questions{number}.json")
 
