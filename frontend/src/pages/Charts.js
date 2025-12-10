@@ -7,7 +7,7 @@ import SelectForVideo from '../components/charts/SelectForVideo';
 
 const Charts = () => {
 
-    const [colors, setColors] = useState({});
+    const [compressionMetricState, setCompressionMetricState] = useState({});
     // const [visibleColors, setVisibleColors] = useState({}1);
 
     const [compressedVideos, setCompressedVideos] = useState( [
@@ -18,7 +18,7 @@ const Charts = () => {
         5,
         6,
         8,
-        9999,
+        9,
         0,
     ]);
 
@@ -27,9 +27,10 @@ const Charts = () => {
     return (
         <div className="charts-container">
             <div className="charts-leftside">
-                {metrics.map((metricType) => (
+                {metrics.map((metricType, idx) => (
                         <MetricChart 
                             metricType={metricType}
+                            idx={idx}
                         />      
                     )
                 )}
@@ -45,8 +46,8 @@ const Charts = () => {
                     <h4>Choose compressions to compare</h4>
                     <h4>Video compressions rank (by average video value)</h4>
                     <ChartsOptions 
-                        colors={colors}
-                        setColors={setColors}
+                        compressionMetricState={compressionMetricState}
+                        setCompressionMetricState={setCompressionMetricState}
                         compressedVideos={compressedVideos}
                     />
                     <CompressionsRank />

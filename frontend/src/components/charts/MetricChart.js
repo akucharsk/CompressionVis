@@ -1,10 +1,10 @@
-import Menu from "@mui/material/Menu";
+// import Menu from "@mui/material/Menu";
 import "../../styles/components/charts/MetricChart.css";
-import MenuItem from "@mui/material/MenuItem";
+// import MenuItem from "@mui/material/MenuItem";
 import { useState } from "react";
 import { SketchPicker } from "react-color";
 
-const MetricChart = ({ metricType }) => {
+const MetricChart = ({ metricType, idx }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleClick = (event) => {
@@ -15,7 +15,7 @@ const MetricChart = ({ metricType }) => {
     };
 
     return (
-        <div className="metric-chart-block">
+        <div className="metric-chart-block" key={idx}>
             <h2>{metricType}</h2>
             <div className="metric-chart">
             {/*    no co jest

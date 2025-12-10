@@ -77,7 +77,8 @@
     align-items: center;
     padding-right: 8px;
     border-right: 0.01rem solid var(--background-fourth);
-    width: 70%
+    width: 70%;
+    position:relative; 
 }
 
 .metric-color-picker {
@@ -85,4 +86,9 @@
     height: 10px;
     border: solid 2px #fff;
     background-color: var(--netflix-red);
+    z-index: 1;
+}
+
+.sketch-picker label {
+    color: #ccc !important;
 }
