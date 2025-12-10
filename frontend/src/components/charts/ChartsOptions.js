@@ -10,6 +10,9 @@ import RGBPicker from "./RGBPicker";
 
 const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, compressedVideos }) => {
 
+    const TAPPED_MAX = 5;
+    const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
+
     const changeColor = (color) => {
         setCompressionMetricState(prev => {
             const updated = {...prev};
@@ -52,38 +55,54 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
             });
 
             return updated;
-        })        
+        });
+
     }, [compressedVideos]);
 
-    console.log(compressionMetricState)
+    useEffect(() => {
+        console.log(compressionMetricState[1])
+        // console.log(compressionMetricState[1]?.isTapped)
+        const tapped = Object.keys(compressionMetricState).filter(item => compressionMetricState[item]?.isTapped).length
+            
+        setLeftToTap(TAPPED_MAX - tapped);
+        console.log(tapped);
+    }, [compressionMetricState])
+
+    console.log(compressionMetricState);
 
     return (
         <div className="charts-options">
-            {/* <div className="charts-scene-threshold">
-                threshold
-            </div> */}
-            {compressedVideos.map((compressionId, idx) => (
-                <div 
-                    className={`compression-in-select-panel ${compressionId === 0 ? "disactive" : compressionMetricState[compressionId]?.isTapped === true ? "active-tapped" : "active"}`} 
-                    key={idx}
-                    onClick={(e) => toggleTap(e, compressionId)}
-                >
-                    <div className="selection-option-left">
-                        <div>Compression {compressionId}</div>
+            {compressedVideos.map((compressionId, idx) => {
+                const isTapped = compressionMetricState[compressionId]?.isTapped;
+                const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
+
+                return (
+
+                    <div 
+                        className={`compression-in-select-panel ${isTapped === true ? "active-tapped" : isInactive ? "inactive" : "active"}`} 
+                        key={idx}
+                        onClick={(e) => 
+                            toggleTap(e, compressionId)
+                        }
+                    >
+                        <div className="selection-option-left">
+                            <div>Compression {compressionId}</div>
+                        </div>
+                        <div className="selection-option-right">
+                            {compressionId === 0 ? (
+                                <Spinner size={16}/>
+                            ) : (
+                                <RGBPicker 
+                                    compressionMetricState={compressionMetricState}
+                                    setCompressionMetricState={setCompressionMetricState}
+                                    compressionId={compressionId}
+                                    isActive={!isInactive}
+                                />
+                            )}
+                        </div>
                     </div>
-                    <div className="selection-option-right">
-                        {compressionId === 0 ? (
-                            <Spinner size={16}/>
-                        ) : (
-                            <RGBPicker 
-                                compressionMetricState={compressionMetricState}
-                                setCompressionMetricState={setCompressionMetricState}
-                                compressionId={compressionId}
-                            />
-                        )}
-                    </div>
-                </div>
-            ))}
+                )    
+            })}
         </div>
     )
 }

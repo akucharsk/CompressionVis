@@ -1,24 +1,10 @@
 import "../../styles/components/charts/ChartsOptions.css";
-
-// import Menu from "@mui/material/Menu";
-// import Popover from "@mui/material/Popover";
 import { useState } from "react";
 import { SketchPicker } from "react-color";
 import * as Popover from "@radix-ui/react-popover";
 
 
-const RGBPicker = ({ compressionMetricState, setCompressionMetricState, compressionId }) => {
-
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [chosenVideo, setChosenVideo] = useState(null);
-    const open = Boolean(anchorEl);
-    
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
+const RGBPicker = ({ compressionMetricState, setCompressionMetricState, compressionId, isActive }) => {
 
     const sketchpickerDarkStyling = {
         default: {
@@ -34,12 +20,17 @@ const RGBPicker = ({ compressionMetricState, setCompressionMetricState, compress
         }
     }
 
+    const [chosenVideo, setChosenVideo] = useState(null);
+
+
     return (
         <Popover.Root>
             <Popover.Trigger asChild>
                 <div 
                     className={`metric-color-picker`} 
-                    style={{backgroundColor: compressionMetricState[compressionId]?.color}} 
+                    style={{backgroundColor: isActive ? compressionMetricState[compressionId]?.color : "#444",
+                        borderColor: isActive ? "#fff" : "#626262"
+                    }} 
                     onClick={(e) => {
                         e.stopPropagation();
                         setChosenVideo(compressionId);

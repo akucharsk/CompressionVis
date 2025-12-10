@@ -3,6 +3,7 @@ import "../../styles/components/charts/MetricChart.css";
 // import MenuItem from "@mui/material/MenuItem";
 import { useState } from "react";
 import { SketchPicker } from "react-color";
+import { BarChart } from '@mui/x-charts/BarChart';
 
 const MetricChart = ({ metricType, idx }) => {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -18,23 +19,20 @@ const MetricChart = ({ metricType, idx }) => {
         <div className="metric-chart-block" key={idx}>
             <h2>{metricType}</h2>
             <div className="metric-chart">
-            {/*    no co jest
-            <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={open}
-                // onClose={handleClose}
-                slotProps={{
-                list: {
-                    'aria-labelledby': 'basic-button',
-                },
-                }}
-            >
-                {/* <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
-                <MenuItem onClick={handleClose}>Logout</MenuItem> */}
-                {/* <MenuItem ><SketchPicker /></MenuItem>
-            </Menu> */}
+            <BarChart
+                xAxis={[
+                    {
+                    id: 'barCategories',
+                    data: ['bar A', 'bar B', 'bar C'],
+                    },
+                ]}
+                series={[
+                    {
+                    data: [2, 5, 3],
+                    },
+                ]}
+                height={300}
+            />
             </div>
         </div>
     )

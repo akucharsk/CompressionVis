@@ -1,9 +1,5 @@
 @import "../../shared/Shared.css";
 
-/* .chfds {
-    height: 100%;
-    overflow: hidden;
-} */
 
 .charts-options {
     min-height: 0;
@@ -21,10 +17,6 @@
     border-radius: 8px;
     margin-bottom: 10px;
 }
-
-/* .charts-options-panel > * {
-    direction: ltr;
-} */
 
 .compression-in-select-panel {
     direction: ltr;
@@ -55,9 +47,10 @@
     border-color: var(--netflix-red);
 }
 
-.compression-in-select-panel.disactive {
+.compression-in-select-panel.inactive {
     background-color: var(--background-second);
     color: var(--border-color);
+    pointer-events: none;
 }
 
 .compression-in-select-panel.active-tapped:hover,
@@ -65,8 +58,6 @@
     cursor: pointer;
     transform: scale(1.05);
 }
-
-
 
 .selection-option-left {
     display: flex;

@@ -36,6 +36,7 @@ const Charts = () => {
                 )}
             </div>
             <div className="charts-rightside">
+                {/* threshold???? */}
                 <div className="charts-rightside-top">
                     <SelectForVideo />
                     <button className="refresh-compressions-button">
