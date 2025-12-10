@@ -27,6 +27,8 @@ import json
 import zipfile
 from io import BytesIO
 
+from .permissions import IsSuperuser
+
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
 class VideoView(APIView):
@@ -64,6 +66,13 @@ class VideoView(APIView):
         return response
 
     def delete(self, request, video_id):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return Response({"message": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_superuser:
+            return Response({"message": "Superuser cannot access questions"}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             video = models.Video.objects.get(id=video_id)
         except models.Video.DoesNotExist:
@@ -74,11 +83,15 @@ class VideoView(APIView):
         frames_dirname = video.filename[:dot_idx]
         video_path = finders.find(os.path.join("compressed_videos", video.filename))
         frames_path = finders.find(os.path.join("frames", frames_dirname))
+        macroblocks_path = finders.find(os.path.join("macroblocks", frames_dirname))
 
         os.remove(video_path)
-        shutil.rmtree(frames_path)
-        models.Video.objects.filter(id=video_id).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if frames_path:
+            shutil.rmtree(frames_path)
+        if macroblocks_path:
+            shutil.rmtree(macroblocks_path)
+        video.delete()
+        return Response({"message": "OK", "videoId": video_id}, status=status.HTTP_200_OK)
 
 class BaseCompressionView(APIView):
     def get_original_video(self, video_id):
@@ -162,7 +175,7 @@ class CompressionView(BaseCompressionView):
         video, created = self.get_or_create_video(serializer)
 
         if not created:
-            return Response({ "message": "processing"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
 
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
@@ -254,7 +267,7 @@ class SizeCompressionView(BaseCompressionView):
         video, created = self.get_or_create_video(serializer)
 
         if not created:
-            return Response({ "message": "processing"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
         output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
         os.makedirs(compressed_dir, exist_ok=True)
@@ -557,8 +570,10 @@ class FrameSizeView(APIView):
 # QUIZ_DIR = "/STATIC/QUIZ"
 
 class UploadQuestionsView(APIView):
+    permission_classes = [IsSuperuser]
 
     def post(self, request, quiz_dir="QUIZ_DIR"):
+
         if "file" not in request.FILES:
             return Response({"message": "Brak pliku ZIP"}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -17,8 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from .auth_views import LoginView, WhoAmIView, LogoutView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('compressor.urls')),
     path('macroblocks/', include('macroblocks.urls')),
+    path('login/', LoginView.as_view(), name='login'),
+    path('whoami/', WhoAmIView.as_view(), name='whoami'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]
