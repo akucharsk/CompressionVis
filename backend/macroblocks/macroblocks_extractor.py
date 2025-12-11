@@ -7,7 +7,6 @@ import json
 import queue
 
 import fcntl
-import numpy as np
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from mvextractor.videocap import VideoCap
@@ -39,7 +38,7 @@ class MacroblocksExtractor:
     def _ffmpeg_stream_and_parse(self, video_path: str, output_queue: queue.Queue):
         start_marker = re.compile(r'New frame, type:')
         end_marker = re.compile(r'(nal_unit_type:)|(Decoder thread received EOF packet)|(Decoder returned EOF)')
-        valid_line = re.compile(r'^\[h264\s@[^\]]*\]\s+\d+\s+\S')
+        stream_mapping_marker = re.compile(r'Stream mapping:')
 
         proc = None
         try:
@@ -59,31 +58,39 @@ class MacroblocksExtractor:
 
             frame_buffer = []
             frame_index = 0
+            decoding_started = False
+            collecting_frame = False
 
             for line in proc.stderr:
+
+                if not decoding_started:
+                    if stream_mapping_marker.search(line):
+                        decoding_started = True
+                    continue
+
                 if start_marker.search(line):
                     if frame_buffer:
                         grid = self._parse_blocks_from_lines(frame_buffer)
                         output_queue.put((frame_index, grid))
                         frame_index += 1
-                    frame_buffer = [line]
+
+                    frame_buffer = []
+                    collecting_frame = True
                     continue
 
-                if frame_buffer:
-                    if valid_line.match(line):
-                        frame_buffer.append(line)
+                if collecting_frame:
+                    frame_buffer.append(line)
 
                     if end_marker.search(line):
-                        frame_buffer.append(line)
                         grid = self._parse_blocks_from_lines(frame_buffer)
                         output_queue.put((frame_index, grid))
                         frame_index += 1
                         frame_buffer = []
+                        collecting_frame = False
 
-            if frame_buffer:
-                grid = self._parse_blocks_from_lines(frame_buffer)
-                output_queue.put((frame_index, grid))
-                frame_index += 1
+                if frame_buffer:
+                    grid = self._parse_blocks_from_lines(frame_buffer)
+                    output_queue.put((frame_index, grid))
 
             if proc:
                 proc.wait()
@@ -104,33 +111,31 @@ class MacroblocksExtractor:
 
     def _parse_blocks_from_lines(self, lines):
         symbols_result = []
+        expected_row = 0
 
         for line in lines:
-            if '[h264 @' not in line:
+            match = re.search(fr"{expected_row}\s+(?=[a-zA-Z<>+=|\-?])", line)
+
+            if not match:
                 continue
 
-            parts = line.split(']', 1)
-            if len(parts) < 2:
+            content_part = line[match.end():]
+
+            if re.search(r'[^\sa-zA-Z<>+=|\-?]', content_part):
                 continue
 
-            tokens = parts[1].strip().split()
+            found_symbols = re.findall(r'[a-zA-Z<>+=|\-?]{1,3}', content_part)
 
-            if not tokens or not tokens[0].isdigit():
-                continue
-
-            if len(tokens) > 1 and tokens[1].isdigit():
-                continue
-
-            symbols = tokens[1:]
-            if symbols:
-                symbols_result.append(symbols)
+            if found_symbols:
+                symbols_result.append(found_symbols)
+                expected_row += 16
 
         return symbols_result
 
+    # https://github.com/FFmpeg/FFmpeg/blob/master/libavcodec/mpegutils.c#L102
     def _get_block_type_from_symbol(self, symbol):
         type_mapping = {
             'S': 'skip',
-            's': 'skip',
             'I': 'intra',
             'i': 'intra',
             'D': 'direct',
