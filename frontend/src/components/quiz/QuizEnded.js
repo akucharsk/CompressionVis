@@ -1,9 +1,13 @@
 import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuiz } from "../../context/QuizContext";
 
-const QuizEnded = ({ questions, setUserAnswers, userAnswers }) => {
+const QuizEnded = () => {
     const { quizId } = useParams();
     const navigate = useNavigate();
+    const { userAnswers, setUserAnswers, quizQuery } = useQuiz();
+    const { data } = quizQuery;
+    const questions = useMemo(() => data?.quiz?.questions || [], [data]);
     const points = useMemo(() => {
         const result = { current: 0, total: 0 };
         questions.forEach((question, index) => {
@@ -30,8 +34,7 @@ const QuizEnded = ({ questions, setUserAnswers, userAnswers }) => {
                 </div>
                 <div
                     className="quiz-see-results-button"
-                    onClick={() => {}}
-                    disabled
+                    onClick={() => navigate(`/quiz/${quizId}/results`)}
                 >
                     See results
                 </div>

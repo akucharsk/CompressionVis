@@ -91,6 +91,18 @@
   color: #e50914;
 }
 
+.quiz-option-incorrect {
+  background-color: #8d1c1c;
+}
+
+.quiz-option-correct {
+  background-color: #1c8d1c;
+}
+
+.quiz-option-incorrect input:checked + p, .quiz-option-correct input:checked + p {
+  color: white;
+}
+
 .navigation-box {
   display: flex;
   justify-content: space-between;

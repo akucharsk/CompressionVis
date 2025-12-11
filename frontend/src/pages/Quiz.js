@@ -6,16 +6,16 @@ import QuizSidebar from "../components/quiz/QuizSidebar";
 import "../styles/pages/Quiz.css";
 import Spinner from "../components/Spinner";
 import { useParams } from "react-router-dom";
-import { useQuiz } from "../hooks/quizes";
+import { useQuiz } from "../context/QuizContext";
 
 const Quiz = () => {
     const { quizId } = useParams();
-    const { data, isPending, error } = useQuiz(quizId);
+    const { quizQuery } = useQuiz();
+    const { data, isPending, error } = quizQuery;
     const questions = useMemo(() => data?.quiz?.questions || [], [data]);
-    console.log({ questions, data });
+    const { userAnswers, setUserAnswers } = useQuiz();
     const [step, setStep] = useState("question"); 
     const [selectedQuestion, setSelectedQuestion] = useState(0);
-    const [userAnswers, setUserAnswers] = useState(Object.fromEntries(questions.map((_, index) => [index, []])))
 
     const endQuiz = () => {
         setStep("end")
@@ -35,8 +35,6 @@ const Quiz = () => {
                     options={questions[selectedQuestion].answers}
                     setSelectedQuestion={setSelectedQuestion}
                     selectedAnswer={userAnswers[selectedQuestion]}
-                    userAnswers={userAnswers}
-                    setUserAnswers={setUserAnswers}
                     endQuiz={endQuiz}
                 />
                 <QuizSidebar

@@ -12,12 +12,3 @@ export function useQuizes() {
     refetchInterval: defaultRefetchIntervalPolicy,
   })
 }
-
-export function useQuiz(quizId) {
-  return useQuery({
-    queryKey: ["quiz", quizId],
-    queryFn: async () => await genericFetch(`${apiUrl}/quiz/${quizId}`),
-    retry: defaultRetryPolicy,
-    refetchInterval: defaultRefetchIntervalPolicy,
-  })
-}

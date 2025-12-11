@@ -1,14 +1,15 @@
 import React, { useMemo, useCallback } from "react";
 import "../../styles/components/QuizMenu.css"
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuiz } from "../../hooks/quizes";
+import { useQuiz } from "../../context/QuizContext";
 import Spinner from "../Spinner";
 import { useError } from "../../context/ErrorContext";
 const QuizMenu = () => {
     const navigate = useNavigate();
     const { quizId } = useParams();
     const showError = useError();
-    const { data, isPending, error } = useQuiz(quizId);
+    const { quizQuery } = useQuiz();
+    const { data, isPending, error } = quizQuery;
     const quiz = useMemo(() => data?.quiz || {}, [data]);
     const startQuiz = useCallback(() => {
         navigate(`/quiz/${quizId}`);

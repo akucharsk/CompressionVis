@@ -1,3 +1,7 @@
+import { useQuiz } from "../../context/QuizContext";
+import { useCallback, useMemo } from "react";
+import QuizNavigation from "./QuizNavigation";
+
 const QuizQuestion = ({
   allQuestionsNumber,
   questionNumber,
@@ -5,11 +9,11 @@ const QuizQuestion = ({
   type,
   options,
   setSelectedQuestion,
-  userAnswers,
-  setUserAnswers,
-  endQuiz
+  endQuiz,
+  showResults = false
 }) => {
   const questionIndex = questionNumber - 1;
+  const { userAnswers, setUserAnswers } = useQuiz();
 
   const handleCheckboxChange = (answerIndex) => (e) => {
     const checked = e.target.checked;
@@ -30,8 +34,17 @@ const QuizQuestion = ({
     })
   }
 
+  const getOptionClass = useCallback((index) => {
+    if (!showResults) return "";
+    const providedAnswers = userAnswers[questionIndex] || [];
+    console.log({ providedAnswers, index, question, questionIndex });
+    if (providedAnswers.includes(index) && !question.answers[index].is_correct) return "quiz-option-incorrect";
+    if (question.answers[index].is_correct) return "quiz-option-correct";
+    return "";
+  }, [userAnswers, questionIndex, question, showResults]);
+  console.log({ userAnswers });
+
   return (
-    <>
     <div className="quiz-question-main-view">
         <div className="question-box">
             <h2>
@@ -41,45 +54,28 @@ const QuizQuestion = ({
 
         <div className="options-box">
             {options.map((option, index) => (
-            <div className="quiz-option" key={index}>
-                <input
-                  type={type}
-                  className={`${type}-option`}
-                  onChange={handleCheckboxChange(index)}
-                  checked={userAnswers[questionIndex]?.includes(index) || false}
-                />
-                <p>{option.text}</p>
-            </div>
+              <div className={`quiz-option ${getOptionClass(index)}`} key={index}>
+                  <input
+                    type={type}
+                    className={`${type}-option`}
+                    onChange={handleCheckboxChange(index)}
+                    checked={userAnswers[questionIndex]?.includes(index) || false}
+                    disabled={showResults}
+                  />
+                  <p>{option.text}</p>
+              </div>
             ))}
         </div>
 
-        <div className="navigation-box">
-            {questionNumber > 1 && (
-            <div
-                className="quiz-back-button"
-                onClick={() => setSelectedQuestion(questionNumber - 2)}
-            >
-                Back
-            </div>
-            )}
-            {questionNumber === allQuestionsNumber ? (
-            <div
-                className="quiz-finish-button"
-                onClick={() => endQuiz()}
-            >
-                Complete
-            </div>
-            ) : (
-            <div
-                className="quiz-finish-button"
-                onClick={() => setSelectedQuestion(questionNumber)}
-            >
-                Next
-            </div>
-            )}
-        </div>
+        { !showResults && (
+          <QuizNavigation
+            questionNumber={questionNumber}
+            allQuestionsNumber={allQuestionsNumber}
+            setSelectedQuestion={setSelectedQuestion}
+            endQuiz={endQuiz}
+          />
+        )}
     </div>
-    </>
   );
 };
 
