@@ -5,6 +5,7 @@ import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 import Login from './pages/Login';
+import QuizList from './pages/QuizList';
 import Admin from "./pages/Admin";
 import Protected from "./pages/Protected";
 import { SettingsProvider } from './context/SettingsContext';
@@ -18,6 +19,7 @@ import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
 import {queryClient} from "./utils/queryClient";
 import './styles/App.css'
+import QuizMenu from './components/quiz/QuizMenu';
 
 function Layout() {
   const location = useLocation();
@@ -40,7 +42,9 @@ function Layout() {
                               <Route path="/" element={<Menu />} />
                               <Route path="/compress" element={<FramesDistribution />} />
                               <Route path="/comparison" element={<Comparison />} />
-                              <Route path="/quiz" element={<Quiz />} />
+                              <Route path="/quiz/:quizId/menu" element={<QuizMenu />} />
+                              <Route path="/quiz/:quizId" element={<Quiz />} />
+                              <Route path="/quiz" element={<QuizList />} />
                               <Route path="/admin" element={<Protected><Admin /></Protected>} />
                               <Route path="/login" element={<Login />} />
                             </Routes>

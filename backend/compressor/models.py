@@ -61,3 +61,13 @@ class FrameMetadata(models.Model):
 
     class Meta:
         unique_together = ('video', 'frame_number')
+
+class Quiz(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    question = models.TextField()
+    answers = models.JSONField()
+    correct_answers = models.JSONField()

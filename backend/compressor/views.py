@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
 
+import uuid
 import os
 import sys
 import subprocess
@@ -571,6 +572,16 @@ class FrameSizeView(APIView):
 
 class UploadQuestionsView(APIView):
     permission_classes = [IsSuperuser]
+    
+    def _get_json_entries(self, quiz_dir):
+        result = []
+        for file in os.listdir(quiz_dir):
+            if file.endswith(".json"):
+                with open(os.path.join(quiz_dir, file), "r", encoding="utf-8") as f:
+                    result.append(json.load(f))
+            elif os.path.isdir(os.path.join(quiz_dir, file)):
+                result.extend(self._get_json_entries(os.path.join(quiz_dir, file)))
+        return result
 
     def post(self, request, quiz_dir="QUIZ_DIR"):
 
@@ -595,8 +606,30 @@ class UploadQuestionsView(APIView):
                 z.extractall(quiz_dir)
         except zipfile.BadZipFile:
             return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        quizes_json = self._get_json_entries(quiz_dir)
 
-        return Response({"message": "OK – pliki nadpisane"}, status=status.HTTP_201_CREATED)
+        for quiz in quizes_json:
+            quiz_record = models.Quiz.objects.create(
+                name=quiz.get("name", f"Unknown Quiz {uuid.uuid4()}"),
+                description=quiz.get("description", "Unknown Quiz Description")
+            )
+            questions = []
+            for question in quiz.get("questions", []):
+                answers = question.get("answers", [])
+                correct_answers = [answer for answer in answers if answer.get("is_correct", False)]
+                questions.append(
+                    models.QuizQuestion(
+                        quiz=quiz_record,
+                        question=question.get("question", f"Unknown Question {uuid.uuid4()}"),
+                        answers=answers,
+                        correct_answers=correct_answers
+                    )
+                )
+            models.QuizQuestion.objects.bulk_create(questions)
+        shutil.rmtree(quiz_dir)
+        return Response({"message": "quizes uploaded successfully"}, status=status.HTTP_201_CREATED)
+
     def get(self, request, quiz_dir="QUIZ_DIR"):
         zip_path = os.path.join(quiz_dir, "source.zip")
 
@@ -604,15 +637,22 @@ class UploadQuestionsView(APIView):
             return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(zip_path, "rb"), filename="questions.zip")
-
-class GetQuestionsView(APIView):
-    def get(self, request, number, quiz_dir="QUIZ_DIR"):
-        file_path = os.path.join(quiz_dir, f"questions{number}.json")
-
-        if not os.path.exists(file_path):
-            return Response({"message": "Plik nie istnieje"}, status=status.HTTP_404_NOT_FOUND)
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        return Response(data, status=status.HTTP_200_OK)
+    
+class QuizesView(APIView):
+    
+    def get(self, request):
+        quizes = models.Quiz.objects.all()
+        data = serializers.QuizSerializer(instance=quizes, many=True).data
+        return Response({"quizes": data}, status=status.HTTP_200_OK)
+    
+class QuizView(APIView):
+    def get(self, request, quiz_id):
+        try:
+            quiz = models.Quiz.objects.get(id=quiz_id)
+        except models.Quiz.DoesNotExist:
+            return Response({"message": "Quiz not found"}, status=status.HTTP_404_NOT_FOUND)
+        questions = models.QuizQuestion.objects.filter(quiz=quiz)
+        serialized_questions = serializers.QuizQuestionSerializer(instance=questions, many=True).data
+        serialized_quiz = serializers.QuizSerializer(instance=quiz).data
+        serialized_quiz["questions"] = serialized_questions
+        return Response({"quiz": serialized_quiz}, status=status.HTTP_200_OK)

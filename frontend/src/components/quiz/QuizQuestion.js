@@ -13,26 +13,20 @@ const QuizQuestion = ({
 
   const handleCheckboxChange = (answerIndex) => (e) => {
     const checked = e.target.checked;
-
     setUserAnswers((prev) => {
-      const prevAnswers = prev[questionIndex] || []
-
-      if (checked) {
-        if (!prevAnswers.includes(answerIndex)) {
-          return {
-            ...prev,
-            [questionIndex]: [...prevAnswers, answerIndex],
-          }
-        }
-        return prev;
-      } 
-
-      else {
+      const answers = prev[questionIndex] || [];
+      if (checked && !answers.includes(answerIndex)) {
         return {
           ...prev,
-          [questionIndex]: prevAnswers.filter((i) => i !== answerIndex),
-        }
+          [questionIndex]: [...answers, answerIndex]
+        };
+      } else if (!checked && answers.includes(answerIndex)) {
+        return {
+          ...prev,
+          [questionIndex]: answers.filter((index) => index !== answerIndex)
+        };
       }
+      return prev;
     })
   }
 
@@ -41,7 +35,7 @@ const QuizQuestion = ({
     <div className="quiz-question-main-view">
         <div className="question-box">
             <h2>
-            {questionNumber}. {question}
+            {questionNumber}. {question.question}
             </h2>
         </div>
 
@@ -49,12 +43,12 @@ const QuizQuestion = ({
             {options.map((option, index) => (
             <div className="quiz-option" key={index}>
                 <input
-                type={type}
-                className={`${type}-option`}
-                onChange={handleCheckboxChange(index)}
-                checked={userAnswers[questionIndex]?.includes(index) || false}
+                  type={type}
+                  className={`${type}-option`}
+                  onChange={handleCheckboxChange(index)}
+                  checked={userAnswers[questionIndex]?.includes(index) || false}
                 />
-                <p>{option}</p>
+                <p>{option.text}</p>
             </div>
             ))}
         </div>

@@ -1,51 +1,36 @@
-import React, { useState } from "react";
-import { questionsList as questions} from "./data/Questions";
+import React, { useState, useMemo } from "react";
 import QuizMenu from "../components/quiz/QuizMenu";
 import QuizQuestion from "../components/quiz/QuizQuestion";
 import QuizEnded from "../components/quiz/QuizEnded";
 import QuizSidebar from "../components/quiz/QuizSidebar";
 import "../styles/pages/Quiz.css";
+import Spinner from "../components/Spinner";
+import { useParams } from "react-router-dom";
+import { useQuiz } from "../hooks/quizes";
 
 const Quiz = () => {
-    const [step, setStep] = useState("menu"); 
+    const { quizId } = useParams();
+    const { data, isPending, error } = useQuiz(quizId);
+    const questions = useMemo(() => data?.quiz?.questions || [], [data]);
+    console.log({ questions, data });
+    const [step, setStep] = useState("question"); 
     const [selectedQuestion, setSelectedQuestion] = useState(0);
-    const [userAnswers, setUserAnswers] = useState(Array(questions.length).fill(null))
-    const [score, setScore] = useState(0);
+    const [userAnswers, setUserAnswers] = useState(Object.fromEntries(questions.map((_, index) => [index, []])))
 
     const endQuiz = () => {
         setStep("end")
     }
 
-    const startQuiz = () => {
-        setStep("question");
-        setSelectedQuestion(0);
-        setScore(0);
-    };
-
-    if (step === "menu") {
-        return (
-        <>
-            <div className="quiz-content">
-                <QuizMenu startQuiz={startQuiz} />
-            </div>
-        </>
-        )
-    }
+    if (isPending) return <Spinner />;
 
     if (step === "question") {
         return (
             <>
             <div className="quiz-content">
-                <QuizSidebar
-                    questions={questions}
-                    selectedQuestion={selectedQuestion}
-                    setSelectedQuestion={setSelectedQuestion}
-                    selectedAnswers={userAnswers}
-                />
                 <QuizQuestion
                     allQuestionsNumber={questions.length}
                     questionNumber={selectedQuestion + 1}
-                    question={questions[selectedQuestion].question}
+                    question={questions[selectedQuestion]}
                     type={"checkbox"}
                     options={questions[selectedQuestion].answers}
                     setSelectedQuestion={setSelectedQuestion}
@@ -53,6 +38,12 @@ const Quiz = () => {
                     userAnswers={userAnswers}
                     setUserAnswers={setUserAnswers}
                     endQuiz={endQuiz}
+                />
+                <QuizSidebar
+                    questions={questions}
+                    selectedQuestion={selectedQuestion}
+                    setSelectedQuestion={setSelectedQuestion}
+                    selectedAnswers={userAnswers}
                 />
             </div>
             </>
