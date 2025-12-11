@@ -100,8 +100,6 @@ const Frame = ({
                     const dy = block.y - srcY;
                     const length = Math.sqrt(dx * dx + dy * dy);
 
-                    if (length < 1) return;
-
                     ctx.shadowColor = 'rgba(0, 0, 0, 1.0)';
                     ctx.shadowBlur = 3;
                     ctx.strokeStyle = color;
@@ -112,22 +110,24 @@ const Frame = ({
                     ctx.lineTo(block.x, block.y);
                     ctx.stroke();
 
-                    const angle = Math.atan2(dy, dx);
-                    const arrowSize = 8;
-                    const arrowAngle = Math.PI / 6;
+                    if (length >= 1) {
+                        const angle = Math.atan2(dy, dx);
+                        const arrowSize = 8;
+                        const arrowAngle = Math.PI / 6;
 
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        block.x - arrowSize * Math.cos(angle - arrowAngle),
-                        block.y - arrowSize * Math.sin(angle - arrowAngle)
-                    );
-                    ctx.lineTo(block.x, block.y);
-                    ctx.lineTo(
-                        block.x - arrowSize * Math.cos(angle + arrowAngle),
-                        block.y - arrowSize * Math.sin(angle + arrowAngle)
-                    );
-                    ctx.stroke();
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            block.x - arrowSize * Math.cos(angle - arrowAngle),
+                            block.y - arrowSize * Math.sin(angle - arrowAngle)
+                        );
+                        ctx.lineTo(block.x, block.y);
+                        ctx.lineTo(
+                            block.x - arrowSize * Math.cos(angle + arrowAngle),
+                            block.y - arrowSize * Math.sin(angle + arrowAngle)
+                        );
+                        ctx.stroke();
+                    }
 
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
