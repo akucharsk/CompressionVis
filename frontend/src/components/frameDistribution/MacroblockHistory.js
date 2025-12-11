@@ -6,26 +6,31 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
     const [displayData, setDisplayData] = useState({block: null, history: null});
 
     useEffect(() => {
-        if (!selectedBlock || !history) return;
+        if (selectedBlock && history) {
+            const hasPrev = selectedBlock.source < 0 || selectedBlock.source2 < 0;
+            const hasNext = selectedBlock.source > 0 || selectedBlock.source2 > 0;
 
-        const hasPrev = selectedBlock.source < 0 || selectedBlock.source2 < 0;
-        const hasNext = selectedBlock.source > 0 || selectedBlock.source2 > 0;
+            const historyHasPrev = history.prev || history.prev_diff;
+            const historyHasNext = history.next || history.next_diff;
 
-        const historyHasPrev = history.prev || history.prev_diff;
-        const historyHasNext = history.next || history.next_diff;
+            const isHistorySynced = (hasPrev === !!historyHasPrev) && (hasNext === !!historyHasNext);
+            const hasAnyRef = hasPrev || hasNext;
 
-        const isHistorySynced = (hasPrev === !!historyHasPrev) && (hasNext === !!historyHasNext);
-
-        if (isHistorySynced) {
-            setDisplayData({block: selectedBlock, history: history});
+            if (isHistorySynced && hasAnyRef) {
+                setDisplayData({block: selectedBlock, history: history});
+            }
         }
     }, [selectedBlock, history]);
 
     const displayBlock = displayData.block;
     const displayHistory = displayData.history;
 
+    const currentHasPrev = selectedBlock && (selectedBlock.source < 0 || selectedBlock.source2 < 0);
+    const currentHasNext = selectedBlock && (selectedBlock.source > 0 || selectedBlock.source2 > 0);
+    const isVisible = selectedBlock && (currentHasPrev || currentHasNext);
+
     if (!displayBlock || !displayHistory) {
-        return null;
+        return <div className="macroblock-info-box"></div>;
     }
 
     const blockWidth = displayBlock.width || 16;
@@ -50,8 +55,8 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
     };
 
     return (
-        <div className={`macroblock-info-box ${displayBlock  ? "visible" : ""}`}>
-            <h4>Macroblock history</h4>
+        <div className={`macroblock-info-box ${isVisible ? "visible" : ""}`}>
+            <h4>Macroblock compression analysis</h4>
 
             <div className="macroblock-history grid-layout">
                 {isBiDir ? (
@@ -219,27 +224,7 @@ const MacroblockHistory = ({selectedBlock, setSelectedBlock, history}) => {
                     </>
                 ) : (
                     <>
-                        {!hasPrev && !hasNext ? (
-                            <>
-                                <div className="mb-slot center-slot" style={{gridColumn: 7, gridRow: 1}}>
-                                    <Macroblock
-                                        name="Original"
-                                        src={displayHistory?.original}
-                                        width={blockWidth}
-                                        height={blockHeight}
-                                    />
-                                </div>
-
-                                <div className="mb-slot center-slot" style={{gridColumn: 7, gridRow: 2}}>
-                                    <Macroblock
-                                        name="Current"
-                                        src={displayHistory?.current}
-                                        width={blockWidth}
-                                        height={blockHeight}
-                                    />
-                                </div>
-                            </>
-                        ) : hasPrev ? (
+                        {hasPrev ? (
                             <>
                                 <div className="mb-slot" style={{gridColumn: 1, gridRow: 1}}>
                                     <Macroblock
