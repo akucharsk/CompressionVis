@@ -21,6 +21,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGr
         if (!video || displayMode === "frames" || !isVideoPlaying) {
             return;
         }
+        video.playbackRate = fps / 30;
         video.play().catch(() => {});
     }, [fps, videoRef, frames, selectedIdx, displayMode, isVideoPlaying]);
 

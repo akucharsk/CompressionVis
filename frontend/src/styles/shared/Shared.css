@@ -12,14 +12,14 @@
     --border-color: #444;
     --shadow-red: rgba(229, 9, 20, 0.5);
     --shadow-red-active: rgba(229, 9, 20, 0.7);
+
 }
 
 body {
     font-family: 'Arial', sans-serif;
     background-color: var(--background-first);
     color: var(--font-color);
-    margin: 1em;
-    padding: 0;
+    margin: 0 1em;
 }
 
 h1,h2,h3 {

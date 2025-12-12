@@ -2,13 +2,16 @@ numpy
 python-dotenv
 pyhumps
 uvicorn
+celery
 
 django
 djangorestframework
 redis
 django-cors-headers
 django-redis
+django-celery-results
 
 motion-vector-extractor
 opencv-python
 psycopg2-binary
+ffmpeg-quality-metrics

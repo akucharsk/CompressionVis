@@ -88,9 +88,9 @@ class MacroblocksExtractor:
                         frame_buffer = []
                         collecting_frame = False
 
-                if frame_buffer:
-                    grid = self._parse_blocks_from_lines(frame_buffer)
-                    output_queue.put((frame_index, grid))
+            if frame_buffer:
+                grid = self._parse_blocks_from_lines(frame_buffer)
+                output_queue.put((frame_index, grid))
 
             if proc:
                 proc.wait()
@@ -286,5 +286,4 @@ class MacroblocksExtractor:
     def start_extraction_job(self):
         self.video.macroblocks_extraction_in_progress = True
         self.video.save()
-        thread = threading.Thread(target=self._extract_macroblocks)
-        thread.start()
+        self._extract_macroblocks()

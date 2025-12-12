@@ -1,19 +1,20 @@
 @import '../shared/Shared.css';
 
 .distribution-container {
+    display: flex;
     overflow: hidden;
-    font-family: sans-serif;
-    color: var(--font-color);
-    padding: 16px;
-    border-radius: 10px;
+    flex-direction: column;
+    padding: 1em;
     border: 1px solid var(--border-color);
-    width: 90%;
-    margin: 0 auto;
+    border-radius: 8px;
+    gap:1em;
+    width: 100%;
+    margin: 1em auto;
+    height: auto;
 }
 
 .main-frame-container {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
-    gap: 10px;
+    gap: 1em;
 }

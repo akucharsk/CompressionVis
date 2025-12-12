@@ -4,12 +4,13 @@
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  padding: 16px;
+  padding: 1em;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  width: 90%;
-  margin: auto;
   gap:1em;
+  width: 100%;
+  margin: 1em auto;
+  height: auto;
 }
 
 .comparison-container {

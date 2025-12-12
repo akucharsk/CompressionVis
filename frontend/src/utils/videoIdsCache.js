@@ -1,27 +1,103 @@
 import { queryClient } from "./queryClient";
 
 const VIDEO_MAP_KEY = ["videoMap"];
+const STORAGE_KEY = "videoMap";
+const EXPIRY_KEY = "videoMap_expiry";
 
-export const addVideoIdToCache = (originalVideoId, compressedVideoId) => {
-    queryClient.setQueryData(VIDEO_MAP_KEY, (oldMap = {}) => {
-        const currentList = oldMap[originalVideoId] || [];
-        if (currentList.includes(compressedVideoId)) return oldMap;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-        const newMap = {
-            ...oldMap,
-            [originalVideoId]: [...currentList, compressedVideoId],
+function loadPersistentCache() {
+    const expiry = Number(localStorage.getItem(EXPIRY_KEY) || 0);
+    const now = Date.now();
+
+    if (expiry && now > expiry) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(EXPIRY_KEY);
+        queryClient.setQueryData(VIDEO_MAP_KEY, {});
+        return {};
+    }
+
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+        queryClient.setQueryData(VIDEO_MAP_KEY, {});
+        return {};
+    }
+
+    const data = JSON.parse(raw);
+    queryClient.setQueryData(VIDEO_MAP_KEY, data);
+    return data;
+}
+
+loadPersistentCache();
+
+if (typeof window !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            loadPersistentCache();
+        }
+    });
+
+    window.addEventListener('focus', () => {
+        loadPersistentCache();
+    });
+}
+
+function saveToLocalStorage(map) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    localStorage.setItem(EXPIRY_KEY, (Date.now() + ONE_DAY_MS).toString());
+}
+
+export const addVideoIdToCache = (originalId, compressedId) => {
+    queryClient.setQueryData(VIDEO_MAP_KEY, (old = {}) => {
+        const list = old[originalId] || [];
+
+        if (list.includes(compressedId)) {
+            saveToLocalStorage(old);
+            return old;
+        }
+
+        const updated = {
+            ...old,
+            [originalId]: [...list, compressedId],
         };
 
-        localStorage.setItem("videoMap", JSON.stringify(newMap));
-        return newMap;
+        saveToLocalStorage(updated);
+        return updated;
     });
 };
 
-export const getVideoIdsFromCache = (originalVideoId) => {
-    const map = queryClient.getQueryData(VIDEO_MAP_KEY) || {};
-    return map[originalVideoId] || [];
+export const removeVideoIdFromCache = (originalId, compressedId) => {
+    queryClient.setQueryData(VIDEO_MAP_KEY, (old = {}) => {
+        const list = old[originalId] || [];
+        if (!list.includes(compressedId)) return old;
+
+        const newList = list.filter(id => id !== compressedId);
+        const updated = { ...old };
+
+        if (newList.length === 0) {
+            delete updated[originalId];
+        } else {
+            updated[originalId] = newList;
+        }
+
+        saveToLocalStorage(updated);
+        return updated;
+    });
+};
+
+export const getVideoIdsFromCache = (originalId) => {
+    const cached = queryClient.getQueryData(VIDEO_MAP_KEY);
+    if (!cached || Object.keys(cached).length === 0) {
+        const loaded = loadPersistentCache();
+        return loaded[originalId] || [];
+    }
+    return cached[originalId] || [];
 };
 
 export const getAllVideoIdsMap = () => {
-    return queryClient.getQueryData(VIDEO_MAP_KEY) || {};
+    const cached = queryClient.getQueryData(VIDEO_MAP_KEY);
+    if (!cached || Object.keys(cached).length === 0) {
+        return loadPersistentCache();
+    }
+    return cached;
 };

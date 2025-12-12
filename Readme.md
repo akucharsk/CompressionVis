@@ -32,7 +32,7 @@ cd CompressionVis
 Download the files from Google Drive:
 
 ```
-https://drive.google.com/drive/folders/1OR3iby_OVX7wfpjg6arrbFoZvVkJDyX6st=n7e9bxd2&dl=0
+https://drive.google.com/drive/folders/1OR3iby_OVX7wfpjg6arrbFoZvVkJDyX6?usp=sharing
 ```
 
 Place the files in the following directories:
@@ -66,6 +66,25 @@ This single command will:
 docker-compose up --build
 ```
 
+If you encounter some problems, for example some containers didn't build you might want to manually build them:
+```bash
+docker-compose build db backend rabbitmq celery_worker frontend --no-cache
+```
+And then
+```bash
+docker-compose up
+```
+
 Once the containers are running, the application will be available at:
 
 👉 **http://localhost:3000**
+
+## Creating an admin user
+Admin users cannot be created through the UI. To create one execute the following command (assuming the `backend` container is running under the name `django_app`):
+
+```bash
+docker exec django_app python manage.py shell -c "from django.contrib.auth.models import User
+User.objects.create_superuser(username='<username>', password='<password>')"
+```
+
+substitute the `<username>` and `<password>` for what suits you. Note that the password will be hashed automatically so there is no need to do so manually.

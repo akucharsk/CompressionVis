@@ -1,0 +1,30 @@
+@import './../shared/Shared.css';
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 50%;
+  margin: auto;
+  gap: 1em;
+}
+
+.video-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.video-row span {
+  flex: 1;
+  margin-right: 12px;
+  font-size: 14px;
+}
+
+

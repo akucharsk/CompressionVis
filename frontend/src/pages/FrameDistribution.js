@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import { useFrames } from "../context/FramesContext";
 import SidePanel from "../components/frameDistribution/SidePanel";
 import MacroblockHistory from "../components/frameDistribution/MacroblockHistory";
@@ -8,7 +8,6 @@ import ImageVideoBlock from '../components/ImageVideoBlock';
 import Spinner from '../components/Spinner';
 import { useSearchParams } from 'react-router-dom';
 import { useMacroblockHistoryQuery } from '../hooks/macroblock-history-query';
-import { useEffect } from 'react';
 import { apiUrl } from '../utils/urls';
 
 const FramesDistribution = () => {

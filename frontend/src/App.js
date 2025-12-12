@@ -5,6 +5,9 @@ import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
 import FrameDifferences from './pages/FrameDifferences';
+import Login from './pages/Login';
+import Admin from "./pages/Admin";
+import Protected from "./pages/Protected";
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
@@ -15,10 +18,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
 import {queryClient} from "./utils/queryClient";
+import './styles/App.css'
 
 function Layout() {
   const location = useLocation();
   const hideNavbar = location.pathname === "/" || location.pathname === "/differences";
+  // const hideNavbar = location.pathname === "/" || location.pathname === "/admin";
 
   return (
       <ErrorProvider>
@@ -30,16 +35,20 @@ function Layout() {
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
                       <MacroblocksProvider>
-                        {!hideNavbar && <NavigationTabs />}
-                          <Routes>
-                            <Route path="*" element={<Navigate to="/" />} />
-                            <Route path="/" element={<Menu />} />
-                            <Route path="/compress" element={<FramesDistribution />} />
-                            <Route path="/comparison" element={<Comparison />} />
-                            <Route path="/quiz" element={<Quiz />} />
-                            <Route path="/differences" element={<FrameDifferences />} />
-                          </Routes>
-                      </MacroblocksProvider>
+                          <div className={"app-container"}>
+                          {!hideNavbar && <NavigationTabs />}
+                            <Routes>
+                              <Route path="*" element={<Navigate to="/" />} />
+                              <Route path="/" element={<Menu />} />
+                              <Route path="/compress" element={<FramesDistribution />} />
+                              <Route path="/comparison" element={<Comparison />} />
+                              <Route path="/quiz" element={<Quiz />} />
+                              <Route path="/differences" element={<FrameDifferences />} />
+                              <Route path="/admin" element={<Protected><Admin /></Protected>} />
+                              <Route path="/login" element={<Login />} />
+                            </Routes>
+                          </div>
+                        </MacroblocksProvider>
                     </VideoPlayingProvider>
                   </DisplayModeProvider>
                 </MetricsProvider>

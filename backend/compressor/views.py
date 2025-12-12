@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from django.http import FileResponse, StreamingHttpResponse
 from django.contrib.staticfiles import finders
 from django.conf import settings
-
+from django.core.files.base import ContentFile
 from django.db import IntegrityError
 
 import os
@@ -19,10 +19,20 @@ import shutil
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
 from . import models
 from . import serializers
+from . import tasks
 from .frames_extractor import FramesExtractor
+
+from macroblocks import tasks as macroblocks_tasks
 
 from utils.camel import camelize, decamelize
 from .metrics_extractor import MetricsExtractor
+from celery import group, chain
+
+import json
+import zipfile
+from io import BytesIO
+
+from .permissions import IsSuperuser
 
 FRAMES_PER_BATCH = int(os.getenv('FRAMES_PER_BATCH'))
 
@@ -61,6 +71,13 @@ class VideoView(APIView):
         return response
 
     def delete(self, request, video_id):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return Response({"message": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_superuser:
+            return Response({"message": "Superuser cannot access questions"}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             video = models.Video.objects.get(id=video_id)
         except models.Video.DoesNotExist:
@@ -71,11 +88,15 @@ class VideoView(APIView):
         frames_dirname = video.filename[:dot_idx]
         video_path = finders.find(os.path.join("compressed_videos", video.filename))
         frames_path = finders.find(os.path.join("frames", frames_dirname))
+        macroblocks_path = finders.find(os.path.join("macroblocks", frames_dirname))
 
         os.remove(video_path)
-        shutil.rmtree(frames_path)
-        models.Video.objects.filter(id=video_id).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if frames_path:
+            shutil.rmtree(frames_path)
+        if macroblocks_path:
+            shutil.rmtree(macroblocks_path)
+        video.delete()
+        return Response({"message": "OK", "videoId": video_id}, status=status.HTTP_200_OK)
 
 class BaseCompressionView(APIView):
     def get_original_video(self, video_id):
@@ -101,57 +122,23 @@ class BaseCompressionView(APIView):
                 video = models.Video.objects.get(filename=filename)
                 return video, False
 
-    def prepare_response(self, video, filename):
-        resp = {
-            "compressed_filename": filename,
-            "is_compressed": video.is_compressed,
-            "video_id": video.id
-        }
-
-        if video.is_compressed and video.size:
-            resp["resulting_size"] = round(video.size / (1024 * 1024), 2)
-
-        response_status = status.HTTP_200_OK if video.is_compressed else status.HTTP_202_ACCEPTED
-        return Response(camelize(resp), status=response_status)
-
-    def run_post_compression_jobs(self, video):
-        frames_extractor = FramesExtractor(video)
-        frames_extractor.start_extraction_job()
-
-        metrics_extractor = MetricsExtractor(video)
-        metrics_extractor.start_extraction_job()
-
-        macroblocks_extractor = MacroblocksExtractor(video)
-        macroblocks_extractor.start_extraction_job()
-
-    def finalize_video(self, video, output_path, original_video):
+    def execute_compression(self, compression_input, video):
+        video.frames_extraction_in_progress = True
+        video.macroblocks_extraction_in_progress = True
+        video.save()
         try:
-            file_size = os.path.getsize(output_path)
-            video.is_compressed = True
-            video.size = file_size
-            video.save()
-            return True
-        except FileNotFoundError:
-            return False
-
-    def execute_compression(self, ffmpeg_command, video, output_path, output_filename, original_video):
-        process = subprocess.Popen(ffmpeg_command)
-        return_code = process.wait()
-
-        if return_code != 0:
-            return Response(
-                {"message": "FFmpeg compression failed"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            metrics = models.VideoMetrics.objects.create(video=video)
+        except IntegrityError:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        chain(
+            tasks.compress_video.si(compression_input).set(queue="video"),
+            group(
+                tasks.extract_frames.si(video.id).set(queue="frames"),
+                tasks.extract_metrics.si(video.id, metrics.id).set(queue="metrics"),
+                macroblocks_tasks.extract_macroblocks.si(video.id).set(queue="macroblocks")
             )
-
-        if not self.finalize_video(video, output_path, original_video):
-            return Response(
-                {"message": "Couldn't access compressed file"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        self.run_post_compression_jobs(video)
-        return self.prepare_response(video, output_filename)
+        ).apply_async()
+        return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
 
 class CompressionView(BaseCompressionView):
 
@@ -193,7 +180,7 @@ class CompressionView(BaseCompressionView):
         video, created = self.get_or_create_video(serializer)
 
         if not created:
-            return self.prepare_response(video, output_filename)
+            return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
 
         output = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
@@ -233,7 +220,13 @@ class CompressionView(BaseCompressionView):
             output
         ]
 
-        return self.execute_compression(ffmpeg_command, video, output, output_filename, original_video)
+        compression_input = {
+            "ffmpeg_command": ffmpeg_command,
+            "video_id": video.id,
+            "output_path": output,
+            "output_filename": output_filename,
+        }
+        return self.execute_compression(compression_input, video)
     
 class SizeCompressionView(BaseCompressionView):
     def post(self, request):
@@ -260,8 +253,7 @@ class SizeCompressionView(BaseCompressionView):
                 {"message": "Video not present in the file system. Please contact management!"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        duration = self.get_video_duration(video_url)
+        duration = tasks.get_video_duration.apply_async(args=[video_url], queue="video").get()
         if duration is None:
             return Response(
                 {"message": "Couldn't determine video duration"},
@@ -279,9 +271,8 @@ class SizeCompressionView(BaseCompressionView):
         output_filename = validated_data["filename"]
         video, created = self.get_or_create_video(serializer)
 
-        if not created and video.is_compressed:
-            return self.prepare_response(video, output_filename)
-
+        if not created:
+            return Response({"videoId": video.id}, status=status.HTTP_202_ACCEPTED)
         output_path = os.path.join(settings.BASE_DIR, "static", "compressed_videos", output_filename)
         compressed_dir = os.path.join(settings.BASE_DIR, "static", "compressed_videos")
         os.makedirs(compressed_dir, exist_ok=True)
@@ -295,19 +286,32 @@ class SizeCompressionView(BaseCompressionView):
             output_path
         ]
 
-        return self.execute_compression(ffmpeg_command, video, output_path, output_filename, original_video)
+        compression_input = {
+            "ffmpeg_command": ffmpeg_command,
+            "video_id": video.id,
+            "video_path": video_url,
+            "output_path": output_path,
+            "output_filename": output_filename,
+        }
+
+        return self.execute_compression(compression_input, video)
 
     @staticmethod
     def get_video_duration(video_path):
         try:
-            result = subprocess.run(
+            result = subprocess.Popen(
                 ["ffprobe", "-v", "error", "-show_entries", "format=duration",
                  "-of", "default=noprint_wrappers=1:nokey=1", video_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
+            result, error = result.communicate()
+            if error:
+                raise Exception(error)
             return float(result.stdout)
-        except Exception:
+        except Exception as e:
+            print(f"Error getting video duration: {e}")
+            sys.stdout.flush()
             return None
 
 class CompressionFramesView(APIView):
@@ -317,23 +321,22 @@ class CompressionFramesView(APIView):
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        video_file = finders.find(os.path.join("compressed_videos", video.filename))
-        if not video_file:
-            video_file = finders.find(os.path.join("videos", video.filename))
-
-        if not video_file:
-            return Response({"message": "Video file not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        frames = models.FrameMetadata.objects.filter(video__id=video_id)
+        frames = models.FrameMetadata.objects.filter(video=video)
         video_name = os.path.splitext(video.filename)[0]
-        extracted_count = len(os.listdir(finders.find(os.path.join("frames", video_name))))
+        frames_dir = os.path.join(settings.BASE_DIR, "static", "frames", video_name)
+        os.makedirs(frames_dir, exist_ok=True)
+        extracted_count = len(os.listdir(frames_dir))
         if not frames.exists() or extracted_count == 0:
             if video.frames_extraction_in_progress:
                 return Response({ "message": "processing" }, status=status.HTTP_202_ACCEPTED)
-            return Response({"message": "Frames extractor encountered an error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print("FRAMES EXTRACTOR ENCOUNTERED AN ERROR", extracted_count, frames.exists())
+            print(os.listdir(finders.find(os.path.join("frames", video_name))), os.path.exists(finders.find(os.path.join("frames", video_name))))
+            print(frames.exists())
+            return Response({"message": "Frames extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         info = serializers.FrameSerializer(instance=frames, many=True).data
-        return Response({ "frames": info[:extracted_count], "total": len(info) }, status=status.HTTP_200_OK)
+        result = list(sorted(info[:extracted_count], key=lambda x: x["frame_number"]))
+        return Response({ "frames": result, "total": len(info) }, status=status.HTTP_200_OK)
 
 class ExampleVideosView(APIView):
     def get(self, request):
@@ -374,7 +377,7 @@ class ThumbnailView(APIView):
             return Response({"message": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(file_path, 'rb'), content_type="image/png", status=status.HTTP_200_OK)
-    
+
 class FrameStatusView(APIView):
     def get(self, request, video_id, frame_number):
         original = request.GET.get("original")
@@ -485,7 +488,7 @@ class MetricView(APIView):
         try:
             metrics = models.VideoMetrics.objects.get(video=video)
         except models.VideoMetrics.DoesNotExist:
-            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "Metrics extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         wrapped_metrics = self.wrap_metrics(metrics)
         if wrapped_metrics:
@@ -514,7 +517,7 @@ class AllFramesMetricsView(APIView):
         except models.Video.DoesNotExist:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
         except models.VideoMetrics.DoesNotExist:
-            return Response({"message": "No metrics record created for this video"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
 
         if not MetricView.wrap_metrics(metrics):
             return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
@@ -557,11 +560,79 @@ class VideoParameters(APIView):
             "aq_mode": video.aq_mode,
             "aq_strength": float(video.aq_strength) if video.aq_strength is not None else None,
             "preset": video.preset,
-            "name": video.title,
             "size": video.size,
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
+
+class AllCompressed(APIView):
+    def get(self, request):
+        videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
+        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+
+class FrameSizeView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            frame = models.FrameMetadata.objects.get(
+                video__id=video_id,
+                frame_number=frame_number
+            )
+        except models.FrameMetadata.DoesNotExist:
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if frame.pkt_size is None:
+            return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
+# QUIZ_DIR = "/STATIC/QUIZ"
+
+class UploadQuestionsView(APIView):
+    permission_classes = [IsSuperuser]
+
+    def post(self, request, quiz_dir="QUIZ_DIR"):
+
+        if "file" not in request.FILES:
+            return Response({"message": "Brak pliku ZIP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        uploaded_file = request.FILES["file"]
+
+        if os.path.exists(quiz_dir):
+            shutil.rmtree(quiz_dir)
+        os.makedirs(quiz_dir, exist_ok=True)
+
+        zip_path = os.path.join(quiz_dir, "source.zip")
+        with open(zip_path, "wb") as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+
+        uploaded_file.seek(0)
+
+        try:
+            with zipfile.ZipFile(uploaded_file) as z:
+                z.extractall(quiz_dir)
+        except zipfile.BadZipFile:
+            return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "OK – pliki nadpisane"}, status=status.HTTP_201_CREATED)
+    def get(self, request, quiz_dir="QUIZ_DIR"):
+        zip_path = os.path.join(quiz_dir, "source.zip")
+
+        if not os.path.exists(zip_path):
+            return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(open(zip_path, "rb"), filename="questions.zip")
+
+class GetQuestionsView(APIView):
+    def get(self, request, number, quiz_dir="QUIZ_DIR"):
+        file_path = os.path.join(quiz_dir, f"questions{number}.json")
+
+        if not os.path.exists(file_path):
+            return Response({"message": "Plik nie istnieje"}, status=status.HTTP_404_NOT_FOUND)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class DifferenceView(APIView):

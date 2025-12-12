@@ -111,6 +111,7 @@ const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
                 { value: "1.4", label: "1.4" },
                 { value: "1.6", label: "1.6" },
             ],
+            disabled: parameters.aqMode === "0",
         },
         {
             label: "Preset (speed)",
@@ -154,15 +155,14 @@ const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
         ],
     };
 
-
     useEffect(() => {
         const defaultOptions = {
             resolution: "1280x720",
-            pattern: "250",
+            pattern: "default",
             crf: "20",
             preset: "medium",
-            bFrames: "2",
-            aqMode: "2",
+            bFrames: "default",
+            aqMode: "0",
             aqStrength: "1.0",
             bandwidth: "5M",
             compressedSize: (1024 * 1024).toString(),
@@ -190,7 +190,6 @@ const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
                             <label>
                                 Quality Control
                                 <span className="tooltip-container">
-                                <span className="info-icon">❔</span>
                                 <span className="tooltip-text">
                                   <strong>CRF</strong> dynamically adjusts bitrate based on scene complexity
                                   to keep consistent visual quality. Ideal when quality matters more
@@ -287,12 +286,9 @@ const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
                 return (
                     <div className="frames-differences-info">
                         <p>
-                            In this mode, the compression algorithm focuses on minimizing differences between consecutive frames.
-                            This is particularly effective for videos with static backgrounds or minimal motion, as it reduces redundant data.
-                        </p>
-                        <p>
-                            By optimizing for frame-to-frame similarity, the encoder can achieve better compression ratios while maintaining visual quality.
-                            This mode is ideal for surveillance footage, screen recordings, or any content where changes between frames are subtle.
+                            In this view, the tool visualizes the mechanics of motion compensation.
+                            It compares the raw difference between frames against the 'Residual' image, which shows the error remaining after applying motion vectors.
+                            This is particularly useful for analyzing how accurately the algorithm predicts movement versus simple frame differencing.
                         </p>
                     </div>
                 );
