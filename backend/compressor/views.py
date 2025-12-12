@@ -1,7 +1,9 @@
 import base64
+import sys
 
 import cv2
 import json
+import numpy as np
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -611,6 +613,31 @@ class DifferenceFrameView(APIView):
                 with open(image_path_or_array, "rb") as image_file:
                     return base64.b64encode(image_file.read()).decode('utf-8')
 
+        def smart_crop(image, center_x, center_y, w, h):
+            top_left_x = center_x - (w / 2.0)
+            top_left_y = center_y - (h / 2.0)
+
+            epsilon = 0.001
+            is_integer_x = abs(top_left_x - round(top_left_x)) < epsilon
+            is_integer_y = abs(top_left_y - round(top_left_y)) < epsilon
+
+            if is_integer_x and is_integer_y:
+                ix = int(round(top_left_x))
+                iy = int(round(top_left_y))
+                return image[iy:iy + h, ix:ix + w]
+            else:
+                map_matrix = np.float32([
+                    [1, 0, (w / 2.0) - center_x],
+                    [0, 1, (h / 2.0) - center_y]
+                ])
+                return cv2.warpAffine(
+                    image,
+                    map_matrix,
+                    (w, h),
+                    flags=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_REPLICATE
+                )
+
         original_b64 = encode_image(current_frame_path, is_array=False)
         diff_prev_b64 = None
         diff_third_b64 = None
@@ -636,7 +663,11 @@ class DifferenceFrameView(APIView):
                         vectors = json.load(f)
 
                     final_diff = diff.copy()
-                    loaded_refs = {-1: img_prev}
+
+                    padding = 64
+                    padded_prev = cv2.copyMakeBorder(img_prev, padding, padding, padding, padding, cv2.BORDER_REPLICATE)
+
+                    loaded_refs = {-1: padded_prev}
 
                     for v in vectors:
                         source_offset = v['source']
@@ -647,24 +678,39 @@ class DifferenceFrameView(APIView):
                             ref_idx = frame_number + source_offset
                             ref_path = finders.find(os.path.join("frames", folder_name, f"frame_{ref_idx}.png"))
                             if ref_path:
-                                loaded_refs[source_offset] = cv2.imread(ref_path)
+                                raw_ref = cv2.imread(ref_path)
+                                loaded_refs[source_offset] = cv2.copyMakeBorder(raw_ref, padding, padding, padding,
+                                                                                padding, cv2.BORDER_REPLICATE)
                             else:
                                 loaded_refs[source_offset] = None
 
-                        img_ref = loaded_refs[source_offset]
-                        if img_ref is None:
+                        img_ref_padded = loaded_refs[source_offset]
+                        if img_ref_padded is None:
                             continue
 
                         w, h = v['width'], v['height']
-                        dst_x, dst_y = v['dst_x'], v['dst_y']
-                        src_x, src_y = v['src_x'], v['src_y']
 
-                        if (dst_y + h <= img_curr.shape[0] and dst_x + w <= img_curr.shape[1] and
-                                src_y + h <= img_ref.shape[0] and src_x + w <= img_ref.shape[1]):
-                            block_curr = img_curr[dst_y: dst_y + h, dst_x: dst_x + w]
-                            block_ref = img_ref[src_y: src_y + h, src_x: src_x + w]
-                            block_diff = cv2.absdiff(block_curr, block_ref)
-                            final_diff[dst_y: dst_y + h, dst_x: dst_x + w] = block_diff
+                        dst_center_x, dst_center_y = v['dst_x'], v['dst_y']
+                        src_center_x, src_center_y = v['src_x'], v['src_y']
+
+                        dst_x_left = int(dst_center_x - (w / 2))
+                        dst_y_top = int(dst_center_y - (h / 2))
+
+                        if (dst_y_top >= 0 and dst_x_left >= 0 and
+                                dst_y_top + h <= img_curr.shape[0] and dst_x_left + w <= img_curr.shape[1]):
+
+                            block_curr = img_curr[dst_y_top: dst_y_top + h, dst_x_left: dst_x_left + w]
+
+                            real_src_center_x = float(src_center_x) + padding
+                            real_src_center_y = float(src_center_y) + padding
+
+                            block_ref = smart_crop(img_ref_padded, real_src_center_x, real_src_center_y, w, h)
+
+                            if block_ref is not None:
+                                block_ref = block_ref.astype(np.uint8)
+                                block_diff = cv2.absdiff(block_curr, block_ref)
+
+                                final_diff[dst_y_top: dst_y_top + h, dst_x_left: dst_x_left + w] = block_diff
 
                     diff_third_b64 = encode_image(final_diff, is_array=True)
 

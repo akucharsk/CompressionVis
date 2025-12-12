@@ -138,14 +138,26 @@ for vid in reserved_filenames:
 
                     vectors_data = []
                     for vector in motion_vectors:
+                        source = int(vector[0])
+                        width = int(vector[1])
+                        height = int(vector[2])
+                        dst_x = int(vector[5])
+                        dst_y = int(vector[6])
+                        motion_x = int(vector[7])
+                        motion_y = int(vector[8])
+                        motion_scale = int(vector[9])
+
+                        src_x = dst_x + (motion_x / motion_scale)
+                        src_y = dst_y + (motion_y / motion_scale)
+
                         vectors_data.append({
-                            "source": int(vector[0]),
-                            "width": int(vector[1]),
-                            "height": int(vector[2]),
-                            "src_x": int(vector[3]),
-                            "src_y": int(vector[4]),
-                            "dst_x": int(vector[5]),
-                            "dst_y": int(vector[6]),
+                            "source": source,
+                            "width": width,
+                            "height": height,
+                            "src_x": src_x,
+                            "src_y": src_y,
+                            "dst_x": dst_x,
+                            "dst_y": dst_y,
                         })
 
                     json_filename = os.path.join(diff_dir, f"frame_{frame_idx:03d}.json")

@@ -10,7 +10,7 @@ import "../styles/components/FrameBox.css";
 const VIEW_MODES = [
     { key: "original_frame", label: "Original" },
     { key: "diff_prev_frame", label: "Diff (N vs N-1)" },
-    { key: "diff_third_frame", label: "Difference 2" }
+    { key: "diff_third_frame", label: "Residual" }
 ];
 
 const FrameDifferences = () => {
