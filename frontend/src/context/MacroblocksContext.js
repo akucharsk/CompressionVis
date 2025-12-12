@@ -1,4 +1,4 @@
-import {useSearchParams} from "react-router-dom";
+import {useLocation, useSearchParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {genericFetch} from "../api/genericFetch";
 import {apiUrl} from "../utils/urls";
@@ -15,13 +15,15 @@ export const MacroblocksProvider = ({ children }) => {
     const frameNumber = parseInt(searchParams.get("frameNumber")) || 0;
     const { showError } = useError();
     const { displayMode } = useDisplayMode();
+    const location = useLocation();
+    const isExcludedPath = location.pathname === "/differences";
 
     const frameMacroBlocksQuery = useQuery({
         queryKey: ["macroblocks", videoId, frameNumber],
         queryFn: async () => await genericFetch(`${apiUrl}/macroblocks/${videoId}/${frameNumber}`),
         refetchInterval: defaultRefetchIntervalPolicy,
         retry: defaultRetryPolicy,
-        enabled: !!videoId && displayMode === "frames"
+        enabled: !!videoId && displayMode === "frames" && !isExcludedPath
     });
 
     useEffect(() => {

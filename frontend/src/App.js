@@ -4,6 +4,7 @@ import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
+import FrameDifferences from './pages/FrameDifferences';
 import Login from './pages/Login';
 import Admin from "./pages/Admin";
 import Protected from "./pages/Protected";
@@ -21,26 +22,28 @@ import './styles/App.css'
 
 function Layout() {
   const location = useLocation();
+  const hideNavbar = location.pathname === "/" || location.pathname === "/differences";
   // const hideNavbar = location.pathname === "/" || location.pathname === "/admin";
 
   return (
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-            <FpsProvider>  
+            <FpsProvider>
               <FramesProvider>
                 <MetricsProvider>
                   <DisplayModeProvider>
                     <VideoPlayingProvider>
                       <MacroblocksProvider>
                           <div className={"app-container"}>
-                          <NavigationTabs />
+                          {!hideNavbar && <NavigationTabs />}
                             <Routes>
                               <Route path="*" element={<Navigate to="/" />} />
                               <Route path="/" element={<Menu />} />
                               <Route path="/compress" element={<FramesDistribution />} />
                               <Route path="/comparison" element={<Comparison />} />
                               <Route path="/quiz" element={<Quiz />} />
+                              <Route path="/differences" element={<FrameDifferences />} />
                               <Route path="/admin" element={<Protected><Admin /></Protected>} />
                               <Route path="/login" element={<Login />} />
                             </Routes>

@@ -5,17 +5,19 @@ import Spinner from "../Spinner";
 import { useFrames } from "../../context/FramesContext";
 import { apiUrl } from "../../utils/urls";
 import { useSearchParams } from "react-router-dom";
+import {useSettings} from "../../context/SettingsContext";
 
 const Frame = ({
                    showGrid,
-                   showVectors,
                    visibleCategories,
                    selectedBlock,
                    setSelectedBlock,
                    mode,
                    macroblocks,
                    fullscreenHandler,
-                   videoId
+                   videoId,
+                   showPast,
+                   showFuture
                }) => {
     const [ params ] = useSearchParams();
     if(!videoId) {
@@ -25,8 +27,9 @@ const Frame = ({
     const canvasRef = useRef(null);
     const imgRef = useRef(null);
     const {frameMacroBlocksQuery} = useMacroblocks();
-    const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}`;
-    
+    const { resolutionWidth, resolutionHeight } = useSettings();
+    const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}?width=${resolutionWidth}&height=${resolutionHeight}`;
+
     const drawCanvas = useCallback(() => {
         if (!frameMacroBlocksQuery.data?.blocks) return;
         const blocks = frameMacroBlocksQuery.data.blocks;
@@ -83,7 +86,9 @@ const Frame = ({
             ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
 
-        if (showVectors && blocks.length > 0) {
+        const isAnyVectorActive = showPast || showFuture;
+
+        if (isAnyVectorActive && blocks.length > 0) {
             blocks.forEach(block => {
                 if (block.src_x == null || block.src_y == null) return;
 
@@ -95,8 +100,6 @@ const Frame = ({
                     const dy = block.y - srcY;
                     const length = Math.sqrt(dx * dx + dy * dy);
 
-                    if (length < 1) return;
-
                     ctx.shadowColor = 'rgba(0, 0, 0, 1.0)';
                     ctx.shadowBlur = 3;
                     ctx.strokeStyle = color;
@@ -107,36 +110,46 @@ const Frame = ({
                     ctx.lineTo(block.x, block.y);
                     ctx.stroke();
 
-                    const angle = Math.atan2(dy, dx);
-                    const arrowSize = 8;
-                    const arrowAngle = Math.PI / 6;
+                    if (length >= 1) {
+                        const angle = Math.atan2(dy, dx);
+                        const arrowSize = 8;
+                        const arrowAngle = Math.PI / 6;
 
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        block.x - arrowSize * Math.cos(angle - arrowAngle),
-                        block.y - arrowSize * Math.sin(angle - arrowAngle)
-                    );
-                    ctx.lineTo(block.x, block.y);
-                    ctx.lineTo(
-                        block.x - arrowSize * Math.cos(angle + arrowAngle),
-                        block.y - arrowSize * Math.sin(angle + arrowAngle)
-                    );
-                    ctx.stroke();
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            block.x - arrowSize * Math.cos(angle - arrowAngle),
+                            block.y - arrowSize * Math.sin(angle - arrowAngle)
+                        );
+                        ctx.lineTo(block.x, block.y);
+                        ctx.lineTo(
+                            block.x - arrowSize * Math.cos(angle + arrowAngle),
+                            block.y - arrowSize * Math.sin(angle + arrowAngle)
+                        );
+                        ctx.stroke();
+                    }
 
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
                 };
 
-                drawVector(block.src_x, block.src_y);
+                const tryDrawVector = (source, x, y) => {
+                    if (source == null) return;
 
-                if (block.src_x2 != null && block.src_y2 != null) {
-                    drawVector(block.src_x2, block.src_y2);
-                }
+                    const isPrev = source < 0;
+                    const isNext = source > 0;
+
+                    if ((isPrev && showPast) || (isNext && showFuture)) {
+                        drawVector(x, y);
+                    }
+                };
+
+                tryDrawVector(block.source, block.src_x, block.src_y);
+                tryDrawVector(block.source2, block.src_x2, block.src_y2);
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [frameMacroBlocksQuery.data?.blocks, showGrid, showVectors, selectedBlock, visibleCategories, mode]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;

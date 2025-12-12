@@ -15,6 +15,8 @@ urlpatterns = [
     path('video/size/<int:video_id>/', views.SizeView.as_view(), name='video_size'),
     path('video/size-compress/', views.SizeCompressionView.as_view(), name='size_compress'),
     path('video/parameters/<int:video_id>/', views.VideoParameters.as_view(), name='video_parameters'),
+    path('difference/<int:video_id>/', views.DifferenceView.as_view(), name='difference-count'),
+    path('difference/<int:video_id>/<int:frame_number>/', views.DifferenceFrameView.as_view(), name='difference-frame'),
     path('video/all-compressed-videos/', views.AllCompressed.as_view(), name='all_compressed_video'),
     path('frame/size/<int:video_id>/<int:frame_number>/', views.FrameSizeView.as_view(), name='frame_size'),
     path("upload-questions/", views.UploadQuestionsView.as_view()),

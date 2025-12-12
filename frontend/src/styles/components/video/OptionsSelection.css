@@ -49,8 +49,8 @@ select:hover, select:focus {
     cursor: pointer;
 }
 
-.compress-btn {
-    background-color: var(--netflix-red);
+.compress-btn,
+.differences-btn {
     color: var(--font-color);
     font-weight: 700;
     padding: 18px;
@@ -61,10 +61,22 @@ select:hover, select:focus {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+.compress-btn {
+    background-color: var(--netflix-red);
+}
+
 .compress-btn:hover {
     background-color: var(--netflix-red-active);
     transform: scale(1.05);
-    color: var(--font-color);
+}
+
+.differences-btn {
+    background-color: var(--netflix-gray);
+}
+
+.differences-btn:hover {
+    background-color: var(--netflix-gray-active);
+    transform: scale(1.05);
 }
 
 .mode-buttons {

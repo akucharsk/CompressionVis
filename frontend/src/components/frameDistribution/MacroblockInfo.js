@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import '../../styles/components/distribution/Macroblock.css';
 
-const MacroblockInfo = ({ selectedBlock }) => {
+const MacroblockInfo = ({ selectedBlock, frames, currentFrameIdx }) => {
     const [displayBlock, setDisplayBlock] = useState(null);
     const [moreBlock, setMoreBlock] = useState(null);
     const ref = useRef(null);
@@ -29,6 +29,27 @@ const MacroblockInfo = ({ selectedBlock }) => {
         }
     }, [selectedBlock, displayBlock, moreBlock]);
 
+    const getRefFrameNumber = (offset) => {
+        if (!frames || typeof currentFrameIdx !== 'number' || !offset) return "-";
+
+        const direction = offset < 0 ? -1 : 1;
+        const targetCount = Math.abs(offset);
+        let foundCount = 0;
+        let i = currentFrameIdx + direction;
+
+        while (i >= 0 && i < frames.length) {
+            const frame = frames[i];
+            if (frame.type === 'I' || frame.type === 'P') {
+                foundCount++;
+                if (foundCount === targetCount) {
+                    return frame.frame_number + 1;
+                }
+            }
+            i += direction;
+        }
+        return "Unknown";
+    };
+
     return (
         <div ref={ref} className={`content-box info macroblock-data ${selectedBlock ? "visible" : ""}`}>
             <h3>Macroblock information</h3>
@@ -36,13 +57,19 @@ const MacroblockInfo = ({ selectedBlock }) => {
             <p><strong>Position:</strong> ({displayBlock?.x}, {displayBlock?.y})</p>
             <p><strong>Size:</strong> {displayBlock?.width}x{displayBlock?.height}</p>
             <p><strong>Ffmpeg debug type:</strong> {displayBlock?.ftype}</p>
-            <p><strong>Reference frame:</strong> {displayBlock?.source}</p>
-            <p><strong>Source:</strong> ({displayBlock?.src_x}, {displayBlock?.src_y})</p>
-            <div className={`more-info ${displayBlock?.more === true ? "visible" : ""}`}>
-                <p><strong>Reference frame 2:</strong> {moreBlock?.source2}</p>
-                <p><strong>Source 2:</strong> ({moreBlock?.src_x2}, {moreBlock?.src_y2})</p>
-            </div>
 
+            <p>
+                <strong>{displayBlock?.more === true ? "Reference frame 1" : "Reference frame"}: </strong>
+                #{getRefFrameNumber(displayBlock?.source)}
+            </p>
+            <p>
+                <strong>{displayBlock?.more === true ? "Vector 1" : "Vector"}: </strong>
+                ({displayBlock?.x - displayBlock?.src_x}, {displayBlock?.y - displayBlock?.src_y})
+            </p>
+            <div className={`more-info ${displayBlock?.more === true ? "visible" : ""}`}>
+                <p><strong>Reference frame 2:</strong> #{getRefFrameNumber(moreBlock?.source2)}</p>
+                <p><strong>Vector 2:</strong> ({displayBlock?.x - moreBlock?.src_x2}, {displayBlock?.y - moreBlock?.src_y2})</p>
+            </div>
         </div>
     );
 };
