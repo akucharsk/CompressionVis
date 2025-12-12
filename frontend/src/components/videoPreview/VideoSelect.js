@@ -46,6 +46,7 @@ const VideoSelect = () => {
         refetchInterval: defaultRefetchIntervalPolicy
     });
 
+    // to delete?
     const handleFileChange = (file) => {
         const url = URL.createObjectURL(file);
         if (file.type.startsWith("video/")) {

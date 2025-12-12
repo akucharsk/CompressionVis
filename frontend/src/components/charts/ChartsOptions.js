@@ -1,12 +1,8 @@
 import "../../styles/components/charts/ChartsOptions.css";
 import { useEffect, useState } from "react";
-// import {Menu} from "mui-react-modal";
-// import {MenuItem} from "mui/material/MenuItem";
-// import Menu from '@mui/material/Menu';
-// import MenuItem from '@mui/material/MenuItem';
 import Spinner from "../Spinner";
-import { SketchPicker } from "react-color";
 import RGBPicker from "./RGBPicker";
+
 
 const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, compressedVideos }) => {
 
@@ -61,7 +57,6 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
 
     useEffect(() => {
         console.log(compressionMetricState[1])
-        // console.log(compressionMetricState[1]?.isTapped)
         const tapped = Object.keys(compressionMetricState).filter(item => compressionMetricState[item]?.isTapped).length
             
         setLeftToTap(TAPPED_MAX - tapped);
@@ -74,6 +69,7 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
         <div className="charts-options">
             {compressedVideos.map((compressionId, idx) => {
                 const isTapped = compressionMetricState[compressionId]?.isTapped;
+                // Jeszcze to czy sie zaladowalo
                 const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
 
                 return (

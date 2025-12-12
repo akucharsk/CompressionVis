@@ -17,6 +17,7 @@ import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
 import {queryClient} from "./utils/queryClient";
 import './styles/App.css'
+import { ChartsProvider } from './context/ChartsContext';
 
 function Layout() {
   const location = useLocation();
@@ -29,24 +30,26 @@ function Layout() {
             <FpsProvider>  
               <FramesProvider>
                 <MetricsProvider>
-                  <DisplayModeProvider>
-                    <VideoPlayingProvider>
-                      <MacroblocksProvider>
-                          <div className={"app-container"}>
-                          {!hideNavbar && <NavigationTabs />}
-                            <Routes>
-                              <Route path="*" element={<Navigate to="/" />} />
-                              <Route path="/" element={<Menu />} />
-                              <Route path="/compress" element={<FramesDistribution />} />
-                              <Route path="/comparison" element={<Comparison />} />
-                              <Route path="/quiz" element={<Quiz />} />
-                              <Route path="/admin" element={<Admin />} />
-                              <Route path="/charts" element={<Charts />}/>
-                            </Routes>
-                          </div>
-                        </MacroblocksProvider>
-                    </VideoPlayingProvider>
-                  </DisplayModeProvider>
+                  <ChartsProvider>
+                    <DisplayModeProvider>
+                      <VideoPlayingProvider>
+                        <MacroblocksProvider>
+                            <div className={"app-container"}>
+                            {!hideNavbar && <NavigationTabs />}
+                              <Routes>
+                                <Route path="*" element={<Navigate to="/" />} />
+                                <Route path="/" element={<Menu />} />
+                                <Route path="/compress" element={<FramesDistribution />} />
+                                <Route path="/comparison" element={<Comparison />} />
+                                <Route path="/quiz" element={<Quiz />} />
+                                <Route path="/admin" element={<Admin />} />
+                                <Route path="/charts" element={<Charts />}/>
+                              </Routes>
+                            </div>
+                          </MacroblocksProvider>
+                      </VideoPlayingProvider>
+                    </DisplayModeProvider>
+                  </ChartsProvider>
                 </MetricsProvider>
               </FramesProvider>
             </FpsProvider>

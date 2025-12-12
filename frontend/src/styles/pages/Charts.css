@@ -46,7 +46,7 @@
 .charts-rightside-top {
     padding: 0.2rem;
     display: flex;
-    flex-direction: row-reverse;
+    justify-content: space-between;
     height: auto;
 }
 
