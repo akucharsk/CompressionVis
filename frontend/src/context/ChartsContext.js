@@ -32,15 +32,9 @@ export const ChartsProvider = ({ children }) => {
     // }, [])
 
     const compressionsToTapFn = async (id) => {
-        console.log("ID", id);
-        const url = id 
-        ? `${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`
-        : `${apiUrl}/metrics/metrics-rank`;
-        const data = await genericFetch(url);
-        console.log("CO TU MAMY", data)
+        const data = await genericFetch(`${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`);
         return data["videos"];
     };
-
 
     const thumbnailsFn = useCallback(async () => {
         const data = await genericFetch(`${apiUrl}/video/example/`);
@@ -59,15 +53,7 @@ export const ChartsProvider = ({ children }) => {
 
     const compressionsToTap = useQuery({
         queryKey: ["compressionsToTap", selectedVideoId],
-        // queryFn: () => compressionsToTapFn(selectedVideoId),
-        // queryFn: async () => {
-        // if (!selectedVideoId) return [];
-        // const url = `${apiUrl}/metrics/metrics-rank?originalVideoId=${selectedVideoId}`;
-        // const data = await genericFetch(url);
-        // return data?.videos || [];
-        // };
         queryFn: () => compressionsToTapFn(selectedVideoId),
-        // enabled: !!selectedVideoId
     })
 
     // Added to force reload while changing base video in SelectForVideo

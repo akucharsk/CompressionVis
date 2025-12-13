@@ -545,22 +545,30 @@ class AllCompressed(APIView):
         except models.Video.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)    
 
-class MetricsRank(APIView):
+class CompressionsForCharts(APIView):
     def get(self, request):
         originalVideoId = request.GET.get("originalVideoId")
         try:
             if originalVideoId:
-                originalVideoId = int(originalVideoId)
-                videos = models.Video.objects.filter(
-                    is_compressed=True, original=originalVideoId
-                ).select_related('videometrics') \
-                .values(
-                    "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
-                    "aq_mode", "aq_strength", "preset", "size", 
-                    "videometrics__vmaf_mean", 
-                    "videometrics__psnr_mean", 
-                    "videometrics__ssim_mean"
-                )
+                # To avoid getting list of all compressed in ChartsOptions. Instead of that "Choose video"
+                if originalVideoId != "null":
+                    originalVideoId = int(originalVideoId)
+                    videos = models.Video.objects.filter(
+                        is_compressed=True, original=originalVideoId
+                    ).select_related('videometrics') \
+                    .values(
+                        "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
+                        "aq_mode", "aq_strength", "preset", "size", 
+                        "videometrics__vmaf_mean", 
+                        "videometrics__psnr_mean", 
+                        "videometrics__ssim_mean"
+                    )
+                    if videos:
+                        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+                    # No videos found for this originalVideoIdd
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+                # For moment when not selected original video yet
+                return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 videos = models.Video.objects.filter(
                     is_compressed=True
@@ -572,9 +580,12 @@ class MetricsRank(APIView):
                     "videometrics__psnr_mean", 
                     "videometrics__ssim_mean"
                 )
-            return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+            if videos:
+                return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+            # No compressions yet in database
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except (TypeError, ValueError):
-            return Response({"description": str(originalVideoId)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"description": f"Invalid originalVideoId {originalVideoId} (type {type(originalVideoId)}).  TypeError or ValueError"}, status=status.HTTP_400_BAD_REQUEST)
         except models.Video.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         

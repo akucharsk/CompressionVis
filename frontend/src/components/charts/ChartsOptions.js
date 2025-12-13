@@ -79,7 +79,11 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
         <div className="charts-options">
             {isFetching ? (
                 <Spinner size={20}/>
-            ) : data.length > 0 ? (          
+            ) : !selectedVideoId ? (
+                <div>
+                    Choose base video
+                </div>
+            ) : data ? (          
                 data.map((video, idx) => {
                     console.log("wideo i idx", video, idx);
                     const compressionId = video.id;
