@@ -642,20 +642,24 @@ class UploadQuestionsView(APIView):
         return FileResponse(open(zip_path, "rb"), filename="questions.zip")
     
 class QuizesView(APIView):
-    def _get_quizes_for_video(self, video_id):
-        try:
-            video = models.Video.objects.get(id=video_id)
-        except models.Video.DoesNotExist:
-            return None
-        return models.Quiz.objects.filter(Q(video_filename=video.filename) | Q(video_filename=None) | Q(video_filename=video.original.filename))
-
     def get(self, request, video_id=None):
-        quizes = self._get_quizes_for_video(video_id) if video_id else models.Quiz.objects.filter(video_filename=None)
-        if quizes is None:
-            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        videos = models.Video.objects.filter(Q(id=video_id) | Q(original=None))
+        filename_video_map = { video.filename: video for video in videos }
+        filenames = list(map(lambda video: video.filename, videos))
+        quizes = models.Quiz.objects.filter(Q(video_filename__in=filenames) | Q(video_filename=None))
         data = serializers.QuizSerializer(instance=quizes, many=True).data
+ 
+        def get_video_id(quiz):
+            filename = quiz.get("video_filename")
+            if not filename:
+                return None
+            video = filename_video_map.get(filename)
+            if video:
+                return video.id
+            return None
+        
         for quiz in data:
-            quiz["video_id"] = video_id if quiz.get("video_filename") else None
+            quiz["video_id"] = get_video_id(quiz)
         return Response({"quizes": data}, status=status.HTTP_200_OK)
 
 class QuizView(APIView):
