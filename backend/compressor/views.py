@@ -654,6 +654,8 @@ class QuizesView(APIView):
         if quizes is None:
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
         data = serializers.QuizSerializer(instance=quizes, many=True).data
+        for quiz in data:
+            quiz["video_id"] = video_id if quiz.get("video_filename") else None
         return Response({"quizes": data}, status=status.HTTP_200_OK)
 
 class QuizView(APIView):

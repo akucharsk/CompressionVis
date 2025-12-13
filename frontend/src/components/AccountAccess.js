@@ -30,7 +30,7 @@ export default function AccountAccess({ setOpen, includeHome = false }) {
   if (error) showError(error);
   if (!data?.isAdmin) {
     return (
-      <div style={{ display: "flex", flexDirection: "column"}}>
+      <div className="nav-subcontainer">
         { includeHome && (
           <NavLink to="/" className="nav-tab"
                   onClick={() => setOpen(false)}>

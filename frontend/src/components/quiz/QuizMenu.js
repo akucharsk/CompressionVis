@@ -28,7 +28,7 @@ const QuizMenu = () => {
             <p>{quiz?.description}</p>
             <div style={{ display: "flex" }}>
                 <button onClick={startQuiz}>START QUIZ</button>
-                <Link to={`/quiz/list${query}`} className="nav-tab" >BACK TO QUIZES</Link>
+                <button onClick={() => navigate(`/quiz/list${query}`)}>BACK TO QUIZES</button>
             </div>
         </div>
     );
