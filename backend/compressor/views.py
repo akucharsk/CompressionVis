@@ -539,9 +539,48 @@ class VideoParameters(APIView):
 
 class AllCompressed(APIView):
     def get(self, request):
-        videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
-        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+        try:
+            videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
+            return Response({"videos": list(videos)}, status=status.HTTP_200_OK)    
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)    
 
+class MetricsRank(APIView):
+    def get(self, request):
+        originalVideoId = request.GET.get("originalVideoId")
+        try:
+            originalVideoId = int(originalVideoId)
+            if originalVideoId:
+                videos = models.Video.objects.filter(
+                    is_compressed=True, original=originalVideoId
+                ).select_related('videometrics') \
+                .values(
+                    "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
+                    "aq_mode", "aq_strength", "preset", "size", 
+                    "videometrics__vmaf_mean", 
+                    "videometrics__psnr_mean", 
+                    "videometrics__ssim_mean"
+                )
+            else:
+                videos = models.Video.objects.filter(
+                    is_compressed=True
+                ).select_related('videometrics') \
+                .values(
+                    "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
+                    "aq_mode", "aq_strength", "preset", "size", 
+                    "videometrics__vmaf_mean", 
+                    "videometrics__psnr_mean", 
+                    "videometrics__ssim_mean"
+                )
+            if videos:
+                return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except (TypeError, ValueError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+                           
 class DeleteVideoView(APIView):
     def delete(self, request, video_id):
         try:
