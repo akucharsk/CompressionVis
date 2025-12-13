@@ -34,8 +34,8 @@ const SelectForVideo = () => {
 
     }, [data, selectedVideoId, changeVideo])
 
-    console.log("Tu thumbnails");
-    console.log(thumbnails);
+    // console.log("Tu thumbnails");
+    // console.log(thumbnails);
 
     return (
         <div className="select-wrapper">

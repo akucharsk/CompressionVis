@@ -549,8 +549,8 @@ class MetricsRank(APIView):
     def get(self, request):
         originalVideoId = request.GET.get("originalVideoId")
         try:
-            originalVideoId = int(originalVideoId)
             if originalVideoId:
+                originalVideoId = int(originalVideoId)
                 videos = models.Video.objects.filter(
                     is_compressed=True, original=originalVideoId
                 ).select_related('videometrics') \
@@ -572,11 +572,9 @@ class MetricsRank(APIView):
                     "videometrics__psnr_mean", 
                     "videometrics__ssim_mean"
                 )
-            if videos:
-                return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
         except (TypeError, ValueError):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"description": str(originalVideoId)}, status=status.HTTP_400_BAD_REQUEST)
         except models.Video.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         

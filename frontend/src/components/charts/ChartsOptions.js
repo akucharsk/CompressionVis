@@ -2,18 +2,22 @@ import "../../styles/components/charts/ChartsOptions.css";
 import { useEffect, useState } from "react";
 import Spinner from "../Spinner";
 import RGBPicker from "./RGBPicker";
+import { useCharts } from "../../context/ChartsContext";
 
 
 const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, compressedVideos }) => {
 
     const TAPPED_MAX = 5;
     const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
+    const { compressionsToTap, selectedVideoId } = useCharts();
+    const { data, isFetching, refetch } = compressionsToTap;
 
     const changeColor = (color) => {
         setCompressionMetricState(prev => {
             const updated = {...prev};
 
-            compressedVideos.forEach(compressionId => {
+            data.forEach(video => {
+                const compressionId = video.id;
                 if (!updated[compressionId]) {
                     updated[compressionId] = {
                         isTapped: false,
@@ -38,10 +42,12 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
     };
 
     useEffect(() => {
+        if (!data) return;
         setCompressionMetricState(prev => {
             const updated = {...prev};
 
-            compressedVideos.forEach(compressionId => {
+            data.forEach(video => {
+                const compressionId = video.id;
                 if (!updated[compressionId]) {
                     updated[compressionId] = {
                         isTapped: false,
@@ -53,52 +59,64 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
             return updated;
         });
 
-    }, [compressedVideos]);
+    }, [selectedVideoId, data]);
 
     useEffect(() => {
-        console.log(compressionMetricState[1])
+        // console.log(compressionMetricState[1])
         const tapped = Object.keys(compressionMetricState).filter(item => compressionMetricState[item]?.isTapped).length
             
         setLeftToTap(TAPPED_MAX - tapped);
-        console.log(tapped);
+        // console.log(tapped);
     }, [compressionMetricState])
 
-    console.log(compressionMetricState);
+    // console.log(compressionMetricState);
+
+    if (isFetching) {
+        return <Spinner size={20}/>
+    }
 
     return (
         <div className="charts-options">
-            {compressedVideos.map((compressionId, idx) => {
-                const isTapped = compressionMetricState[compressionId]?.isTapped;
-                // Jeszcze to czy sie zaladowalo
-                const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
+            {isFetching ? (
+                <Spinner size={20}/>
+            ) : data.length > 0 ? (          
+                data.map((video, idx) => {
+                    console.log("wideo i idx", video, idx);
+                    const compressionId = video.id;
+                    const isTapped = compressionMetricState[compressionId]?.isTapped;
+                    // Jeszcze to czy sie zaladowalo
+                    const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
 
-                return (
+                    return (
 
-                    <div 
-                        className={`compression-in-select-panel ${isTapped === true ? "active-tapped" : isInactive ? "inactive" : "active"}`} 
-                        key={idx}
-                        onClick={(e) => 
-                            toggleTap(e, compressionId)
-                        }
-                    >
-                        <div className="selection-option-left">
-                            <div>Compression {compressionId}</div>
+                        <div 
+                            className={`compression-in-select-panel ${isTapped === true ? "active-tapped" : isInactive ? "inactive" : "active"}`} 
+                            key={compressionId}
+                            onClick={(e) => 
+                                toggleTap(e, compressionId)
+                            }
+                        >
+                            <div className="selection-option-left">
+                                <div>Compression {compressionId}</div>
+                            </div>
+                            <div className="selection-option-right">
+                                {compressionId === 0 ? (
+                                    <Spinner size={16}/>
+                                ) : (
+                                    <RGBPicker 
+                                        compressionMetricState={compressionMetricState}
+                                        setCompressionMetricState={setCompressionMetricState}
+                                        compressionId={compressionId}
+                                        isActive={!isInactive}
+                                    />
+                                )}
+                            </div>
                         </div>
-                        <div className="selection-option-right">
-                            {compressionId === 0 ? (
-                                <Spinner size={16}/>
-                            ) : (
-                                <RGBPicker 
-                                    compressionMetricState={compressionMetricState}
-                                    setCompressionMetricState={setCompressionMetricState}
-                                    compressionId={compressionId}
-                                    isActive={!isInactive}
-                                />
-                            )}
-                        </div>
-                    </div>
-                )    
-            })}
+                    )    
+                })
+            ) : (
+                <div>No compressions of chosen video yet</div>
+            )}
         </div>
     )
 }

@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { createContext, useCallback, useContext } from "react"
+import { createContext, useCallback, useContext, useEffect } from "react"
 import { genericFetch } from "../api/genericFetch";
 import { apiUrl } from "../utils/urls";
 import { useSearchParams } from "react-router-dom";
+
 
 const ChartsContext = createContext();
 
@@ -20,6 +21,27 @@ export const ChartsProvider = ({ children }) => {
         })
     };
 
+    // const compressionsToTapFn = useCallback(async (id) => {
+    //     console.log("ID", id);
+    //     const url = id 
+    //     ? `${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`
+    //     : `${apiUrl}/metrics/metrics-rank`;
+    //     const data = await genericFetch(url);
+    //     console.log("CO TU MAMY", data)
+    //     return data["videos"];
+    // }, [])
+
+    const compressionsToTapFn = async (id) => {
+        console.log("ID", id);
+        const url = id 
+        ? `${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`
+        : `${apiUrl}/metrics/metrics-rank`;
+        const data = await genericFetch(url);
+        console.log("CO TU MAMY", data)
+        return data["videos"];
+    };
+
+
     const thumbnailsFn = useCallback(async () => {
         const data = await genericFetch(`${apiUrl}/video/example/`);
         const formattedData = data["videoIds"].map((item) => ({
@@ -35,9 +57,30 @@ export const ChartsProvider = ({ children }) => {
         queryFn: thumbnailsFn
     });
 
+    const compressionsToTap = useQuery({
+        queryKey: ["compressionsToTap", selectedVideoId],
+        // queryFn: () => compressionsToTapFn(selectedVideoId),
+        // queryFn: async () => {
+        // if (!selectedVideoId) return [];
+        // const url = `${apiUrl}/metrics/metrics-rank?originalVideoId=${selectedVideoId}`;
+        // const data = await genericFetch(url);
+        // return data?.videos || [];
+        // };
+        queryFn: () => compressionsToTapFn(selectedVideoId),
+        // enabled: !!selectedVideoId
+    })
+
+    // Added to force reload while changing base video in SelectForVideo
+    useEffect(() => {
+        const {refetch} = compressionsToTap;
+        refetch();
+    }, [selectedVideoId])
+
     return (
-        <ChartsContext.Provider value={{ thumbnails, selectedVideoId, changeVideo }}>
+        <ChartsContext.Provider value={{ thumbnails, compressionsToTap, selectedVideoId, changeVideo }}>
             { children }
         </ChartsContext.Provider>
     )
 }
+
+console.log("Charts poroviver export", ChartsProvider);
