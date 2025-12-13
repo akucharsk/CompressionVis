@@ -1,25 +1,26 @@
-export default function QuizNavigation({ questionNumber, allQuestionsNumber, setSelectedQuestion, endQuiz }) {
+import { useQuiz } from "../../context/QuizContext";
+
+export default function QuizNavigation() {
+  const { selectedQuestionIdx, setSelectedQuestionIdx, questions, setStep } = useQuiz();
   return (
     <div className="navigation-box">
-      {questionNumber > 1 && (
       <div
-          className="quiz-back-button"
-          onClick={() => setSelectedQuestion(questionNumber - 2)}
+          className={`quiz-back-button ${selectedQuestionIdx === 0 ? "disabled" : ""}`}
+          onClick={() => setSelectedQuestionIdx(selectedQuestionIdx - 1)}
       >
           Back
       </div>
-      )}
-      {questionNumber === allQuestionsNumber ? (
+      {selectedQuestionIdx === questions.length - 1 ? (
       <div
           className="quiz-finish-button"
-          onClick={() => endQuiz()}
+          onClick={() => setStep("end")}
       >
           Complete
       </div>
       ) : (
       <div
           className="quiz-finish-button"
-          onClick={() => setSelectedQuestion(questionNumber)}
+          onClick={() => setSelectedQuestionIdx(selectedQuestionIdx + 1)}
       >
           Next
       </div>

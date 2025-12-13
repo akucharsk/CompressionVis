@@ -12,7 +12,7 @@ import { MdAdminPanelSettings } from "react-icons/md";
 export default function AccountAccess({ setOpen, includeHome = false }) {
   const queryClient = useQueryClient();
   const { data, isPending, error } = useIdentity();
-  const showError = useError();
+  const { showError } = useError();
   const logoutMutation = useMutation({
     mutationFn: async () => await fetchWithCredentials(`${apiUrl}/logout/`, { method: "POST" }),
     onSuccess: () => {

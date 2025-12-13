@@ -65,6 +65,7 @@ class FrameMetadata(models.Model):
 class Quiz(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
+    video_filename = models.CharField(max_length=255, null=True, default=None)
     
 class QuizQuestion(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)

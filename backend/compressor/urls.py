@@ -19,5 +19,6 @@ urlpatterns = [
     path('frame/size/<int:video_id>/<int:frame_number>/', views.FrameSizeView.as_view(), name='frame_size'),
     path("upload-questions/", views.UploadQuestionsView.as_view()),
     path("quizes/", views.QuizesView.as_view()),
+    path("quizes/<int:video_id>/", views.QuizesView.as_view()),
     path("quiz/<int:quiz_id>/", views.QuizView.as_view()),
 ]

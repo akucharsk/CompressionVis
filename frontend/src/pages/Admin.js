@@ -9,7 +9,7 @@ import { fetchWithCredentials } from "../api/genericFetch";
 
 const Admin = () => {
     const queryClient = useQueryClient();
-    const showError = useError();
+    const { showError } = useError();
     
     const { data, isPending, error } = useQuery({
         queryKey: ["compressed-videos"],

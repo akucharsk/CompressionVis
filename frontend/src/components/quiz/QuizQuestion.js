@@ -1,79 +1,91 @@
 import { useQuiz } from "../../context/QuizContext";
 import { useCallback, useMemo } from "react";
 import QuizNavigation from "./QuizNavigation";
+import { scale as chroma } from "chroma-js";
+import Spinner from "../Spinner";
+import QuestionOption from "./QuestionOption";
 
 const QuizQuestion = ({
-  allQuestionsNumber,
-  questionNumber,
-  question,
-  type,
-  options,
-  setSelectedQuestion,
-  endQuiz,
-  showResults = false
+  questionIdx,
+  showResults = false,
 }) => {
-  const questionIndex = questionNumber - 1;
-  const { userAnswers, setUserAnswers } = useQuiz();
+  const {
+    selectedQuestionIdx,
+    userAnswers,
+    setUserAnswers,
+    questions,
+    quizQuery,
+  } = useQuiz();
 
-  const handleCheckboxChange = (answerIndex) => (e) => {
-    const checked = e.target.checked;
+  questionIdx = typeof questionIdx === "number" ? questionIdx : selectedQuestionIdx;
+  const currentQuestion = useMemo(() => questions[questionIdx], [questions, questionIdx]);
+  const currentUserAnswers = useMemo(() => userAnswers[questionIdx], [userAnswers, questionIdx]);
+
+  const handleCheckboxChange = useCallback((answerIndex) => (isChecked) => {
+    if (showResults) return;
     setUserAnswers((prev) => {
-      const answers = prev[questionIndex] || [];
-      if (checked && !answers.includes(answerIndex)) {
+      const answers = prev[questionIdx] || [];
+      console.log({ answers, answerIndex, isChecked })
+      if (isChecked && !answers.includes(answerIndex)) {
         return {
           ...prev,
-          [questionIndex]: [...answers, answerIndex]
+          [questionIdx]: [...answers, answerIndex]
         };
-      } else if (!checked && answers.includes(answerIndex)) {
+      } else if (!isChecked && answers.includes(answerIndex)) {
         return {
           ...prev,
-          [questionIndex]: answers.filter((index) => index !== answerIndex)
+          [questionIdx]: answers.filter((index) => index !== answerIndex)
         };
       }
       return prev;
     })
-  }
+  }, [questionIdx, setUserAnswers, showResults]);
 
   const getOptionClass = useCallback((index) => {
     if (!showResults) return "";
-    const providedAnswers = userAnswers[questionIndex] || [];
-    console.log({ providedAnswers, index, question, questionIndex });
-    if (providedAnswers.includes(index) && !question.answers[index].is_correct) return "quiz-option-incorrect";
-    if (question.answers[index].is_correct) return "quiz-option-correct";
+    if (currentUserAnswers?.includes(index) && !currentQuestion.answers[index].is_correct) return "quiz-option-incorrect";
+    if (currentQuestion.answers[index].is_correct) return "quiz-option-correct";
     return "";
-  }, [userAnswers, questionIndex, question, showResults]);
-  console.log({ userAnswers });
+  }, [currentUserAnswers, currentQuestion, showResults]);
+
+  const { score, total } = useMemo(() => {
+    if (!showResults) return { total: 0, score: 0 };
+    const total = currentQuestion.answers.reduce((acc, { is_correct }) => acc + Number(is_correct), 0);
+    if (currentUserAnswers?.filter((index) => !currentQuestion.answers[index].is_correct).length > 0) {
+      return { total, score: 0 };
+    }
+    return { total, score: currentUserAnswers?.length || 0 };
+  }, [currentQuestion, currentUserAnswers, showResults]);
+
+  const scale = chroma(['#ff0000', '#ffff00', '#00aa00']).domain([0, total]);
+
+  if (quizQuery.isPending) return <Spinner />;
 
   return (
     <div className="quiz-question-main-view">
         <div className="question-box">
             <h2>
-            {questionNumber}. {question.question}
+              {questionIdx + 1}. {currentQuestion.question}
             </h2>
+            {showResults && <p>
+              Your score: <span style={{ color: scale(score).hex() }}>{score} / {total}</span>
+            </p>}
         </div>
 
         <div className="options-box">
-            {options.map((option, index) => (
-              <div className={`quiz-option ${getOptionClass(index)}`} key={index}>
-                  <input
-                    type={type}
-                    className={`${type}-option`}
-                    onChange={handleCheckboxChange(index)}
-                    checked={userAnswers[questionIndex]?.includes(index) || false}
-                    disabled={showResults}
-                  />
-                  <p>{option.text}</p>
-              </div>
+            {currentQuestion.answers.map((option, index) => (
+              <QuestionOption
+                key={`${questionIdx}-${index}`}
+                optionClass={getOptionClass(index)}
+                onClick={handleCheckboxChange(index)}
+                optionText={option.text}
+                defaultIsChecked={currentUserAnswers?.includes(index)}
+              />
             ))}
         </div>
 
         { !showResults && (
-          <QuizNavigation
-            questionNumber={questionNumber}
-            allQuestionsNumber={allQuestionsNumber}
-            setSelectedQuestion={setSelectedQuestion}
-            endQuiz={endQuiz}
-          />
+          <QuizNavigation />
         )}
     </div>
   );

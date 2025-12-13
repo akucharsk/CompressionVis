@@ -1,5 +1,4 @@
 
-
 .quiz-box ul {
   list-style-type: none;
   padding: 0;
@@ -14,8 +13,6 @@
   color: #333;
 }
 
-
-
 .quiz-box .answer-buttons {
   display: flex;
   justify-content: center;
@@ -24,29 +21,26 @@
   margin-top: 20px;
 }
 
-.quiz-question-main-view {
-  width: 800px;
-  margin-left: 40px;
-}
-
 .quiz-content {
-  height: 600px;
   display: flex;
   transition: all 0.3s ease;
-
   flex: 1;
   box-sizing: border-box;
   transition: margin 0.3s ease;
+  justify-content: center;
+  border: 0 solid white;
+  height: fit-content;
 }
 
 .question-box {
+  width: 50vw;
   background-color: #1e1e1e;
   border-radius: 10px 10px 0 0;
   padding: 20px;
   color: white;
   font-size: 20px;
   font-weight: bold;
-  border-bottom: white solid 1px; 
+  border-bottom: 1px solid white; 
 }
 
 .options-box {
@@ -67,6 +61,7 @@
   padding: 10px 15px;
   transition: background-color 0.2s;
   border: 2px solid transparent;
+  cursor: pointer;
 }
 
 .quiz-option:hover {
@@ -88,15 +83,22 @@
 
 .quiz-option input:checked + p {
   font-weight: bold;
-  color: #e50914;
+  color: var(--netflix-red);
 }
 
 .quiz-option-incorrect {
-  background-color: #8d1c1c;
+  background-color: var(--netflix-dark-red);
 }
 
+.quiz-option-incorrect input[type="checkbox"] {
+  accent-color: var(--netflix-very-dark-red);
+}
 .quiz-option-correct {
-  background-color: #1c8d1c;
+  background-color: var(--netflix-green);
+}
+
+.quiz-option-correct input[type="checkbox"] {
+  accent-color: var(--netflix-dark-green);
 }
 
 .quiz-option-incorrect input:checked + p, .quiz-option-correct input:checked + p {
@@ -113,10 +115,10 @@
 }
 
 .end-navigation-box {
-  width: 300px;
   display: flex;
   justify-content: space-between;
   background-color: #1e1e1e;
+  gap: 1.5rem;
 }
 
 .quiz-back-button,
@@ -137,4 +139,11 @@
 .quiz-try-again-button:hover,
 .quiz-see-results-button:hover {
   background-color: #e50914;
+}
+
+.quiz-back-button.disabled {
+  background-color: var(--netflix-dark-red);
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
 }

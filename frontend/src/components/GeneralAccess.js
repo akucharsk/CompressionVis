@@ -25,11 +25,6 @@ export default function GeneralAccess({ setOpen }) {
           COMPARISON
           <MdCompareArrows size={20} />
       </NavLink>
-      <NavLink to={`/quiz/list${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
-              onClick={() => setOpen(false)}>
-          QUIZ
-          <MdQuiz size={20} />
-      </NavLink>
     </div>
   )
 }

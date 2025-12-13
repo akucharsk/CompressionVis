@@ -3,10 +3,11 @@ import { useState } from "react";
 import "../styles/pages/Navigation.css";
 import AccountAccess from "./AccountAccess";
 import GeneralAccess from "./GeneralAccess";
+import { MdQuiz } from "react-icons/md";
 
 const Navigation = () => {
     const [open, setOpen] = useState(false);
-    const { pathname } = useLocation();
+    const { pathname, search } = useLocation();
     const hideGeneralAccess = [ "/login", "/admin", "/" ].includes(pathname);
 
     return (
@@ -17,7 +18,14 @@ const Navigation = () => {
                 onClick={() => setOpen(!open)}
             />
             <div className={`nav-container ${open ? "open" : ""}`}>
-                { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
+                <div>
+                    { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
+                    <NavLink to={`/quiz/list${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
+                        onClick={() => setOpen(false)}>
+                        QUIZ
+                        <MdQuiz size={20} />
+                    </NavLink>
+                </div>
                 <AccountAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
             </div>
         </div>

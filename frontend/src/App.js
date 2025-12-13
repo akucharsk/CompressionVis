@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import QuizList from './pages/QuizList';
 import Admin from "./pages/Admin";
 import Protected from "./pages/Protected";
-import QuizResults from './pages/QuizResults';
+import QuizResults from './components/quiz/QuizResults';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
