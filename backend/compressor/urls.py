@@ -21,4 +21,5 @@ urlpatterns = [
     path("quizes/", views.QuizesView.as_view()),
     path("quizes/<int:video_id>/", views.QuizesView.as_view()),
     path("quiz/<int:quiz_id>/", views.QuizView.as_view()),
+    path("quiz/question/<int:question_id>/image/", views.QuizQuestionImageView.as_view()),
 ]

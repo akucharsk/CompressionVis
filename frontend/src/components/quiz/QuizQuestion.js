@@ -4,6 +4,7 @@ import QuizNavigation from "./QuizNavigation";
 import { scale as chroma } from "chroma-js";
 import Spinner from "../Spinner";
 import QuestionOption from "./QuestionOption";
+import { apiUrl } from "../../utils/urls";
 
 const QuizQuestion = ({
   questionIdx,
@@ -60,6 +61,7 @@ const QuizQuestion = ({
   const scale = chroma(['#ff0000', '#ffff00', '#00aa00']).domain([0, total]);
 
   if (quizQuery.isPending) return <Spinner />;
+  console.log(currentQuestion);
 
   return (
     <div className="quiz-question-main-view">
@@ -70,18 +72,21 @@ const QuizQuestion = ({
             {showResults && <p>
               Your score: <span style={{ color: scale(score).hex() }}>{score} / {total}</span>
             </p>}
+            {currentQuestion.image && (
+              <img src={`${apiUrl}/quiz/question/${currentQuestion.id}/image/`} alt="Question-image" />
+            )}
         </div>
 
         <div className="options-box">
-            {currentQuestion.answers.map((option, index) => (
-              <QuestionOption
-                key={`${questionIdx}-${index}`}
-                optionClass={getOptionClass(index)}
-                onClick={handleCheckboxChange(index)}
-                optionText={option.text}
-                defaultIsChecked={currentUserAnswers?.includes(index)}
-              />
-            ))}
+          {currentQuestion.answers.map((option, index) => (
+            <QuestionOption
+              key={`${questionIdx}-${index}`}
+              optionClass={getOptionClass(index)}
+              onClick={handleCheckboxChange(index)}
+              optionText={option.text}
+              defaultIsChecked={currentUserAnswers?.includes(index)}
+            />
+          ))}
         </div>
 
         { !showResults && (

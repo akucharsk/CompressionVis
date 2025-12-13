@@ -1,3 +1,4 @@
+from ntpath import isdir
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -574,29 +575,36 @@ class FrameSizeView(APIView):
 class UploadQuestionsView(APIView):
     permission_classes = [IsSuperuser]
     
-    def _get_json_entries(self, quiz_dir):
+    def _get_json_entries(self, quiz_dir, static_file_path=os.path.join(settings.BASE_DIR, "static", "quiz_files")):
         result = []
         for file in os.listdir(quiz_dir):
+            if os.path.isdir(os.path.join(quiz_dir, file)):
+                next_static_file_path = os.path.join(static_file_path, file)
+                result.extend(self._get_json_entries(os.path.join(quiz_dir, file), next_static_file_path))
             if file.endswith(".json"):
                 with open(os.path.join(quiz_dir, file), "r", encoding="utf-8") as f:
-                    result.append(json.load(f))
-            elif os.path.isdir(os.path.join(quiz_dir, file)):
-                result.extend(self._get_json_entries(os.path.join(quiz_dir, file)))
+                    json_data = json.load(f)
+                    json_data["assets_location"] = static_file_path
+                    result.append(json_data)
+            else:
+                os.makedirs(static_file_path, exist_ok=True)
+                shutil.move(os.path.join(quiz_dir, file), os.path.join(static_file_path, file))
         return result
 
-    def post(self, request, quiz_dir="QUIZ_DIR"):
+    def post(self, request):
 
         if "file" not in request.FILES:
             return Response({"message": "Brak pliku ZIP"}, status=status.HTTP_400_BAD_REQUEST)
 
         uploaded_file = request.FILES["file"]
 
-        if os.path.exists(quiz_dir):
-            shutil.rmtree(quiz_dir)
+        quiz_dir = os.path.join(settings.BASE_DIR, "static", "quiz_files", "archives")
         os.makedirs(quiz_dir, exist_ok=True)
-
-        zip_path = os.path.join(quiz_dir, "source.zip")
-        with open(zip_path, "wb") as f:
+        temp_quiz_dir = os.path.join(settings.BASE_DIR, "static", "temp", "quiz_files")
+        os.makedirs(temp_quiz_dir, exist_ok=True)
+        
+        archive_path = os.path.join(quiz_dir, uploaded_file.name)
+        with open(archive_path, "wb") as f:
             for chunk in uploaded_file.chunks():
                 f.write(chunk)
 
@@ -604,18 +612,19 @@ class UploadQuestionsView(APIView):
 
         try:
             with zipfile.ZipFile(uploaded_file) as z:
-                z.extractall(quiz_dir)
+                z.extractall(temp_quiz_dir)
         except zipfile.BadZipFile:
             return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
         
-        quizes_json = self._get_json_entries(quiz_dir)
+        quizes_json = self._get_json_entries(temp_quiz_dir)
 
         for quiz in quizes_json:
             video_name = quiz.get("video_name", None)
             quiz_record = models.Quiz.objects.create(
                 name=quiz.get("name", f"Unknown Quiz {uuid.uuid4()}"),
                 description=quiz.get("description", "Unknown Quiz Description"),
-                video_filename=video_name
+                video_filename=video_name,
+                assets_location=quiz.get("assets_location")
             )
             questions = []
             for question in quiz.get("questions", []):
@@ -626,11 +635,12 @@ class UploadQuestionsView(APIView):
                         quiz=quiz_record,
                         question=question.get("question", f"Unknown Question {uuid.uuid4()}"),
                         answers=answers,
-                        correct_answers=correct_answers
+                        correct_answers=correct_answers,
+                        image=question.get("image")
                     )
                 )
             models.QuizQuestion.objects.bulk_create(questions)
-        shutil.rmtree(quiz_dir)
+        shutil.rmtree(temp_quiz_dir)
         return Response({"message": "quizes uploaded successfully"}, status=status.HTTP_201_CREATED)
 
     def get(self, request, quiz_dir="QUIZ_DIR"):
@@ -673,3 +683,13 @@ class QuizView(APIView):
         serialized_quiz = serializers.QuizSerializer(instance=quiz).data
         serialized_quiz["questions"] = serialized_questions
         return Response({"quiz": serialized_quiz}, status=status.HTTP_200_OK)
+    
+class QuizQuestionImageView(APIView):
+    def get(self, request, question_id):
+        try:
+            question = models.QuizQuestion.objects.get(id=question_id)
+        except models.QuizQuestion.DoesNotExist:
+            return Response({"message": "Question not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not question.image or not question.quiz.assets_location or not os.path.exists(os.path.join(question.quiz.assets_location, question.image)):
+            return Response({"message": "Image not found"}, status=status.HTTP_404_NOT_FOUND)
+        return FileResponse(open(os.path.join(question.quiz.assets_location, question.image), "rb"), content_type="image/png", status=status.HTTP_200_OK)
