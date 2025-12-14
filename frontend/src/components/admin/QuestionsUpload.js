@@ -1,39 +1,36 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import QuestionsFormatInfo from "./QuestionsFormatInfo";
 import { apiUrl } from "../../utils/urls";
 import { fetchWithCredentials } from "../../api/genericFetch";
-import { useQuizes, useSingleQuiz } from "../../hooks/quizes";
+import { useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useError } from "../../context/ErrorContext";
 
 const QuestionsUpload = () => {
+    const queryClient = useQueryClient();
     const [file, setFile] = useState(null);
-    const [selectedSet, setSelectedSet] = useState(1);
-    const { data } = useQuizes();
-    const quizQuery = useSingleQuiz(selectedSet);
-    const quiz = useMemo(() => quizQuery.data?.quiz || {}, [quizQuery.data?.quiz]);
-
-    const handleUpload = async () => {
+    const { showError } = useError();
+    const handleUpload = useCallback(async () => {
         if (!file) return alert("Please select a ZIP file!");
 
         const formData = new FormData();
         formData.append("file", file);
+        return await fetchWithCredentials(`${apiUrl}/upload-questions/`, {
+            method: "POST",
+            body: formData,
+        });
+    }, [file]);
 
-        try {
-            const res = await fetchWithCredentials(`${apiUrl}/upload-questions/`, {
-                method: "POST",
-                body: formData,
-            });
-
-            const data = await res.json();
-            alert(data.message);
-        } catch (err) {
-            console.error(err);
-            alert("Upload failed.");
-        }
-    };
-
-    const handleDownloadZip = () => {
-        window.open(`${apiUrl}/upload-questions/`, "_blank");
-    };
+    const fileUploadMutation = useMutation({
+        mutationFn: handleUpload,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["quizes"] });
+            alert("Upload successful.");
+        },
+        onError: (err) => {
+            showError(err);
+        },
+    });
 
     return (
         <div style={{ marginTop: "30px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "2rem" }}>
@@ -53,7 +50,7 @@ const QuestionsUpload = () => {
                     </label>
                     { file && <p>{file.name}</p> }
                 </div>
-                <button onClick={handleUpload}>
+                <button onClick={fileUploadMutation.mutate}>
                     Upload
                 </button>
             </div>

@@ -46,7 +46,7 @@ export default function QuestionManager() {
               <span><strong>Name:</strong> {quiz.name}</span>
               <span><strong>Assets Location:</strong> {quiz.assets_location}</span>
             </div>
-            <button onClick={() => deleteMutation.mutate()} disabled={typeof selectedSet !== "number" && !selectedSet}>
+            <button onClick={() => deleteMutation.mutate()}>
               Delete
             </button>
           </div>
