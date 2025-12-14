@@ -550,20 +550,38 @@ class CompressionsForCharts(APIView):
         originalVideoId = request.GET.get("originalVideoId")
         try:
             if originalVideoId:
-                # To avoid getting list of all compressed in ChartsOptions. Instead of that "Choose video"
+                # To avoid getting list of all compressed in ChartsOptions. Instead of that "Choose base video"
                 if originalVideoId != "null":
                     originalVideoId = int(originalVideoId)
                     videos = models.Video.objects.filter(
                         is_compressed=True, original=originalVideoId
                     ).select_related('videometrics') \
                     .values(
-                        "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
-                        "aq_mode", "aq_strength", "preset", "size", 
-                        "videometrics__vmaf_mean", 
-                        "videometrics__psnr_mean", 
-                        "videometrics__ssim_mean"
+                        "id",
+                        "original",
+                        "bandwidth",
+                        "crf",
+                        "width",
+                        "height",
+                        "gop_size",
+                        "bf",
+                        "aq_mode",
+                        "aq_strength",
+                        "preset",
+                        "size",
+                        "videometrics__vmaf_mean",
+                        "videometrics__psnr_mean",
+                        "videometrics__ssim_mean",
                     )
                     if videos:
+                        videos = list(videos)
+                        for video in videos:
+                            video["metrics"] = {
+                                "vmaf": video.pop("videometrics__vmaf_mean"),
+                                "ssim": video.pop("videometrics__ssim_mean"),
+                                "psnr": video.pop("videometrics__psnr_mean"),
+                                "size": video.pop("size")
+                            }
                         return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
                     # No videos found for this originalVideoIdd
                     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -574,13 +592,31 @@ class CompressionsForCharts(APIView):
                     is_compressed=True
                 ).select_related('videometrics') \
                 .values(
-                    "id", "bandwidth", "crf", "width", "height", "gop_size", "bf", 
-                    "aq_mode", "aq_strength", "preset", "size", 
-                    "videometrics__vmaf_mean", 
-                    "videometrics__psnr_mean", 
-                    "videometrics__ssim_mean"
+                    "id",
+                    "original",
+                    "bandwidth",
+                    "crf",
+                    "width",
+                    "height",
+                    "gop_size",
+                    "bf",
+                    "aq_mode",
+                    "aq_strength",
+                    "preset",
+                    "size",
+                    "videometrics__vmaf_mean",
+                    "videometrics__psnr_mean",
+                    "videometrics__ssim_mean",
                 )
             if videos:
+                videos = list(videos)
+                for video in videos:
+                    video["metrics"] = {
+                        "vmaf": video.pop("videometrics__vmaf_mean"),
+                        "ssim": video.pop("videometrics__ssim_mean"),
+                        "psnr": video.pop("videometrics__psnr_mean"),
+                        "size": video.pop("size")
+                    }
                 return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
             # No compressions yet in database
             return Response(status=status.HTTP_204_NO_CONTENT)

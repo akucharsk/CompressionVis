@@ -21,6 +21,10 @@ export const ChartsProvider = ({ children }) => {
         })
     };
 
+    // const metrics = {
+    //     "VMAF"
+    // }
+
     // const compressionsToTapFn = useCallback(async (id) => {
     //     console.log("ID", id);
     //     const url = id 
@@ -35,6 +39,12 @@ export const ChartsProvider = ({ children }) => {
         const data = await genericFetch(`${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`);
         return data["videos"];
     };
+
+    const compressionsToRankFn = async () => {
+        console.log("compressions")
+        const data = await genericFetch(`${apiUrl}/metrics/metrics-rank/`);
+        return data["videos"];
+    }
 
     const thumbnailsFn = useCallback(async () => {
         const data = await genericFetch(`${apiUrl}/video/example/`);
@@ -56,6 +66,11 @@ export const ChartsProvider = ({ children }) => {
         queryFn: () => compressionsToTapFn(selectedVideoId),
     })
 
+    const compressionsToRank = useQuery({
+        queryKey: ["compressionsToRank"],
+        queryFn: compressionsToRankFn
+    })
+
     // Added to force reload while changing base video in SelectForVideo
     useEffect(() => {
         const {refetch} = compressionsToTap;
@@ -63,10 +78,8 @@ export const ChartsProvider = ({ children }) => {
     }, [selectedVideoId])
 
     return (
-        <ChartsContext.Provider value={{ thumbnails, compressionsToTap, selectedVideoId, changeVideo }}>
+        <ChartsContext.Provider value={{ thumbnails, compressionsToTap, compressionsToRank, selectedVideoId, changeVideo }}>
             { children }
         </ChartsContext.Provider>
     )
 }
-
-console.log("Charts poroviver export", ChartsProvider);

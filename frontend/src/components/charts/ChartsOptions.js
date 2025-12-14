@@ -71,9 +71,9 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
 
     // console.log(compressionMetricState);
 
-    if (isFetching) {
-        return <Spinner size={20}/>
-    }
+    // if (isFetching) {
+    //     return <Spinner size={20}/>
+    // }
 
     return (
         <div className="charts-options">
@@ -85,7 +85,7 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
                 </div>
             ) : data ? (          
                 data.map((video, idx) => {
-                    console.log("wideo i idx", video, idx);
+                    // console.log("wideo i idx", video, idx);
                     const compressionId = video.id;
                     const isTapped = compressionMetricState[compressionId]?.isTapped;
                     // Jeszcze to czy sie zaladowalo
