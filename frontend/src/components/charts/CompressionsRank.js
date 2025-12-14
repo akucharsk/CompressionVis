@@ -6,8 +6,6 @@ import Spinner from "../Spinner";
 
 const CompressionsRank = () => {
 
-    const [color, setColor] = useState("#aabbcc");
-
     const [orderOfSorting, setOrderOfSorting] = useState("Ascending");
     const [selectedMetric, setSelectedMetric] = useState("vmaf");
 
@@ -73,6 +71,7 @@ const CompressionsRank = () => {
         setSortedData(newSorted);
     }, [isFetching])
 
+
     return (
         <div className="charts-compressions-rank">
             <div className="rank-panel">
@@ -109,24 +108,11 @@ const CompressionsRank = () => {
                 </div>
             </div>
             <div className="sorted-rank">
-                {/* {compressedVideos.map((name, idx) => (
-                    <div className="compression-in-select-panel" key={idx}>
-                        {name}
-                    </div>
-                ))} */}
                 {isFetching ? (
                     <Spinner size={20}/>
-                ) : sortedData ? (
+                ) : sortedData.length > 0 ? (
                     sortedData.map((video, idx) => {
-                        console.log("jestem w data", video);
-                        // return(
                         if (!video) return;
-                        // return (<div key={idx}>
-                        //     {Object.entries(video).map(([key, value]) => (
-                        //         <p key={key}>
-                        //             {key}: {value}
-                        //         </p>
-                        //     ))}
                         return (
                             <>
                             <div>{video.id}</div>
@@ -138,8 +124,6 @@ const CompressionsRank = () => {
                                     })}</div>
                             </>
                         );
-                        // </div>)
-                        // )
                     })
                 ) : (
                     <div>

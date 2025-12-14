@@ -13,6 +13,7 @@ urlpatterns = [
     path('metrics/metrics-rank/', views.CompressionsForCharts.as_view(), name='metrics_rank'),
     path('metrics/frames/<int:video_id>/<int:frame_number>', views.FrameMetricView.as_view(), name='frame_metrics'),
     path('metrics/frames/<int:video_id>/all', views.AllFramesMetricsView.as_view(), name='all_metrics'),
+    path('metrics-status/<int:video_id>/', views.MetricStatusView.as_view(), name='metrics_status'),
     path('video/size/<int:video_id>/', views.SizeView.as_view(), name='video_size'),
     path('video/size-compress/', views.SizeCompressionView.as_view(), name='size_compress'),
     path('video/parameters/<int:video_id>/', views.VideoParameters.as_view(), name='video_parameters'),

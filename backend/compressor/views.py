@@ -504,6 +504,33 @@ class AllFramesMetricsView(APIView):
 
         return Response({"metrics": frame_metrics}, status=status.HTTP_200_OK)
 
+class MetricStatusView(APIView):
+    @staticmethod
+    def are_all_metrics(metrics):
+        if not metrics:
+            return False
+        return all([
+            metrics.vmaf_mean is not None,
+            metrics.psnr_mean is not None,
+            metrics.ssim_mean is not None
+        ])
+
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "Metrics extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if self.are_all_metrics(metrics):
+            return Response({"message": "finished"}, status=status.HTTP_200_OK)
+        return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+
 class SizeView(APIView):
     def get(self, request, video_id):
         try:

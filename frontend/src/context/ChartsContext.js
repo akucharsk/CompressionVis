@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect } from "react"
 import { genericFetch } from "../api/genericFetch";
 import { apiUrl } from "../utils/urls";
 import { useSearchParams } from "react-router-dom";
+import { defaultRefetchIntervalPolicy } from "../utils/retryUtils";
 
 
 const ChartsContext = createContext();
@@ -21,27 +22,13 @@ export const ChartsProvider = ({ children }) => {
         })
     };
 
-    // const metrics = {
-    //     "VMAF"
-    // }
-
-    // const compressionsToTapFn = useCallback(async (id) => {
-    //     console.log("ID", id);
-    //     const url = id 
-    //     ? `${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`
-    //     : `${apiUrl}/metrics/metrics-rank`;
-    //     const data = await genericFetch(url);
-    //     console.log("CO TU MAMY", data)
-    //     return data["videos"];
-    // }, [])
-
     const compressionsToTapFn = async (id) => {
         const data = await genericFetch(`${apiUrl}/metrics/metrics-rank?originalVideoId=${id}`);
         return data["videos"];
     };
 
     const compressionsToRankFn = async () => {
-        console.log("compressions")
+        // console.log("compressions")
         const data = await genericFetch(`${apiUrl}/metrics/metrics-rank/`);
         return data["videos"];
     }

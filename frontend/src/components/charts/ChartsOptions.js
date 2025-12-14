@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import Spinner from "../Spinner";
 import RGBPicker from "./RGBPicker";
 import { useCharts } from "../../context/ChartsContext";
+import ChartsOptionsField from "./ChartsOptionsField";
 
 
-const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, compressedVideos }) => {
+const ChartsOptions = ({ compressionMetricState, setCompressionMetricState }) => {
 
     const TAPPED_MAX = 5;
     const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
@@ -29,17 +30,6 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
             return updated;
         })
     }
-
-    const toggleTap = (e, id) => {
-        e.stopPropagation();
-        setCompressionMetricState(prev => ({
-            ...prev,
-            [id]: {
-                ...prev[id],
-                isTapped: !prev[id].isTapped
-            }
-        }));
-    };
 
     useEffect(() => {
         if (!data) return;
@@ -69,11 +59,6 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
         // console.log(tapped);
     }, [compressionMetricState])
 
-    // console.log(compressionMetricState);
-
-    // if (isFetching) {
-    //     return <Spinner size={20}/>
-    // }
 
     return (
         <div className="charts-options">
@@ -88,34 +73,25 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState, comp
                     // console.log("wideo i idx", video, idx);
                     const compressionId = video.id;
                     const isTapped = compressionMetricState[compressionId]?.isTapped;
-                    // Jeszcze to czy sie zaladowalo
                     const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
+                    // const stateFromFirstFetch = video.metrics.every(function(i) { return i === "None" || i === "null"; });
+                    // const initialMetricsState = 
+                    //     Object.values(video.metrics).includes(null) || Object.values(video.metrics).includes("None") ? "not-loaded" : "loaded";
+                    console.log("metryki", video, video.metrics);
+                    const areAllMetricsNull = Object.entries(video.metrics)
+                        .filter(([key]) => key !== "size")
+                        .every(([, value]) => value === null || value === "None");
+                    const initialMetricsState = areAllMetricsNull ? "processing" : "loaded";
 
                     return (
-
-                        <div 
-                            className={`compression-in-select-panel ${isTapped === true ? "active-tapped" : isInactive ? "inactive" : "active"}`} 
-                            key={compressionId}
-                            onClick={(e) => 
-                                toggleTap(e, compressionId)
-                            }
-                        >
-                            <div className="selection-option-left">
-                                <div>Compression {compressionId}</div>
-                            </div>
-                            <div className="selection-option-right">
-                                {compressionId === 0 ? (
-                                    <Spinner size={16}/>
-                                ) : (
-                                    <RGBPicker 
-                                        compressionMetricState={compressionMetricState}
-                                        setCompressionMetricState={setCompressionMetricState}
-                                        compressionId={compressionId}
-                                        isActive={!isInactive}
-                                    />
-                                )}
-                            </div>
-                        </div>
+                        <ChartsOptionsField 
+                            isTapped={isTapped}
+                            isInactive={isInactive}
+                            compressionId={compressionId}
+                            compressionMetricState={compressionMetricState}
+                            setCompressionMetricState={setCompressionMetricState}
+                            initialMetricsState={initialMetricsState}
+                        />
                     )    
                 })
             ) : (

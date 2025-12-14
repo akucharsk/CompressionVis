@@ -4,25 +4,25 @@ import CompressionsRank from '../components/charts/CompressionsRank';
 import MetricChart from '../components/charts/MetricChart';
 import '../styles/pages/Charts.css';
 import SelectForVideo from '../components/charts/SelectForVideo';
+import { useCharts } from '../context/ChartsContext';
 
 const Charts = () => {
 
     const [compressionMetricState, setCompressionMetricState] = useState({});
-    // const [visibleColors, setVisibleColors] = useState({}1);
-
-    const [compressedVideos, setCompressedVideos] = useState( [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-        9,
-        0,
-    ]);
+    const {thumbnails, compressionsToTap, compressionsToRank} = useCharts();
 
     const metrics= ["VMAF", "SSIM", "PSNR", "Size"];
+
+    const refetchAll = () => {
+        const refetchThumbnails = thumbnails.refetch;
+        const refetchCompressionsToTap = compressionsToTap.refetch;
+        const refetchCompressionsToRank = compressionsToRank.refetch;
+
+        refetchThumbnails();
+        refetchCompressionsToTap();
+        refetchCompressionsToRank();
+    }
+
 
     return (
         <div className="charts-container">
@@ -36,10 +36,9 @@ const Charts = () => {
                 )}
             </div>
             <div className="charts-rightside">
-                {/* threshold???? */}
                 <div className="charts-rightside-top">
                     <SelectForVideo />
-                    <button className="refresh-compressions-button">
+                    <button onClick={refetchAll} className="refresh-compressions-button" >
                         ⟳
                     </button>
                 </div>
@@ -49,7 +48,6 @@ const Charts = () => {
                     <ChartsOptions 
                         compressionMetricState={compressionMetricState}
                         setCompressionMetricState={setCompressionMetricState}
-                        compressedVideos={compressedVideos}
                     />
                     <CompressionsRank />
                 </div>
