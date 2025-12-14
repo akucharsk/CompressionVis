@@ -16,3 +16,12 @@ export function useQuizes() {
     refetchInterval: defaultRefetchIntervalPolicy,
   })
 }
+
+export function useSingleQuiz(quizId) {
+  return useQuery({
+    queryKey: ["quiz", quizId],
+    queryFn: async () => await genericFetch(`${apiUrl}/quiz/${quizId}`),
+    retry: defaultRetryPolicy,
+    refetchInterval: defaultRefetchIntervalPolicy,
+  })
+}

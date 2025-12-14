@@ -1,11 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { genericFetch } from "../api/genericFetch";
-import { apiUrl } from "../utils/urls";
-import { defaultRetryPolicy } from "../utils/retryUtils";
-import { defaultRefetchIntervalPolicy } from "../utils/retryUtils";
 import { useLocation } from "react-router-dom";
+import { useSingleQuiz } from "../hooks/quizes";
 
 const QuizContext = createContext();
 
@@ -21,12 +17,7 @@ export const QuizProvider = ({ children }) => {
       });
   }, [setSearchParams]);
 
-  const quizQuery = useQuery({
-    queryKey: ["quiz", quizId],
-    queryFn: async () => await genericFetch(`${apiUrl}/quiz/${quizId}`),
-    retry: defaultRetryPolicy,
-    refetchInterval: defaultRefetchIntervalPolicy,
-  });
+  const quizQuery = useSingleQuiz(quizId);
   const questions = useMemo(() => quizQuery.data?.quiz?.questions || [], [quizQuery.data?.quiz?.questions]);
   const initialUserAnswers = useMemo(() => {
     const saved = localStorage.getItem("quizAnswers");
@@ -36,6 +27,7 @@ export const QuizProvider = ({ children }) => {
     const saved = localStorage.getItem("selectedQuestion");
     return saved ? parseInt(saved) : 0;
   }, []);
+
   const [userAnswers, _setUserAnswers] = useState(initialUserAnswers);
   const [selectedQuestionIdx, _setSelectedQuestionIdx] = useState(initialSelectedQuestion);
 

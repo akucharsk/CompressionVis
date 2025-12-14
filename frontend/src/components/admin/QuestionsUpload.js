@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import QuestionsFormatInfo from "./QuestionsFormatInfo";
 import { apiUrl } from "../../utils/urls";
 import { fetchWithCredentials } from "../../api/genericFetch";
+import { useQuizes, useSingleQuiz } from "../../hooks/quizes";
 
 const QuestionsUpload = () => {
     const [file, setFile] = useState(null);
     const [selectedSet, setSelectedSet] = useState(1);
-    const [questions, setQuestions] = useState(null);
+    const { data } = useQuizes();
+    const quizQuery = useSingleQuiz(selectedSet);
+    const quiz = useMemo(() => quizQuery.data?.quiz || {}, [quizQuery.data?.quiz]);
 
     const handleUpload = async () => {
         if (!file) return alert("Please select a ZIP file!");
@@ -28,62 +31,32 @@ const QuestionsUpload = () => {
         }
     };
 
-    const handleFetchQuestions = async () => {
-        try {
-            const res = await fetchWithCredentials(`${apiUrl}/questions/${selectedSet}/`);
-            if (!res.ok) throw new Error("Failed to fetch questions");
-
-            const data = await res.json();
-            setQuestions(data);
-        } catch (err) {
-            console.error(err);
-            alert("Error fetching questions.");
-        }
-    };
-
     const handleDownloadZip = () => {
         window.open(`${apiUrl}/upload-questions/`, "_blank");
     };
 
     return (
-        <div style={{ marginTop: "30px" }}>
+        <div style={{ marginTop: "30px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "2rem" }}>
             <h2>Import Questions (ZIP)</h2>
-
-            <input
-                type="file"
-                accept=".zip"
-                onChange={(e) => setFile(e.target.files[0])}
-            />
-            <button onClick={handleUpload} style={{ marginLeft: "10px" }}>
-                Upload
-            </button>
-
-            <hr />
-
-            <h3>Preview Questions</h3>
-            <select
-                value={selectedSet}
-                onChange={(e) => setSelectedSet(e.target.value)}
-            >
-                {[1, 2, 3, 4].map((n) => (
-                    <option key={n} value={n}>questions{n}.json</option>
-                ))}
-            </select>
-            <button onClick={handleFetchQuestions} style={{ marginLeft: "10px" }}>
-                Show
-            </button>
-
-            {questions && (
-                <pre>
-                    {JSON.stringify(questions, null, 2)}
-                </pre>
-            )}
-
             <QuestionsFormatInfo />
-
-            <hr />
-
-            <button onClick={handleDownloadZip}>Download Current ZIP</button>
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", border: "1px solid var(--border-color)", padding: "1rem", borderRadius: "0.5rem", gap: "1rem" }}>
+                <input
+                    type="file"
+                    accept=".zip"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    hidden
+                    id="zip-upload"
+                />
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontWeight: "bold" }}>
+                    <label htmlFor="zip-upload">
+                        Choose ZIP file
+                    </label>
+                    { file && <p>{file.name}</p> }
+                </div>
+                <button onClick={handleUpload}>
+                    Upload
+                </button>
+            </div>
         </div>
     );
 };
