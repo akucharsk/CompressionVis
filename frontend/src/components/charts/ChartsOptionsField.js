@@ -1,10 +1,13 @@
+import "../../styles/components/charts/ChartsOptions.css";
 import { useEffect, useState } from "react";
 import Spinner from "../Spinner";
 import RGBPicker from "./RGBPicker";
 import { ChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
+import { useCharts } from "../../context/ChartsContext";
 
-const ChartsOptionsField = ({ isTapped, isInactive, compressionId, compressionMetricState, setCompressionMetricState, initialMetricsState }) => {
+const ChartsOptionsField = ({ isTapped, isInactive, compressionId, initialMetricsState }) => {
     const [fieldState, setFieldState] = useState(initialMetricsState);
+    const { setCompressionMetricState } = useCharts();
     const { data } = ChartsOptionsFieldQuery(
         compressionId,
         initialMetricsState !== "loaded"
@@ -33,7 +36,7 @@ const ChartsOptionsField = ({ isTapped, isInactive, compressionId, compressionMe
 
     return (
         <div 
-            className={`compression-in-select-panel ${isTapped === true ? "active-tapped" : isInactive ? "inactive" : "active"}`} 
+            className={`compression-in-select-panel ${fieldState !== "loaded" || isInactive ? "inactive" : isTapped === true ? "active-tapped" : "active"}`} 
             key={compressionId}
             onClick={(e) => 
                 toggleTap(e, compressionId)
@@ -47,13 +50,11 @@ const ChartsOptionsField = ({ isTapped, isInactive, compressionId, compressionMe
                     <Spinner size={16}/>
                 ) : fieldState === "loaded" ? (
                     <RGBPicker
-                        compressionMetricState={compressionMetricState}
-                        setCompressionMetricState={setCompressionMetricState}
                         compressionId={compressionId}
                         isActive={!isInactive}
                     />
                 ) : (
-                    <div>Invalid initialMetricsState</div>
+                    <div>❌</div>
                 )}
             </div>
         </div>

@@ -23,7 +23,7 @@ export const MetricsProvider = ({ children }) => {
 
   const frameMetricsQuery = useQuery({
     queryKey: [ "metrics", videoId, "all" ],
-    queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all`),
+    queryFn: async () => await genericFetch(`${apiUrl}/metrics/frames/${videoId}/all/`),
     refetchInterval: defaultRefetchIntervalPolicy,
     retry: defaultRetryPolicy,
     enabled: !!videoId

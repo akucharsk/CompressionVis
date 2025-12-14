@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useEffect } from "react"
+import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { genericFetch } from "../api/genericFetch";
 import { apiUrl } from "../utils/urls";
 import { useSearchParams } from "react-router-dom";
@@ -13,6 +13,7 @@ export const useCharts = () => useContext(ChartsContext);
 export const ChartsProvider = ({ children }) => {
     
     const [searchParams, setSearchParams] = useSearchParams();
+    const [compressionMetricState, setCompressionMetricState] = useState({});
 
     const selectedVideoId = searchParams.get("originalVideoId");
     const changeVideo = (newSelectedVideoId) => {
@@ -65,7 +66,15 @@ export const ChartsProvider = ({ children }) => {
     }, [selectedVideoId])
 
     return (
-        <ChartsContext.Provider value={{ thumbnails, compressionsToTap, compressionsToRank, selectedVideoId, changeVideo }}>
+        <ChartsContext.Provider value={{ 
+            thumbnails, 
+            compressionsToTap, 
+            compressionsToRank, 
+            selectedVideoId, 
+            changeVideo, 
+            compressionMetricState, 
+            setCompressionMetricState 
+        }}>
             { children }
         </ChartsContext.Provider>
     )

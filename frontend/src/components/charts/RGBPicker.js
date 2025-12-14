@@ -2,9 +2,10 @@ import "../../styles/components/charts/ChartsOptions.css";
 import { useState } from "react";
 import { SketchPicker } from "react-color";
 import * as Popover from "@radix-ui/react-popover";
+import { useCharts } from "../../context/ChartsContext";
 
 
-const RGBPicker = ({ compressionMetricState, setCompressionMetricState, compressionId, isActive }) => {
+const RGBPicker = ({ compressionId, isActive }) => {
 
     const sketchpickerDarkStyling = {
         default: {
@@ -20,6 +21,7 @@ const RGBPicker = ({ compressionMetricState, setCompressionMetricState, compress
         }
     }
 
+    const { compressionMetricState, setCompressionMetricState } = useCharts();
     const [chosenVideo, setChosenVideo] = useState(null);
 
 

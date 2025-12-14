@@ -39,7 +39,7 @@ const CompressionsRank = () => {
     const [sortedData, setSortedData] = useState(data ? [...data].sort(compareForSort) : []);
 
     const getTitleOfOriginal = (compressionId) => {
-        const originalVideo = thumbnails.data.find((video) => video.id === compressionId);
+        const originalVideo = thumbnails.data?.find((video) => video.id === compressionId);
         if (originalVideo) return originalVideo.name;
         return "Not found";
     }

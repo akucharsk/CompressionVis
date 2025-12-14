@@ -29,7 +29,7 @@ const SelectForVideo = () => {
             String(video.id) === String(selectedVideoId)
         );
         if (!foundData) return;
-        console.log(foundData);
+        // console.log(foundData);
         setSelectedVideo(foundData);
 
     }, [data, selectedVideoId, changeVideo])

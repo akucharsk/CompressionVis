@@ -5,10 +5,10 @@ import MetricChart from '../components/charts/MetricChart';
 import '../styles/pages/Charts.css';
 import SelectForVideo from '../components/charts/SelectForVideo';
 import { useCharts } from '../context/ChartsContext';
+import ChartsView from '../components/charts/ChartsView';
 
 const Charts = () => {
 
-    const [compressionMetricState, setCompressionMetricState] = useState({});
     const {thumbnails, compressionsToTap, compressionsToRank} = useCharts();
 
     const metrics= ["VMAF", "SSIM", "PSNR", "Size"];
@@ -27,13 +27,9 @@ const Charts = () => {
     return (
         <div className="charts-container">
             <div className="charts-leftside">
-                {metrics.map((metricType, idx) => (
-                        <MetricChart 
-                            metricType={metricType}
-                            idx={idx}
-                        />      
-                    )
-                )}
+                <ChartsView 
+
+                />
             </div>
             <div className="charts-rightside">
                 <div className="charts-rightside-top">
@@ -46,8 +42,8 @@ const Charts = () => {
                     <h4>Choose compressions to compare</h4>
                     <h4>Video compressions rank (by average video value)</h4>
                     <ChartsOptions 
-                        compressionMetricState={compressionMetricState}
-                        setCompressionMetricState={setCompressionMetricState}
+                        // compressionMetricState={compressionMetricState}
+                        // setCompressionMetricState={setCompressionMetricState}
                     />
                     <CompressionsRank />
                 </div>

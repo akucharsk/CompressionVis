@@ -6,11 +6,11 @@ import { useCharts } from "../../context/ChartsContext";
 import ChartsOptionsField from "./ChartsOptionsField";
 
 
-const ChartsOptions = ({ compressionMetricState, setCompressionMetricState }) => {
+const ChartsOptions = () => {
 
     const TAPPED_MAX = 5;
     const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
-    const { compressionsToTap, selectedVideoId } = useCharts();
+    const { compressionsToTap, selectedVideoId, compressionMetricState, setCompressionMetricState } = useCharts();
     const { data, isFetching, refetch } = compressionsToTap;
 
     const changeColor = (color) => {
@@ -77,7 +77,7 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState }) =>
                     // const stateFromFirstFetch = video.metrics.every(function(i) { return i === "None" || i === "null"; });
                     // const initialMetricsState = 
                     //     Object.values(video.metrics).includes(null) || Object.values(video.metrics).includes("None") ? "not-loaded" : "loaded";
-                    console.log("metryki", video, video.metrics);
+                    // console.log("metryki", video, video.metrics);
                     const areAllMetricsNull = Object.entries(video.metrics)
                         .filter(([key]) => key !== "size")
                         .every(([, value]) => value === null || value === "None");
@@ -88,8 +88,6 @@ const ChartsOptions = ({ compressionMetricState, setCompressionMetricState }) =>
                             isTapped={isTapped}
                             isInactive={isInactive}
                             compressionId={compressionId}
-                            compressionMetricState={compressionMetricState}
-                            setCompressionMetricState={setCompressionMetricState}
                             initialMetricsState={initialMetricsState}
                         />
                     )    
