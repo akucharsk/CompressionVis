@@ -8,6 +8,7 @@ import FrameDifferences from './pages/FrameDifferences';
 import Login from './pages/Login';
 import Admin from "./pages/Admin";
 import Protected from "./pages/Protected";
+import CompressedVideos from "./pages/CompressedVideos";
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
 import {ErrorProvider} from "./context/ErrorContext";
@@ -42,6 +43,7 @@ function Layout() {
                               <Route path="/" element={<Menu />} />
                               <Route path="/compress" element={<FramesDistribution />} />
                               <Route path="/comparison" element={<Comparison />} />
+                              <Route path="/compressed" element={<CompressedVideos />} />
                               <Route path="/quiz" element={<Quiz />} />
                               <Route path="/differences" element={<FrameDifferences />} />
                               <Route path="/admin" element={<Protected><Admin /></Protected>} />

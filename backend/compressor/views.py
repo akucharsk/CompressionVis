@@ -564,11 +564,63 @@ class VideoParameters(APIView):
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
-
+    
 class AllCompressed(APIView):
     def get(self, request):
-        videos = models.Video.objects.filter(is_compressed=True).values("id", "original_filename", "size", "filename")
-        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+        original_video_id = request.query_params.get('original_id', None)
+        queryset = models.Video.objects.filter(is_compressed=True)
+
+        if original_video_id is not None:
+            try:
+                queryset = queryset.filter(original=original_video_id)
+            except ValueError:
+                return Response({"message": "Invalid original_id format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        videos = queryset.annotate(
+            resolution_str=Concat(
+                F('width'), 
+                V('x'), 
+                F('height'), 
+                output_field=CharField() 
+            )
+        ).values(
+            "id",
+            "original_filename",
+            "size",
+            "title",
+            "filename",
+            "bandwidth",
+            "crf",
+            "gop_size",
+            "bf",
+            "aq_mode",
+            "aq_strength",
+            "preset",
+            "resolution_str",
+            "original",
+        )
+
+        video_list = []
+        for video in videos:
+            video_data = {
+                "id": video["id"],
+                "original_filename": video["original_filename"],
+                "size": video["size"],
+                "title": video["title"],
+                "filename": video["filename"],
+                "bandwidth": video["bandwidth"],
+                "original": video["original"],
+                "resolution": video["resolution_str"],
+                "crf": video["crf"],
+                "gop_size": video["gop_size"],
+                "bf": video["bf"],
+                "aq_mode": video["aq_mode"],
+                "aq_strength": float(video["aq_strength"]) if video["aq_strength"] is not None else None,
+                "preset": video["preset"],
+            }
+            video_list.append(video_data)
+
+        return Response({"videos": camelize(video_list)}, status=status.HTTP_200_OK)
 
 class FrameSizeView(APIView):
     def get(self, request, video_id, frame_number):
