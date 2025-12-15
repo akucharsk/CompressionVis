@@ -6,15 +6,11 @@ import Spinner from "../Spinner";
 
 const SelectForVideo = () => {
     const [open, setOpen] = useState(false);
-    const [selected, setSelected] = useState(null);
 
     const { thumbnails, selectedVideoId, changeVideo } = useCharts();
-    const { data, isPending } = thumbnails;
-
-    const [ searchParams, setSearchParams ] = useSearchParams();
+    const { data } = thumbnails;
 
     const selectVideoForMetric = (video) => {
-        setSelected(video);
         setOpen(false);
         changeVideo(video.id);
     };
@@ -29,14 +25,26 @@ const SelectForVideo = () => {
             String(video.id) === String(selectedVideoId)
         );
         if (!foundData) return;
-        // console.log(foundData);
         setSelectedVideo(foundData);
 
     }, [data, selectedVideoId, changeVideo])
 
-    // console.log("Tu thumbnails");
-    // console.log(thumbnails);
+    useEffect(() => {
+        if (!open) return;
 
+        const close = () => setOpen(false);
+
+        const timer = setTimeout(() => {
+            document.addEventListener('click', close);
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('click', close);
+        };
+    }, [open]);
+
+    
     return (
         <div className="select-wrapper">
             <div className="dropdown-trigger" onClick={() => setOpen(!open)}>
@@ -52,7 +60,7 @@ const SelectForVideo = () => {
                 ) : (
                     <div className="select-wrapper-option selected">
                         <div className="select-wrapper-option original">
-                            <span>Wybierz wideo...</span>
+                            <span>Choose video...</span>
                         </div>
                     </div>
                 )}

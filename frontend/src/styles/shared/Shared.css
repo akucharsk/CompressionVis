@@ -4,11 +4,13 @@
     --netflix-dark-red: #8d1c1c;
     --netflix-gray: #3a3f51;
     --netflix-black: #000000;
+    --netflix-light-grey: #8d8d8d;
     --font-color: #ffffff;
     --background-first: #1a1a1a;
     --background-second: #2a2a2a;
     --background-third: #131313;
     --background-fourth: #626262;
+    --background-fifth: #272727;
     --border-color: #444;
     --shadow-red: rgba(229, 9, 20, 0.5);
     --shadow-red-active: rgba(229, 9, 20, 0.7);

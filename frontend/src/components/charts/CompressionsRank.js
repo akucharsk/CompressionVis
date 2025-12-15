@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 import { AlphaPicker, SketchPicker } from 'react-color';
 import { useCharts } from "../../context/ChartsContext";
 import Spinner from "../Spinner";
+import CompressionsRankField from "./CompressionsRankField";
 
 const CompressionsRank = () => {
 
     const [orderOfSorting, setOrderOfSorting] = useState("Ascending");
-    const [selectedMetric, setSelectedMetric] = useState("vmaf");
+    const [selectedMetric, setSelectedMetric] = useState("VMAF");
 
     const compareForSort = (video1, video2) => {
         if (!selectedMetric) return 0;
         try {
-            const value1 = parseFloat(video1.metrics[selectedMetric])
-            const value2 = parseFloat(video2.metrics[selectedMetric])
+            const value1 = parseFloat(video1.metrics[selectedMetric.toLowerCase()])
+            const value2 = parseFloat(video2.metrics[selectedMetric.toLowerCase()])
             if (orderOfSorting === "Ascending") {
                 if (value1 < value2) {
                     return -1;
@@ -37,12 +38,6 @@ const CompressionsRank = () => {
     const { compressionsToRank, thumbnails } = useCharts();
     const { data, isFetching } = compressionsToRank;
     const [sortedData, setSortedData] = useState(data ? [...data].sort(compareForSort) : []);
-
-    const getTitleOfOriginal = (compressionId) => {
-        const originalVideo = thumbnails.data?.find((video) => video.id === compressionId);
-        if (originalVideo) return originalVideo.name;
-        return "Not found";
-    }
 
     const handleAscendingButton = () => {
         if (orderOfSorting === "Descending") {
@@ -79,16 +74,16 @@ const CompressionsRank = () => {
                     value={selectedMetric}
                     onChange={e => setSelectedMetric(e.target.value)}
                 >
-                    <option value="vmaf">
+                    <option value="VMAF">
                         VMAF
                     </option>
-                    <option value="ssim">
+                    <option value="SSIM">
                         SSIM
                     </option>
-                    <option value="psnr">
+                    <option value="PSNR">
                         PSNR
                     </option>
-                    <option value="size">
+                    <option value="Size">
                         Size
                     </option>
                 </select>
@@ -107,30 +102,50 @@ const CompressionsRank = () => {
                     </button>
                 </div>
             </div>
+            {isFetching ? (
             <div className="sorted-rank">
-                {isFetching ? (
+                <div className="sorted-rank-column-titles">
+                    <div className="column-titles-compression-data">Compression</div>
+                    <div className="column-titles-score">{selectedMetric}</div>
+                </div>
+                <div className="sorted-rank-info">
                     <Spinner size={20}/>
-                ) : sortedData.length > 0 ? (
-                    sortedData.map((video, idx) => {
-                        if (!video) return;
-                        return (
-                            <>
-                            <div>{video.id}</div>
-                            <div>{getTitleOfOriginal(video.original)}</div>
-                            <div>{Object.keys(video.metrics)
-                                    .filter(item => item === selectedMetric)
-                                    .map(key => {
-                                        return video.metrics[key]
-                                    })}</div>
-                            </>
-                        );
-                    })
-                ) : (
-                    <div>
-                        No compressions yet
-                    </div>
-                )}
+                </div>
             </div>
+            ) : sortedData.length > 0 ? (
+            <div className="sorted-rank with-data">
+                <div className="sorted-rank-column-titles">
+                    <div className="column-titles-compression-data">Compression</div>
+                    <div className="column-titles-score">{selectedMetric}</div>
+                </div>
+                {sortedData.map((video, idx) => {
+                    if (!video) return;
+                    const areAllMetricsNull = Object.entries(video.metrics)
+                        .filter(([key]) => key !== "size")
+                        .every(([, value]) => value === null || value === "None");
+                    const initialMetricsState = areAllMetricsNull ? "processing" : "loaded";
+                    
+                    return (
+                        <CompressionsRankField 
+                            compression={video} 
+                            idx={idx}
+                            selectedMetric={selectedMetric}
+                            initialMetricsState={initialMetricsState}
+                        />
+                    );
+                })}
+            </div>
+            ) : (
+            <div className="sorted-rank">
+                <div className="sorted-rank-column-titles">
+                    <div className="column-titles-compression-data">Compression</div>
+                    <div className="column-titles-score">{selectedMetric}</div>
+                </div>
+                <div className="sorted-rank-info">
+                    No available compressions yet
+                </div>
+            </div>
+            )}
         </div>
     )
 }
