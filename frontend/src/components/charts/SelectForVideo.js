@@ -41,33 +41,48 @@ const SelectForVideo = () => {
         <div className="select-wrapper">
             <div className="dropdown-trigger" onClick={() => setOpen(!open)}>
                 { selectedVideo ? (
-                    <div>
-                        <img src={selectedVideo.thumbnail} alt={`${selectedVideo.title} image`} />
-                        <span>{selectedVideo.name}</span>
+                    <div className="select-wrapper-option selected">
+                        <div className="select-wrapper-option-title">
+                            <span>{selectedVideo.name}</span>
+                        </div>
+                        <div className="select-wrapper-option-image">
+                            <img src={selectedVideo.thumbnail} alt={`${selectedVideo.title} image`} />
+                        </div>                    
                     </div>
                 ) : (
-                    <div>
-                        Wybierz wideo...
+                    <div className="select-wrapper-option selected">
+                        <div className="select-wrapper-option original">
+                            <span>Wybierz wideo...</span>
+                        </div>
                     </div>
                 )}
             </div>
-
-            {open && (
-                <div className="dropdown-options">
+            <div className={`dropdown-options ${open ? 'open' : ''}`}>
+                {data ? (
+                    <>
                     {data
                         .filter(video => video !== selectedVideo)
                         .map(video => (
                             <div
                                 key={video.id}
-                                className="dropdown-option"
+                                className="select-wrapper-option nonselected"
                                 onClick={() => selectVideoForMetric(video)}
                             >
-                                <img src={video.thumbnail} alt="" />
-                                <span>{video.name}</span>
+                                <div className="select-wrapper-option-title">
+                                    <span>{video.name}</span>
+                                </div>
+                                <div className="select-wrapper-option-image">
+                                    <img src={video.thumbnail} alt="" />
+                                </div>                    
                             </div>
-                        ))}
-                </div>
-            )}
+                        ))
+                    }
+                    </>
+                ) : (
+                    <></>
+                )}
+                
+            </div>
         </div>
     );
 }
