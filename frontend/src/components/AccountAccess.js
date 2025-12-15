@@ -6,10 +6,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiUrl } from "../utils/urls";
 import { useCallback } from "react";
 import { fetchWithCredentials } from "../api/genericFetch";
-import { IoLogInOutline, IoLogOutOutline, IoHome } from "react-icons/io5";
+import { IoLogInOutline, IoLogOutOutline } from "react-icons/io5";
 import { MdAdminPanelSettings } from "react-icons/md";
 
-export default function AccountAccess({ setOpen, includeHome = false }) {
+export default function AccountAccess({ setOpen }) {
   const queryClient = useQueryClient();
   const { data, isPending, error } = useIdentity();
   const { showError } = useError();
@@ -31,13 +31,6 @@ export default function AccountAccess({ setOpen, includeHome = false }) {
   if (!data?.isAdmin) {
     return (
       <div className="nav-subcontainer">
-        { includeHome && (
-          <NavLink to="/" className="nav-tab"
-                  onClick={() => setOpen(false)}>
-            HOME
-            <IoHome size={20} />
-          </NavLink>
-        )}
         <NavLink to="/login" className="nav-tab"
               onClick={() => setOpen(false)}>
           LOGIN
@@ -48,13 +41,6 @@ export default function AccountAccess({ setOpen, includeHome = false }) {
   }
   return (
     <div style={{ display: "flex", flexDirection: "column"}}>
-      { includeHome && (
-          <NavLink to="/" className="nav-tab"
-                  onClick={() => setOpen(false)}>
-            HOME
-            <IoHome size={20} />
-          </NavLink>
-      )}
       <NavLink to="/admin" className="nav-tab"
               onClick={() => setOpen(false)}>
           ADMIN PANEL

@@ -1,9 +1,8 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useState } from "react";
 import "../styles/pages/Navigation.css";
 import AccountAccess from "./AccountAccess";
 import GeneralAccess from "./GeneralAccess";
-import { MdQuiz } from "react-icons/md";
 import QuizAccess from "./QuizAccess";
 
 const Navigation = () => {
@@ -23,9 +22,9 @@ const Navigation = () => {
             <div className={`nav-container ${open ? "open" : ""}`}>
                 <div>
                     { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
-                    <QuizAccess setOpen={setOpen} includeHome={isStandaloneQuizPath} />
+                    <QuizAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
                 </div>
-                <AccountAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/" && !isStandaloneQuizPath} />
+                <AccountAccess setOpen={setOpen} />
             </div>
         </div>
     );
