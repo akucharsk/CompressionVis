@@ -5,15 +5,17 @@ export default function QuestionOption({
   onClick,
   optionText,
   defaultIsChecked = false,
+  disabled = false,
 }) {
   const [isChecked, setIsChecked] = useState(defaultIsChecked);
   const handleClick = useCallback(() => {
+    if (disabled) return;
     onClick(!isChecked);
     setIsChecked(!isChecked);
-  }, [isChecked, onClick]);
+  }, [isChecked, onClick, disabled]);
   return (
     <div
-      className={`quiz-option ${optionClass}`}
+      className={`quiz-option ${optionClass} ${disabled ? "disabled" : ""}`}
       onClick={handleClick}
     >
       <input

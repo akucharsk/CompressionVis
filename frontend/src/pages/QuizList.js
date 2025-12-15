@@ -1,6 +1,6 @@
 import { useQuizes } from "../hooks/quizes";
 import Spinner from "../components/Spinner";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useError } from "../context/ErrorContext";
 import { useSearchParams } from "react-router-dom";
 import { BsFillInfoCircleFill } from "react-icons/bs";
@@ -15,6 +15,7 @@ export default function QuizList() {
   const [ searchParams ] = useSearchParams();
   const videoId = searchParams.get("videoId");
   const query = location.search;
+  const navigate = useNavigate();
 
   if (isPending || originalVideosPending) return <Spinner />;
   if (error) showError(error);
@@ -26,7 +27,7 @@ export default function QuizList() {
           <h1>Quiz {index + 1}</h1>
           <h2>{quiz.name}</h2>
           <p>{quiz.description}</p>
-          <Link to={`/quiz/${quiz.id}/menu${query}`} className="nav-tab">CONTINUE</Link>
+          <button onClick={() => navigate(`/quiz/${quiz.id}/menu${query}`)}>CONTINUE</button>
           <VideoReference quiz={quiz} />
         </div>
       ))}

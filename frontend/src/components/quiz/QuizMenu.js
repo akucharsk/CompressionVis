@@ -1,9 +1,10 @@
 import React, { useMemo, useCallback } from "react";
-import "../../styles/components/QuizMenu.css"
-import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import "../../styles/components/QuizMenu.css";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuiz } from "../../context/QuizContext";
 import Spinner from "../Spinner";
 import { useError } from "../../context/ErrorContext";
+
 const QuizMenu = () => {
     const navigate = useNavigate();
     const { quizId } = useParams();
@@ -26,7 +27,7 @@ const QuizMenu = () => {
         <div className="quiz-box">
             <h1>{quiz?.name}</h1>
             <p>{quiz?.description}</p>
-            <div style={{ display: "flex" }}>
+            <div>
                 <button onClick={startQuiz}>START QUIZ</button>
                 <button onClick={() => navigate(`/quiz/list${query}`)}>BACK TO QUIZES</button>
             </div>

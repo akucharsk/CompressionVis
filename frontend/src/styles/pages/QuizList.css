@@ -15,6 +15,23 @@
   align-items: center;
 }
 
+.quiz-list-item button {
+  background-color: var(--netflix-red);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.quiz-list-item button:hover {
+  transform: scale(1.1);
+  background-color: var(--netflix-dark-red);
+}
+
 .video-reference {
   display: flex;
   gap: 0.5rem;

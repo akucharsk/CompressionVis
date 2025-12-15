@@ -23,5 +23,6 @@ export function useSingleQuiz(quizId) {
     queryFn: async () => await genericFetch(`${apiUrl}/quiz/${quizId}`),
     retry: defaultRetryPolicy,
     refetchInterval: defaultRefetchIntervalPolicy,
+    enabled: !!quizId
   })
 }

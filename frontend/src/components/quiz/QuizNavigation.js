@@ -4,26 +4,26 @@ export default function QuizNavigation() {
   const { selectedQuestionIdx, setSelectedQuestionIdx, questions, setStep } = useQuiz();
   return (
     <div className="navigation-box">
-      <div
+      <button
           className={`quiz-back-button ${selectedQuestionIdx === 0 ? "disabled" : ""}`}
           onClick={() => setSelectedQuestionIdx(selectedQuestionIdx - 1)}
       >
           Back
-      </div>
+      </button>
       {selectedQuestionIdx === questions.length - 1 ? (
-      <div
+      <button
           className="quiz-finish-button"
           onClick={() => setStep("end")}
       >
           Complete
-      </div>
+      </button>
       ) : (
-      <div
+      <button
           className="quiz-finish-button"
           onClick={() => setSelectedQuestionIdx(selectedQuestionIdx + 1)}
       >
           Next
-      </div>
+      </button>
       )}
     </div>
   );

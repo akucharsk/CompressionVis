@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuiz } from "../../context/QuizContext";
 import { scale as chroma } from "chroma-js";
+import "../../styles/components/QuizEnded.css";
 
 const QuizEnded = () => {
     const { quizId } = useParams();
@@ -34,13 +35,12 @@ const QuizEnded = () => {
     return (
         <div className="quiz-box" style={{ gap: "1rem" }}>
             <h1>Quiz Completed!</h1>
-            <div style={{ fontSize: "1.5rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "2.5rem" }}>
+            <div className="score-box">
                 <span>Your score: </span>
                 <span style={{ color: scale(current).hex() }}>{current} / {total}</span>
             </div>
             <div className="end-navigation-box">
-                <div
-                    className="quiz-try-again-button"
+                <button
                     onClick={() => {
                         setUserAnswers(Object.fromEntries(questions.map((_, index) => [index, []])));
                         setSelectedQuestionIdx(0);
@@ -49,19 +49,17 @@ const QuizEnded = () => {
                     }}
                 >
                     TRY AGAIN
-                </div>
-                <div
-                    className="quiz-see-results-button"
+                </button>
+                <button
                     onClick={() => setStep("results")}
                 >
                     SEE RESULTS
-                </div>
-                <div
-                    className="quiz-try-again-button"
+                </button>
+                <button
                     onClick={() => navigate(`/quiz/list${query}`)}
                 >
                     EXIT QUIZ
-                </div>
+                </button>
             </div>
         </div>
     );

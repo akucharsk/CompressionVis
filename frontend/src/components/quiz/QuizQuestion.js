@@ -23,7 +23,6 @@ const QuizQuestion = ({
   const currentUserAnswers = useMemo(() => userAnswers[questionIdx], [userAnswers, questionIdx]);
 
   const handleCheckboxChange = useCallback((answerIndex) => (isChecked) => {
-    if (showResults) return;
     setUserAnswers((prev) => {
       const answers = prev[questionIdx] || [];
       console.log({ answers, answerIndex, isChecked })
@@ -40,7 +39,7 @@ const QuizQuestion = ({
       }
       return prev;
     })
-  }, [questionIdx, setUserAnswers, showResults]);
+  }, [questionIdx, setUserAnswers]);
 
   const getOptionClass = useCallback((index) => {
     if (!showResults) return "";
@@ -85,6 +84,7 @@ const QuizQuestion = ({
               onClick={handleCheckboxChange(index)}
               optionText={option.text}
               defaultIsChecked={currentUserAnswers?.includes(index)}
+              disabled={showResults}
             />
           ))}
         </div>

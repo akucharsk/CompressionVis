@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import QuizQuestion from "./QuizQuestion";
 import { useQuiz } from "../../context/QuizContext";
+import "../../styles/components/QuizResults.css";
 
 
 export default function QuizResults() {
@@ -13,7 +14,7 @@ export default function QuizResults() {
   if (quizQuery.isPending) return <></>;
 
   return (
-    <div style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "2rem" }}>
+    <div className="quiz-results-box">
       <h1>{quiz.name}</h1>
       <h2>Detailed results</h2>
       {questions?.map((_, idx) => (
@@ -23,7 +24,7 @@ export default function QuizResults() {
           questionIdx={idx}
         />
       ))}
-      <div className="quiz-try-again-button" onClick={handleBack} style={{ marginBottom: "5rem" }}>BACK</div>
+      <button onClick={handleBack}>BACK</button>
     </div>
   )
 }

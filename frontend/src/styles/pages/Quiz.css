@@ -13,14 +13,6 @@
   color: #333;
 }
 
-.quiz-box .answer-buttons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-}
-
 .quiz-content {
   display: flex;
   transition: all 0.3s ease;
@@ -81,27 +73,32 @@
   color: white;
 }
 
+.quiz-option.disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .quiz-option input:checked + p {
   font-weight: bold;
   color: var(--netflix-red);
 }
 
-.quiz-option-incorrect {
+.quiz-option-incorrect.disabled {
   background-color: var(--netflix-dark-red);
 }
 
-.quiz-option-incorrect input[type="checkbox"] {
+.quiz-option-incorrect.disabled input[type="checkbox"] {
   accent-color: var(--netflix-very-dark-red);
 }
-.quiz-option-correct {
+.quiz-option-correct.disabled {
   background-color: var(--netflix-green);
 }
 
-.quiz-option-correct input[type="checkbox"] {
+.quiz-option-correct.disabled input[type="checkbox"] {
   accent-color: var(--netflix-dark-green);
 }
 
-.quiz-option-incorrect input:checked + p, .quiz-option-correct input:checked + p {
+.quiz-option-incorrect.disabled input:checked + p, .quiz-option-correct.disabled input:checked + p {
   color: white;
 }
 
@@ -114,36 +111,33 @@
   padding: 20px;
 }
 
+.navigation-box button {
+  background-color: var(--netflix-red);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.3rem;
+  font-size: 0.8rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.navigation-box button:hover {
+  transform: scale(1.1);
+  background-color: var(--netflix-dark-red);
+}
+
+.navigation-box button.disabled {
+  background-color: var(--netflix-dark-red);
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .end-navigation-box {
   display: flex;
   justify-content: space-between;
   background-color: #1e1e1e;
   gap: 1.5rem;
-}
-
-.quiz-back-button,
-.quiz-finish-button,
-.quiz-try-again-button,
-.quiz-see-results-button {
-  padding: 10px 20px;
-  background-color: rgba(229, 9, 20, 0.7);
-  color: black;
-  font-weight: bold;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-}
-
-.quiz-back-button:hover,
-.quiz-finish-button:hover,
-.quiz-try-again-button:hover,
-.quiz-see-results-button:hover {
-  background-color: #e50914;
-}
-
-.quiz-back-button.disabled {
-  background-color: var(--netflix-dark-red);
-  cursor: not-allowed;
-  opacity: 0.5;
-  pointer-events: none;
 }
