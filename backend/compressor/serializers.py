@@ -154,3 +154,13 @@ class CreateFramesSerializer(serializers.Serializer):
         ]
         frames = models.FrameMetadata.objects.bulk_create(frames)
         return frames
+    
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.QuizQuestion
+        fields = '__all__'
+
+class QuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Quiz
+        fields = '__all__'

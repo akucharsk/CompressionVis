@@ -1,0 +1,43 @@
+@import './../../shared/Shared.css';
+
+.question-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  width: 100%;
+}
+
+.question-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  max-height: 40vh;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.question-manager-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.question-manager-list-item:hover {
+  background-color: var(--background-second);
+  cursor: pointer;
+}
+
+.quiz-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

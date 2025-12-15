@@ -1,0 +1,27 @@
+.quiz-results-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 1rem;
+    margin: 2rem auto;
+}
+
+.quiz-results-box button {
+    background-color: var(--netflix-red);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.3rem;
+    font-size: 0.8rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.quiz-results-box button:hover {
+    transform: scale(1.1);
+    background-color: var(--netflix-dark-red);
+}

@@ -18,6 +18,8 @@ urlpatterns = [
     path('video/all-compressed-videos/', views.AllCompressed.as_view(), name='all_compressed_video'),
     path('frame/size/<int:video_id>/<int:frame_number>/', views.FrameSizeView.as_view(), name='frame_size'),
     path("upload-questions/", views.UploadQuestionsView.as_view()),
-    path("questions/<int:number>/", views.GetQuestionsView.as_view()),
-    # path("download-questions/", views.DownloadQuestionsZipView.as_view()),
+    path("quizes/", views.QuizesView.as_view()),
+    path("quizes/<int:video_id>/", views.QuizesView.as_view()),
+    path("quiz/<int:quiz_id>/", views.QuizView.as_view()),
+    path("quiz/question/<int:question_id>/image/", views.QuizQuestionImageView.as_view()),
 ]

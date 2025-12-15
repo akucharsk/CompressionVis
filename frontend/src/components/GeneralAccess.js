@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { IoHome } from "react-icons/io5";
-import { MdQuiz, MdCompareArrows } from "react-icons/md";
+import { MdCompareArrows } from "react-icons/md";
 import { LuBlocks } from "react-icons/lu";
 
 export default function GeneralAccess({ setOpen }) {
@@ -8,7 +8,7 @@ export default function GeneralAccess({ setOpen }) {
   const search = location.search;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem"}}>
+    <div className="nav-subcontainer">
       <NavLink to="/" className="nav-tab"
               onClick={() => setOpen(false)}>
           HOME
@@ -24,11 +24,6 @@ export default function GeneralAccess({ setOpen }) {
               onClick={() => setOpen(false)}>
           COMPARISON
           <MdCompareArrows size={20} />
-      </NavLink>
-      <NavLink to={`/quiz${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
-              onClick={() => setOpen(false)}>
-          QUIZ
-          <MdQuiz size={20} />
       </NavLink>
     </div>
   )

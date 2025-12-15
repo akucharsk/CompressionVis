@@ -2,13 +2,48 @@
 
 .admin-page {
   display: flex;
-  flex-direction: column;
   padding: 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  width: 50%;
   margin: auto;
   gap: 1em;
+  margin-left: 5rem;
+}
+
+.admin-page > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-page button {
+  background-color: var(--netflix-red);
+  color: var(--font-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.admin-page button:hover {
+  background-color: var(--netflix-dark-red);
+  transition: all 0.3s ease;
+}
+
+.admin-page label {
+  background-color: var(--netflix-red);
+  color: var(--font-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.admin-page label:hover {
+  background-color: var(--netflix-dark-red);
+  transition: all 0.3s ease;
 }
 
 .video-row {
