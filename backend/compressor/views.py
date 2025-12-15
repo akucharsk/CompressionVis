@@ -12,6 +12,10 @@ from django.contrib.staticfiles import finders
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
+from django.db.models import F 
+from django.db.models.functions import Concat
+from django.db.models import Value as V
+from django.db.models import CharField
 
 import os
 import subprocess
@@ -564,7 +568,7 @@ class VideoParameters(APIView):
         }
 
         return Response(camelize(params), status=status.HTTP_200_OK)
-    
+
 class AllCompressed(APIView):
     def get(self, request):
         original_video_id = request.query_params.get('original_id', None)
