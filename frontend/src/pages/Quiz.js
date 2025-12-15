@@ -35,7 +35,7 @@ const Quiz = () => {
                 </div>
             );
         default:
-            return null;
+            return <div className="quiz-content">Illegal step</div>;
     }
 };
 

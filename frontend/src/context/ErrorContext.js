@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 const ErrorContext = createContext();
 
 export const useError = () => {
@@ -34,7 +35,7 @@ export const ErrorProvider = ({ children }) => {
             {children}
             {error && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    <div className="modal-content error-box">
                         <h3>Error occurred</h3>
                         {errorCode && <p>Error code: {errorCode}</p>}
                         <p>{error}</p>

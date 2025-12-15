@@ -5,6 +5,7 @@ import { useError } from "../context/ErrorContext";
 import { useSearchParams } from "react-router-dom";
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { useOriginalVideos } from "../hooks/original-videos";
+import "../styles/pages/QuizList.css";
 
 export default function QuizList() {
   const { showError } = useError();
@@ -19,9 +20,9 @@ export default function QuizList() {
   if (error) showError(error);
   if (originalVideosError) showError(originalVideosError);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", margin: "auto" }}>
+    <div className="quiz-list">
       {data?.quizes.map((quiz, index) => (
-        <div key={quiz.id} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px solid var(--border-color)", padding: "1rem", borderRadius: "0.5rem", alignItems: "center" }}>
+        <div key={quiz.id} className="quiz-list-item">
           <h1>Quiz {index + 1}</h1>
           <h2>{quiz.name}</h2>
           <p>{quiz.description}</p>
@@ -38,7 +39,7 @@ export default function QuizList() {
     }
     if (parseInt(quiz.video_id) === parseInt(videoId)) {
       return (
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", fontWeight: "bold" }}>
+        <div className="video-reference">
           <BsFillInfoCircleFill size={20} />
           <span>This quiz is related to the compressed video you produced!</span>
         </div>
@@ -47,7 +48,7 @@ export default function QuizList() {
     const originalVideo = originalVideos.find(video => parseInt(video.id) === parseInt(quiz.video_id));
     if (originalVideo) {
       return (
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", fontWeight: "bold" }}>
+        <div className="video-reference">
           <BsFillInfoCircleFill size={20} />
           <span>This quiz is related to {originalVideo.name}!</span>
         </div>

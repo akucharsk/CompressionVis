@@ -1,0 +1,23 @@
+.quiz-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: auto;
+}
+
+.quiz-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  align-items: center;
+}
+
+.video-reference {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: bold;
+}

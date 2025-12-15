@@ -74,3 +74,9 @@
 .modal-content button:hover {
   background: var(--netflix-dark-red);
 }
+
+.error-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

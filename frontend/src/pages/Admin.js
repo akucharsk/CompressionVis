@@ -6,7 +6,7 @@ import QuestionManager from '../components/admin/QuestionManager';
 const Admin = () => {
     return (
         <div className="admin-page">
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div>
                 <VideoManager />
                 <QuestionsUpload />
             </div>
