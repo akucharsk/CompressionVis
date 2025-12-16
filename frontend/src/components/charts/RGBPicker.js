@@ -31,7 +31,7 @@ const RGBPicker = ({ compressionId, isActive }) => {
                 <div 
                     className={`metric-color-picker`} 
                     style={{backgroundColor: isActive ? compressionMetricState[compressionId]?.color : "#444",
-                        borderColor: isActive ? "#fff" : "#626262"
+                        borderColor: isActive ? "#fff" : "#626262", zIndex: 3
                     }} 
                     onClick={(e) => {
                         e.stopPropagation();
@@ -44,6 +44,7 @@ const RGBPicker = ({ compressionId, isActive }) => {
                     sideOffset={8}
                     align="start"
                     onClick={(e) => e.stopPropagation()}
+                    style={{ zIndex: 3 }}
                 >
                     <div>
                         <SketchPicker

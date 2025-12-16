@@ -91,7 +91,7 @@
     border-bottom: solid 3px #fff;
     font-size: small;
     font-weight: 800;
-    z-index: 3;
+    z-index: 2;
 }
 
 .column-titles-compression-data {
@@ -120,7 +120,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--background-first);
-    z-index: 2;
+    z-index: 1;
 }
 
 .compression-main-info {

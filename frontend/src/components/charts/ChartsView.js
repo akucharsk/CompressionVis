@@ -49,6 +49,9 @@ const ChartsView = () => {
             .filter(Boolean)
     );
 
+    const framesLength = compressionQueries.find(q => q.data?.metrics)?.data.metrics.length ?? 0;
+
+
     return (
         <div className="charts-view">
             
@@ -58,6 +61,7 @@ const ChartsView = () => {
                     idx={idx}
                     tappedCompressions={tappedCompressions}
                     compressionMetricsMap={compressionMetricsMap}
+                    framesLength={framesLength}
                 />      
             ))}
         </div>

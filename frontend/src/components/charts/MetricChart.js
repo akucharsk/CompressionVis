@@ -8,92 +8,72 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { useCharts } from "../../context/ChartsContext";
 
 
-const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMap }) => {
-    // const [anchorEl, setAnchorEl] = useState(null);
-    // const open = Boolean(anchorEl);
-    // const handleClick = (event) => {
-    //     setAnchorEl(event.currentTarget);
-    // };
-    // const handleClose = () => {
-    //     setAnchorEl(null);
-    // };
-
-    // const { compressionMetricState } = useCharts();
-
-    // const xAxis = [
-    //     {
-    //         // dataKey: 'date',
-    //         // scaleType: 'time',
-    //         // valueFormatter: dateAxisFormatter,
-    //         data: ['bar A', 'bar B', 'bar C', 'bar D', 'bar E', 'bar F', 'bar G', 'bar H', 'bar I']
-    //     },
-    //     ];
-
-    //     // const yAxis = [
-    //     // {
-    //     //     valueFormatter: percentageFormatter,
-    //     // },
-    //     // ];
-
-    //     const series = [
-    //     {
-    //         // dataKey: 'rate',
-    //         // showMark: false,
-    //         // valueFormatter: percentageFormatter,
-    //         data: [1,2,3,4,5,6,7,8,9]
-    //     },
-    // ];
+const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMap, framesLength }) => {
+    const { compressionMetricState } = useCharts();
 
     const series = tappedCompressions.map(c => ({
         label: `Compression ${c.id}`,
         data: compressionMetricsMap[c.id]?.[metricType] ?? [],
+        color: compressionMetricState[c.id]?.color,
+        showMark: false
     }));
+
+    const xAxisData = Array.from(
+        { length: framesLength },
+        (_, i) => i
+    );
+
 
     return (
         <div className="metric-chart-block" key={idx}>
             <h2>{metricType}</h2>
-            {tappedCompressions.map((video) => (
+            {/* {tappedCompressions.map((video) => (
                 <div
                     key={video.id}
                     style={{ color: video.color }}
                 >
                     Compression {video.id} – {video.color}
                 </div>
-            ))}
-            <div className="metric-chart">
-            {/* <BarChart
-                xAxis={[
-                    {
-                    id: 'barCategories',
-                    data: ['bar A', 'bar B', 'bar C', 'bar D', 'bar E', 'bar F', 'bar G', 'bar H', 'bar I'],
-                    },
-                ]}
-                series={[
-                    {
-                    data: [2, 5, 3],
-                    },
-                ]}
-                height={300}
-            /> */}
-            
-            
-            <LineChart
-                series={series}
-                height={300}
-            />
-
-
-            
-            {/* <LineChart
-                // dataset={usUnemploymentRate}
-                xAxis={xAxis}
-                // yAxis={yAxis}
-                series={series}
-                height={300}
-                grid={{ vertical: true, horizontal: true }}
-            /> */}
-            
-
+            ))} */}
+            <div className="metric-chart-top-layout">            
+                <div className="metric-chart-inner-layout" style={{ width: framesLength > 0 ? `${framesLength * 15}px` : "100%" }}>
+                    <LineChart
+                        height={300}
+                        series={series}
+                        grid={{ vertical: true, horizontal: true }}
+                        xAxis={[
+                            {
+                                data: xAxisData,
+                                valueFormatter: (value) =>
+                                    value === 0 ||
+                                    value === framesLength - 1 ||
+                                    value % 50 === 0
+                                        ? String(value)
+                                        : "",
+                            },
+                        ]}
+                        sx={{
+                            '& .MuiChartsAxis-root': {
+                                color: '#fff',
+                            },
+                            '& .MuiChartsAxis-line': {
+                                stroke: '#fff',
+                            },
+                            '& .MuiChartsAxis-tick': {
+                                stroke: '#fff',
+                            },
+                            '& .MuiChartsAxis-tickLabel': {
+                                fill: '#fff',
+                                fontSize: 11,
+                            },
+                            '& .MuiChartsGrid-line': {
+                                stroke: '#555',
+                                strokeDasharray: '3 3',
+                            },
+                        }}
+                        hideLegend={true}
+                    />
+                </div>
             </div>
         </div>
     )
