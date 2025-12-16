@@ -10,7 +10,7 @@ const Navigation = () => {
     const { pathname, search } = useLocation();
     const searchParams = new URLSearchParams(search);
     const isStandaloneQuizPath = pathname.split("/").includes("quiz") && !searchParams.get("videoId");
-    const hideGeneralAccess = [ "/login", "/admin", "/" ].includes(pathname) || isStandaloneQuizPath;
+    const hideGeneralAccess = [ "/login", "/admin", "/", "/differences" ].includes(pathname) || isStandaloneQuizPath;
 
     return (
         <div style={{ height: "100vh" }}>

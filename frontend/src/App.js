@@ -1,4 +1,4 @@
-import {BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, Navigate, Outlet} from 'react-router-dom';
 import FramesDistribution from './pages/FrameDistribution';
 import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
@@ -25,8 +25,6 @@ import QuizMenu from './components/quiz/QuizMenu';
 import { QuizProvider } from './context/QuizContext';
 
 function Layout() {
-  const location = useLocation();
-  // const hideNavbar = location.pathname === "/" || location.pathname === "/admin";
 
   return (
       <ErrorProvider>

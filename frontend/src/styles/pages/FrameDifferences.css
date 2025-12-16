@@ -139,7 +139,7 @@
     height: 22px;
 }
 
-.frame-counter {
+.frame-counter.diff {
     background: none;
     border: none;
 }

@@ -149,7 +149,7 @@ const FrameDifferences = () => {
             </div>
 
             <div className="diff-controls">
-                <div className="frame-counter">
+                <div className="frame-counter diff">
                     <span>Frame:</span>
                     <input
                         type="number"
