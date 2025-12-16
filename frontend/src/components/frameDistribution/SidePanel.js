@@ -18,7 +18,9 @@ const SidePanel = ({
                        showPast,
                        setShowPast,
                        showFuture,
-                       setShowFuture
+                       setShowFuture,
+                       showBidirectional,
+                       setShowBidirectional
                    }) => {
     return (
         <div className="right-section">
@@ -35,6 +37,8 @@ const SidePanel = ({
                 setShowPast={setShowPast}
                 showFuture={showFuture}
                 setShowFuture={setShowFuture}
+                showBidirectional={showBidirectional}
+                setShowBidirectional={setShowBidirectional}
             />
             <MacroblockInfo selectedBlock={selectedBlock} frames={frames} currentFrameIdx={selectedIdx}/>
         </div>

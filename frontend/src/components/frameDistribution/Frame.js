@@ -17,7 +17,8 @@ const Frame = ({
                    fullscreenHandler,
                    videoId,
                    showPast,
-                   showFuture
+                   showFuture,
+                   showBidirectional
                }) => {
     const [ params ] = useSearchParams();
     if(!videoId) {
@@ -86,11 +87,19 @@ const Frame = ({
             ctx.strokeRect(x, y, selectedBlock.width, selectedBlock.height);
         }
 
-        const isAnyVectorActive = showPast || showFuture;
+        const isAnyVectorActive = showPast || showFuture || showBidirectional;
 
         if (isAnyVectorActive && blocks.length > 0) {
             blocks.forEach(block => {
                 if (block.src_x == null || block.src_y == null) return;
+
+                const hasRef1 = block.source != null;
+                const hasRef2 = block.source2 != null;
+                const isBidirectionalBlock = hasRef1 && hasRef2;
+
+                if (showBidirectional && !isBidirectionalBlock) {
+                    return;
+                }
 
                 const drawVector = (srcX, srcY) => {
                     const category = block.type || 'intra';
@@ -139,8 +148,12 @@ const Frame = ({
                     const isPrev = source < 0;
                     const isNext = source > 0;
 
-                    if ((isPrev && showPast) || (isNext && showFuture)) {
+                    if (showBidirectional) {
                         drawVector(x, y);
+                    } else {
+                        if ((isPrev && showPast) || (isNext && showFuture)) {
+                            drawVector(x, y);
+                        }
                     }
                 };
 
@@ -149,7 +162,7 @@ const Frame = ({
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture, showBidirectional]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;

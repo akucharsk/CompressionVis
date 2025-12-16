@@ -226,8 +226,6 @@ class MacroblockHistoryView(APIView):
                 prev_raw_not_moved_block = self._get_subpixel_crop(prev_frame_rgb, block["x"], block["y"], width, height)
                 a = block["x"]
                 b = block["y"]
-                print(f"{block[prev_keys[0]]} -> {block[prev_keys[1]]} ; {a} -> {b}")
-                sys.stdout.flush()
 
                 if curr_original_block_raw is not None and prev_raw_moved_block is not None \
                   and curr_original_block_raw.shape == prev_raw_moved_block.shape:
