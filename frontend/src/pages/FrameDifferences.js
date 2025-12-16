@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import React, {useState, useEffect, useRef, useCallback} from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { genericFetch } from "../api/genericFetch";
 import { apiUrl } from "../utils/urls";
 import Spinner from "../components/Spinner";
 import "../styles/pages/FrameDifferences.css";
-import "../styles/components/FrameBox.css";
 
 const VIEW_MODES = [
     { key: "original_frame", label: "Original" },
@@ -15,10 +14,10 @@ const VIEW_MODES = [
 
 const FrameDifferences = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
     const videoId = searchParams.get("videoId");
 
     const [currentFrame, setCurrentFrame] = useState(0);
+    const [debouncedFrame, setDebouncedFrame] = useState(0);
     const [viewModeKey, setViewModeKey] = useState("original_frame");
     const [frameInput, setFrameInput] = useState("1");
 
@@ -32,9 +31,19 @@ const FrameDifferences = () => {
 
     const totalFrames = countData?.count || 0;
 
-    const { data: imagesData} = useQuery({
-        queryKey: ["diffImages", videoId, currentFrame],
-        queryFn: () => genericFetch(`${apiUrl}/difference/${videoId}/${currentFrame}/`),
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedFrame(currentFrame);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [currentFrame]);
+
+    const { data: imagesData, isFetching } = useQuery({
+        queryKey: ["diffImages", videoId, debouncedFrame],
+        queryFn: () => genericFetch(`${apiUrl}/difference/${videoId}/${debouncedFrame}/`),
         enabled: !!videoId && totalFrames > 0,
         placeholderData: keepPreviousData,
     });
@@ -45,7 +54,32 @@ const FrameDifferences = () => {
         }
         setFrameInput((currentFrame + 1).toString());
         scrollToFrame(currentFrame);
-    }, [currentFrame]);
+    }, [currentFrame, viewModeKey]);
+
+    const changeFrame = useCallback((delta) => {
+        setCurrentFrame(prev => {
+            const newState = prev + delta;
+            if (newState < 0) return 0;
+            if (newState >= totalFrames) return totalFrames > 0 ? totalFrames - 1 : 0;
+            return newState;
+        });
+    }, [totalFrames]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.target.tagName === "INPUT") return;
+
+            if (e.key === "ArrowLeft") {
+                changeFrame(-1);
+            } else if (e.key === "ArrowRight") {
+                changeFrame(1);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [totalFrames, changeFrame])
 
     const scrollToFrame = (index) => {
         if (stripRef.current) {
@@ -76,87 +110,68 @@ const FrameDifferences = () => {
         setFrameInput(val.toString());
     };
 
-    const changeFrame = (delta) => {
-        setCurrentFrame(prev => {
-            const newState = prev + delta;
-            if (newState < 0) return 0;
-            if (newState >= totalFrames) return totalFrames - 1;
-            return newState;
-        });
-    };
 
     if (isCountPending) return <div className="loading-overlay"><Spinner /></div>;
 
     const imageSrc = imagesData ? `data:image/png;base64,${imagesData[viewModeKey]}` : null;
     const isFrameOne = currentFrame === 0;
+    const isImageLoading = debouncedFrame !== currentFrame || isFetching;
 
     return (
         <div className="diff-container">
-            <div className="diff-top-bar">
-                <button className="diff-return-btn" onClick={() => navigate("/")} title="Back to Menu">
-                    ↩
-                </button>
-                <div className="diff-strip-wrapper">
-                    <div className="scrollable-frameBox diff-strip" ref={stripRef}>
-                        {Array.from({ length: totalFrames }).map((_, idx) => (
-                            <div key={idx} className={`frame-container compact ${idx === currentFrame ? 'selected' : ''}`}>
-                                <div
-                                    className={`frame neutral compact ${idx === currentFrame ? 'selected' : ''}`}
-                                    onClick={() => setCurrentFrame(idx)}
-                                >
-                                    {String(idx + 1).padStart(3, '0')}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            <div className="diff-frames-strip" ref={stripRef}>
+                {Array.from({ length: totalFrames }).map((_, idx) => (
+                    <button
+                        key={idx}
+                        className={`diff-frame ${idx === currentFrame ? 'selected' : ''}`}
+                        onClick={() => setCurrentFrame(idx)}
+                    >
+                        {String(idx + 1).padStart(3, '0')}
+                    </button>
+                ))}
             </div>
 
-            <div className="diff-main-view">
-                <button className="diff-arrow left" onClick={() => changeFrame(-1)} title="Previous">❮</button>
+            <div className="diff-viewer">
+                <button className="diff-arrow" onClick={() => changeFrame(-1)}>◀</button>
 
-                <div className="diff-image-area">
-                    {imageSrc ? (
-                        <img
-                            src={imageSrc}
-                            alt="Frame View"
-                            className="diff-display-image"
-                        />
-                    ) : (
-                        <Spinner />
-                    )}
-                </div>
+                {imageSrc ? (
+                    <img
+                        src={imageSrc}
+                        alt="Frame View"
+                        className="diff-image"
+                        style={{ opacity: isImageLoading ? 0.6 : 1, transition: 'opacity 0.2s' }}
+                    />
+                ) : (
+                    <Spinner />
+                )}
 
-                <button className="diff-arrow right" onClick={() => changeFrame(1)} title="Next">❯</button>
+                <button className="diff-arrow" onClick={() => changeFrame(1)}>▶</button>
             </div>
 
             <div className="diff-controls">
-                <div className="frame-counter compact">
-                    <div className="frame-counter-content">
-                        <span>Frame: </span>
-                        <input
-                            type="number"
-                            min={1}
-                            max={totalFrames}
-                            value={frameInput}
-                            onChange={(e) => setFrameInput(e.target.value)}
-                            onBlur={handleInputBlur}
-                            onKeyDown={handleInputSubmit}
-                        />
-                        <span>/ {totalFrames}</span>
-                    </div>
+                <div className="frame-counter">
+                    <span>Frame:</span>
+                    <input
+                        type="number"
+                        min={1}
+                        max={totalFrames}
+                        value={frameInput}
+                        onChange={(e) => setFrameInput(e.target.value)}
+                        onBlur={handleInputBlur}
+                        onKeyDown={handleInputSubmit}
+                    />
+                    <span>/ {totalFrames}</span>
                 </div>
 
-                <div className="diff-mode-group">
+                <div className="view-modes">
                     {VIEW_MODES.map((mode) => {
-                        const isDisabled = (isFrameOne && mode.key !== 'original_frame') || viewModeKey === mode.key;
+                        const isDisabled = isFrameOne && mode.key !== 'original_frame';
                         return (
                             <button
                                 key={mode.key}
-                                className={`diff-mode-btn compact ${viewModeKey === mode.key ? 'active' : ''}`}
+                                className={`mode-btn ${viewModeKey === mode.key ? 'active' : ''}`}
                                 onClick={() => setViewModeKey(mode.key)}
                                 disabled={isDisabled}
-                                title={isFrameOne && mode.key !== 'original_frame' ? "Not available for first frame" : ""}
                             >
                                 {mode.label}
                             </button>

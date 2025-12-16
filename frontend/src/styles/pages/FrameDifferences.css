@@ -1,179 +1,95 @@
 .diff-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 2.5rem);
+    height: 100vh;
     background-color: var(--background-first);
     color: var(--font-color);
-    padding: 0;
-    gap: 8px;
+    gap: 10px;
+    padding: 10px 30px;
     box-sizing: border-box;
     overflow: hidden;
 }
 
-/* --- TOP BAR --- */
-.diff-top-bar {
-    flex: 0 0 65px;
+.diff-frames-strip {
+    flex: 0 0 54px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 10px;
-}
-
-.diff-return-btn {
-    background: var(--background-second);
-    border: 1px solid var(--border-color);
-    color: #aaa;
-    font-size: 1.5rem;
-    width: 45px;
-    height: 45px;
-    line-height: 1;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 4px;
-}
-
-.diff-return-btn:hover {
-    background-color: var(--netflix-red);
-    color: white;
-    border-color: var(--netflix-red);
-}
-
-.diff-strip-wrapper {
-    flex: 1;
-    height: 100%;
+    gap: 2px;
+    padding: 5px 10px;
     background-color: var(--background-second);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    padding: 0 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
     min-width: 0;
 }
 
-.diff-strip {
-    height: 100%;
-    align-items: center;
-    padding: 5px 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    overflow-x: auto;
-    display: flex;
-    gap: 2px;
-}
-
-.diff-strip::-webkit-scrollbar {
+.diff-frames-strip::-webkit-scrollbar {
     height: 6px;
 }
 
-.diff-strip::-webkit-scrollbar-track {
+.diff-frames-strip::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 3px;
 }
 
-.diff-strip::-webkit-scrollbar-thumb {
-    background: #555;
+.diff-frames-strip::-webkit-scrollbar-thumb {
+    background: var(--netflix-red);
     border-radius: 3px;
 }
 
-.diff-strip::-webkit-scrollbar-thumb:hover {
-    background: #777;
+.diff-frames-strip::-webkit-scrollbar-thumb:hover {
+    background: var(--netflix-dark-red);
 }
 
-/* --- FRAME STYLES --- */
-.frame-container.compact {
-    padding: 0 2px;
-}
-
-.frame.neutral.compact {
+.diff-frame {
     width: 38px;
     height: 38px;
     font-size: 0.75rem;
+    font-weight: 600;
     background-color: #555;
     color: #eee;
     border: 1px solid #777;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
-.frame.neutral.compact:hover {
+.diff-frame:hover {
     background-color: #666;
     border-color: #999;
     transform: translateY(-2px);
 }
 
-.frame.neutral.compact.selected {
-    background-color: var(--netflix-red) !important;
+.diff-frame.selected {
+    background-color: var(--netflix-red);
     color: white;
     border-color: var(--netflix-red-active);
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(229, 9, 20, 0.5);
-    z-index: 2;
 }
 
-
-/* --- MAIN VIEW --- */
-.diff-main-view {
+.diff-viewer {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    background-color: transparent;
-    overflow: hidden;
-    min-height: 0;
     gap: 10px;
-    padding: 0 10px;
-}
-
-.diff-image-area {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    height: 100%;
+    min-height: 0;
     overflow: hidden;
-}
-
-.diff-display-image {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-}
-
-.no-data-msg {
-    color: #666;
-    font-size: 1.2rem;
+    padding: 0 0 0 0;
 }
 
 .diff-arrow {
     background: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.4);
-    font-size: 3rem;
+    font-size: 2.5rem;
     cursor: pointer;
-    z-index: 10;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 10px;
-    height: auto;
-    width: auto;
-    outline: none;
+    padding: 5px;
 }
 
 .diff-arrow:hover {
@@ -185,73 +101,79 @@
     transform: scale(0.9);
 }
 
+.diff-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
 
-/* --- BOTTOM CONTROLS --- */
 .diff-controls {
-    flex: 0 0 45px;
+    flex: 0 0 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
+    padding: 0 12px;
     background-color: var(--background-second);
     border-radius: 6px;
     border: 1px solid var(--border-color);
-    margin: 0 10px 5px 10px;
 }
 
-.frame-counter.compact {
-    padding: 0;
-    background: transparent;
-    border: none;
-    min-width: auto;
-}
-
-.frame-counter.compact .frame-counter-content {
-    padding: 0;
-    gap: 8px;
+.diff-controls .frame-counter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
     font-size: 0.85rem;
 }
 
-.frame-counter.compact input {
-    width: 40px;
-    padding: 2px;
-    height: 24px;
+.diff-controls .frame-counter span:first-child {
+    font-weight: 600;
 }
 
-.diff-mode-group {
+.frame-counter input {
+    width: 45px;
+    padding: 4px;
+    height: 22px;
+}
+
+.frame-counter {
+    background: none;
+    border: none;
+}
+
+.view-modes {
     display: flex;
     gap: 5px;
 }
 
-.diff-mode-btn.compact {
+.mode-btn {
     background-color: var(--background-first);
     color: #ccc;
     border: 1px solid var(--border-color);
-    padding: 4px 12px;
+    padding: 3px 10px;
     border-radius: 4px;
     font-weight: 600;
+    font-size: 0.8rem;
+    height: 26px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.8rem;
-    height: 28px;
 }
 
-.diff-mode-btn.compact:hover:not(:disabled) {
+.mode-btn:hover:not(:disabled) {
     background-color: #333;
     color: white;
 }
 
-.diff-mode-btn.compact.active {
+.mode-btn.active {
     background-color: var(--netflix-red);
     color: white;
     border-color: var(--netflix-red);
-    cursor: default;
-    opacity: 1;
 }
 
-.diff-mode-btn.compact:disabled:not(.active) {
+.mode-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    background-color: #222;
-    border-color: #333;
 }
