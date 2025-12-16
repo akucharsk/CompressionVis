@@ -12,7 +12,7 @@ export default function Login() {
   const queryClient = useQueryClient();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const showError = useError();
+  const { showError } = useError();
 
   const loginMutation = useMutation({
     mutationFn: async () => {

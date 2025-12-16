@@ -1,61 +1,65 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQuiz } from "../../context/QuizContext";
+import { scale as chroma } from "chroma-js";
+import "../../styles/components/QuizEnded.css";
 
-const QuizEnded = ({ userAnswers, questions, setStep, setUserAnswers }) => {
+const QuizEnded = () => {
+    const { quizId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const {
+        quizQuery,
+        userAnswers,
+        setUserAnswers,
+        setSelectedQuestionIdx,
+        setStep,
+    } = useQuiz();
+    const { data } = quizQuery;
+    const questions = useMemo(() => data?.quiz?.questions || [], [data]);
+    const { current, total } = useMemo(() => {
+        const result = { current: 0, total: 0 };
+        questions.forEach((question, index) => {
+            result.total += question.answers.filter(answer => answer.is_correct).length ?? 0;
+            const answers = userAnswers[index];
+            const incorrectAnswers = answers.filter(answer => !question.answers[answer].is_correct);
+            const correctAnswers = answers.filter(answer => question.answers[answer].is_correct);
+            result.current += incorrectAnswers.length > 0 ? 0 : correctAnswers.length;
+        });
+        return result;
+    }, [questions, userAnswers]);
 
-    console.log(questions)
-
-    const arraysEqual = (a, b) => {
-        if (a.length !== b.length) return false;
-        const aSorted = [...a].sort();
-        const bSorted = [...b].sort();
-        return aSorted.every((val, index) => val === bSorted[index]);
-    };
-
-    const countScore = () => {
-        let score = 0
-        // console.log(userAnswers)
-        // console.log("SIEMA TU JA")
-        console.log(userAnswers.length)
-
-        for (let i = 0; i < userAnswers.length; i ++) {
-            // console.log(userAnswers[i], questions[i].correctAnswer, "SIEMA")
-            console.log("DEBUG")
-            if (Array.isArray(userAnswers[i]) && Array.isArray(questions[i].correctAnswer)) {
-                if (arraysEqual(userAnswers[i], questions[i].correctAnswer)) {
-                    score += 1;
-                }
-            } else if (userAnswers[i] === questions[i].correctAnswer) {
-                score += 1;
-            }
-        }
-
-        return score
-    }
+    const query = location.search;
+    const scale = chroma(['#ff0000', '#ffff00', '#00aa00']).domain([0, total]);
 
     return (
-        <div className="quiz-box">
+        <div className="quiz-box" style={{ gap: "1rem" }}>
             <h1>Quiz Completed!</h1>
-            <p>Your score: {countScore()} / {questions.length}</p>
-            {/* <p>{userAnswers}</p> */}
+            <div className="score-box">
+                <span>Your score: </span>
+                <span style={{ color: scale(current).hex() }}>{current} / {total}</span>
+            </div>
             <div className="end-navigation-box">
-                <div
-                    className="quiz-try-again-button"
-                    onClick={() => {{
-                        setStep("menu")
-                        const newArray = Array(questions.length).fill(null)
-                        setUserAnswers(newArray)
+                <button
+                    onClick={() => {
+                        setUserAnswers(Object.fromEntries(questions.map((_, index) => [index, []])));
+                        setSelectedQuestionIdx(0);
+                        navigate(`/quiz/${quizId}/menu${query}`)
+                        setStep("question");
                     }}
-                    }
                 >
-                    Try again
-                </div>
-                <div
-                    className="quiz-see-results-button"
-                    onClick={() => {}}
-                    disabled
+                    TRY AGAIN
+                </button>
+                <button
+                    onClick={() => setStep("results")}
                 >
-                    See results
-                </div>
+                    SEE RESULTS
+                </button>
+                <button
+                    onClick={() => navigate(`/quiz/list${query}`)}
+                >
+                    EXIT QUIZ
+                </button>
             </div>
         </div>
     );
