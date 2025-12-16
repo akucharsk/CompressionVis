@@ -7,7 +7,7 @@ import {useError} from "../../context/ErrorContext";
 import { useQuery } from "@tanstack/react-query";
 import { genericFetch } from "../../api/genericFetch";
 
-const OptionsSection = ({ handleCompress }) => {
+const OptionsSection = ({ handleCompress, handleShowDifferences }) => {
     const { parameters, setParameters } = useSettings();
     const {showError} = useError();
     const [sizeInput, setSizeInput] = useState("");
@@ -58,7 +58,6 @@ const OptionsSection = ({ handleCompress }) => {
             value: parameters.resolution,
             onChange: updateParam("resolution"),
             options: [
-                { value: "1920x1080", label: "1920x1080" },
                 { value: "1280x720", label: "1280x720" },
                 { value: "960x540", label: "960x540" },
                 { value: "854x480", label: "854x480" },
@@ -283,6 +282,17 @@ const OptionsSection = ({ handleCompress }) => {
                         </p>
                     </div>
                 );
+            case "framesDifferences":
+                return (
+                    <div className="frames-differences-info">
+                        <p>
+                            In this view, the tool visualizes the mechanics of motion compensation.
+                            It compares the raw difference between frames against the 'Residual' image, which shows the error remaining after applying motion vectors.
+                            This is particularly useful for analyzing how accurately the algorithm predicts movement versus simple frame differencing.
+                        </p>
+                    </div>
+                );
+
             default:
                 return null;
         }
@@ -314,11 +324,37 @@ const OptionsSection = ({ handleCompress }) => {
                 >
                     Compressed Size
                 </button>
+                <button
+                    className={parameters.mode === "framesDifferences" ? "active" : ""}
+                    onClick={() => {
+                        setParameters((prev) => ({
+                            ...prev,
+                            mode: "framesDifferences"
+                        }));
+                    }}
+                >
+                    Differences
+                </button>
             </div>
             {renderContent()}
-            <button className="compress-btn" onClick={handleCompress}>
-                COMPRESS
-            </button>
+
+            {parameters.mode === "framesDifferences" ? (
+                <button
+                    key="diff-btn"
+                    className="differences-btn"
+                    onClick={handleShowDifferences}
+                >
+                    SHOW DIFFERENCES
+                </button>
+            ) : (
+                <button
+                    key="compress-btn"
+                    className="compress-btn"
+                    onClick={handleCompress}
+                >
+                    COMPRESS
+                </button>
+            )}
         </div>
     );
 };

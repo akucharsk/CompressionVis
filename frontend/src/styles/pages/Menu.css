@@ -1,26 +1,32 @@
 @import '../shared/Shared.css';
 
 .container {
-  display: flex;
-  width: 90%;
-  margin: 1em auto;
-  gap: 1em;
-  justify-content: space-between;
-  height: 50%;
+    display: flex;
+    width: 90%;
+    margin: 1em auto;
+    gap: 1em;
+    justify-content: space-between;
+    height: calc(100vh - 2em);
 }
 
 
 .video-section {
-  display: flex;
-  flex: 6;
-  flex-direction: column;
-  flex-wrap: wrap;
-  border: 1px solid var(--border-color);
-  padding: 30px;
-  background-color: var(--background-first);
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  gap: 10px;
+    display: flex;
+    flex: 6;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    padding: 30px;
+    background-color: var(--background-first);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    gap: 10px;
+    overflow: hidden;
+}
+
+.video-section h2 {
+    margin: 0;
+    flex-shrink: 0;
+    text-align: center;
 }
 
 .modal-overlay {

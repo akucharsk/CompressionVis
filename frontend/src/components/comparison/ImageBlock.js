@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
+import { useSettings } from "../../context/SettingsContext";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
@@ -14,6 +15,7 @@ const ImageBlock = ({
                         fullscreen = {},
                         videoRef
                     }) => {
+    const { parameters, resolutionWidth, resolutionHeight } = useSettings();
     const [searchParams] = useSearchParams();
     const originalVideoId =  parseInt(searchParams.get("originalVideoId"));
     const compressedVideoId = parseInt(searchParams.get("videoId"));
@@ -21,8 +23,14 @@ const ImageBlock = ({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isOriginal , setIsOriginal] = useState(true);
     const compressedIds = getVideoIdsFromCache(originalVideoId).filter(id => id !== compressedVideoId);
-
     const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
+    const videoIdToUse = isConst ? compressedVideoId : selectedVideoId;
+
+    let query = "";
+    if (resolutionWidth && resolutionHeight) {
+        query = `?width=${resolutionWidth}&height=${resolutionHeight}`;
+    }
+
     useEffect(() => {
         setIsFullscreen(fullscreen.is);
     }, [fullscreen.is]);
@@ -82,7 +90,7 @@ const ImageBlock = ({
 
             {isFullscreen && (
                 <ImageFullScreen
-                    imageSrc={`${apiUrl}/frames/${isConst ? compressedVideoId : selectedVideoId}/${selectedIdx}`}
+                    imageSrc={`${apiUrl}/frames/${videoIdToUse}/${selectedIdx}${query}`}
                     onPrev={navigation.onPrev}
                     onNext={navigation.onNext}
                     onSwitchFullscreen={fullscreen.onSwitch}

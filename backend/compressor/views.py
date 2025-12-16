@@ -1,3 +1,9 @@
+import base64
+import sys
+
+import cv2
+import json
+import numpy as np
 from ntpath import isdir
 from rest_framework.views import APIView
 from rest_framework import status
@@ -11,7 +17,6 @@ from django.db.models import Q
 
 import uuid
 import os
-import sys
 import subprocess
 import shutil
 from macroblocks.macroblocks_extractor import MacroblocksExtractor
@@ -208,7 +213,7 @@ class CompressionView(BaseCompressionView):
             "-y",
             "-i", video_url,
             "-c:v", "libx264",
-            "-vf", f'scale={scale}',
+            "-vf", f'scale={scale}:flags=lanczos',
             *bitrate_param,
             *gop_params,
             "-preset", validated_data['preset'],
@@ -393,6 +398,11 @@ class FrameStatusView(APIView):
             else:
                 dirname = video.filename.split(".")[0]
 
+            width = request.query_params.get('width')
+            height = request.query_params.get('height')
+
+            if width and height:
+                dirname = f"{dirname}_{width}x{height}"
         else:
             dirname = video.filename.split(".")[0]
 
@@ -424,6 +434,13 @@ class FrameView(APIView):
             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
 
         dirname = video.filename.split(".")[0]
+
+        if video.original is None:
+            width = request.query_params.get('width')
+            height = request.query_params.get('height')
+
+            if width and height:
+                dirname = f"{dirname}_{width}x{height}"
 
         frame = finders.find(os.path.join('frames', dirname, f"frame_{frame_number}.png"))
         if not frame:
@@ -574,7 +591,7 @@ class FrameSizeView(APIView):
 
 class UploadQuestionsView(APIView):
     permission_classes = [IsSuperuser]
-    
+
     def _extract_entries(self, quiz_dir, static_file_path=os.path.join(settings.BASE_DIR, "static", "quiz_files", "assets")):
         result = []
         for file in os.listdir(quiz_dir):
@@ -591,7 +608,7 @@ class UploadQuestionsView(APIView):
                 static_file = os.path.join(static_file_path, file)
                 shutil.move(os.path.join(quiz_dir, file), static_file)
         return result
-    
+
     def _upsert_quiz(self, quiz, archive_path):
         existing_quiz = models.Quiz.objects.filter(name=quiz.get("name")).first()
         if existing_quiz:
@@ -621,7 +638,7 @@ class UploadQuestionsView(APIView):
         os.makedirs(quiz_dir, exist_ok=True)
         temp_quiz_dir = os.path.join(settings.BASE_DIR, "static", "temp", "quiz_files")
         os.makedirs(temp_quiz_dir, exist_ok=True)
-        
+
         archive_path = os.path.join(quiz_dir, uploaded_file.name)
         with open(archive_path, "wb") as f:
             for chunk in uploaded_file.chunks():
@@ -634,7 +651,7 @@ class UploadQuestionsView(APIView):
                 z.extractall(temp_quiz_dir)
         except zipfile.BadZipFile:
             return Response({"message": "Niepoprawny ZIP"}, status=status.HTTP_400_BAD_REQUEST)
-    
+
         quizes_json = self._extract_entries(temp_quiz_dir)
 
         for quiz in quizes_json:
@@ -657,7 +674,7 @@ class UploadQuestionsView(APIView):
                     )
                 )
             models.QuizQuestion.objects.bulk_create(questions)
-                
+
         shutil.rmtree(temp_quiz_dir)
         return Response({"message": "quizes uploaded successfully"}, status=status.HTTP_201_CREATED)
 
@@ -668,7 +685,7 @@ class UploadQuestionsView(APIView):
             return Response({"message": "Brak wgranego ZIP"}, status=status.HTTP_404_NOT_FOUND)
 
         return FileResponse(open(zip_path, "rb"), filename="questions.zip")
-    
+
 class QuizesView(APIView):
     def get(self, request, video_id=None):
         videos = models.Video.objects.filter(Q(id=video_id) | Q(original=None))
@@ -676,7 +693,7 @@ class QuizesView(APIView):
         filenames = list(map(lambda video: video.filename, videos))
         quizes = models.Quiz.objects.filter(Q(video_filename__in=filenames) | Q(video_filename=None))
         data = serializers.QuizSerializer(instance=quizes, many=True).data
- 
+
         def get_video_id(quiz):
             filename = quiz.get("video_filename")
             if not filename:
@@ -685,7 +702,7 @@ class QuizesView(APIView):
             if video:
                 return video.id
             return None
-        
+
         for quiz in data:
             quiz["video_id"] = get_video_id(quiz)
         return Response({"quizes": data}, status=status.HTTP_200_OK)
@@ -701,7 +718,7 @@ class QuizView(APIView):
         serialized_quiz = serializers.QuizSerializer(instance=quiz).data
         serialized_quiz["questions"] = serialized_questions
         return Response({"quiz": serialized_quiz}, status=status.HTTP_200_OK)
-    
+
     def delete(self, request, quiz_id):
         try:
             quiz = models.Quiz.objects.get(id=quiz_id)
@@ -715,7 +732,7 @@ class QuizView(APIView):
             shutil.rmtree(quiz.assets_location)
         quiz.delete()
         return Response({"message": "Quiz deleted successfully"}, status=status.HTTP_200_OK)
-    
+
 class QuizQuestionImageView(APIView):
     def get(self, request, question_id):
         try:
@@ -725,3 +742,159 @@ class QuizQuestionImageView(APIView):
         if not question.image or not question.quiz.assets_location or not os.path.exists(os.path.join(question.quiz.assets_location, question.image)):
             return Response({"message": "Image not found"}, status=status.HTTP_404_NOT_FOUND)
         return FileResponse(open(os.path.join(question.quiz.assets_location, question.image), "rb"), content_type="image/png", status=status.HTTP_200_OK)
+
+class DifferenceView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        filename = video.filename
+        if filename.endswith(".y4m"):
+            folder_name = filename[:-4] + "_1280x720"
+        else:
+            folder_name = os.path.splitext(filename)[0] + "_1280x720"
+
+        frames_path = finders.find(os.path.join("frames", folder_name))
+
+        if not frames_path or not os.path.exists(frames_path):
+            return Response({"count": 0}, status=status.HTTP_200_OK)
+
+        count = len([name for name in os.listdir(frames_path) if os.path.isfile(os.path.join(frames_path, name))])
+        return Response({"count": count}, status=status.HTTP_200_OK)
+
+
+class DifferenceFrameView(APIView):
+    def get(self, request, video_id, frame_number):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        filename = video.filename
+        if filename.endswith(".y4m"):
+            base_name = filename[:-4]
+            folder_name = base_name + "_1280x720"
+        else:
+            base_name = os.path.splitext(filename)[0]
+            folder_name = base_name + "_1280x720"
+
+        current_frame_path = finders.find(os.path.join("frames", folder_name, f"frame_{frame_number}.png"))
+        if not current_frame_path:
+            return Response({"message": "Frame not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        def encode_image(image_path_or_array, is_array=False):
+            if is_array:
+                _, buffer = cv2.imencode('.png', image_path_or_array)
+                return base64.b64encode(buffer).decode('utf-8')
+            else:
+                with open(image_path_or_array, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+
+        def smart_crop(image, center_x, center_y, w, h):
+            top_left_x = center_x - (w / 2.0)
+            top_left_y = center_y - (h / 2.0)
+
+            epsilon = 0.001
+            is_integer_x = abs(top_left_x - round(top_left_x)) < epsilon
+            is_integer_y = abs(top_left_y - round(top_left_y)) < epsilon
+
+            if is_integer_x and is_integer_y:
+                ix = int(round(top_left_x))
+                iy = int(round(top_left_y))
+                return image[iy:iy + h, ix:ix + w]
+            else:
+                map_matrix = np.float32([
+                    [1, 0, (w / 2.0) - center_x],
+                    [0, 1, (h / 2.0) - center_y]
+                ])
+                return cv2.warpAffine(
+                    image,
+                    map_matrix,
+                    (w, h),
+                    flags=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_REPLICATE
+                )
+
+        original_b64 = encode_image(current_frame_path, is_array=False)
+        diff_prev_b64 = None
+        diff_third_b64 = None
+
+        if frame_number > 0:
+            prev_frame_path = finders.find(os.path.join("frames", folder_name, f"frame_{frame_number - 1}.png"))
+
+            if prev_frame_path:
+                img_curr = cv2.imread(current_frame_path)
+                img_prev = cv2.imread(prev_frame_path)
+
+                if img_curr is not None and img_prev is not None:
+                    diff = cv2.absdiff(img_curr, img_prev)
+                    diff_prev_b64 = encode_image(diff, is_array=True)
+
+                    json_path = os.path.join("static", "differences", base_name, f"frame_{frame_number:03d}.json")
+
+                    if not os.path.exists(json_path):
+                        return Response({"message": f"JSON file not found: {json_path}"},
+                                        status=status.HTTP_404_NOT_FOUND)
+
+                    with open(json_path, 'r') as f:
+                        vectors = json.load(f)
+
+                    final_diff = diff.copy()
+
+                    padding = 64
+                    padded_prev = cv2.copyMakeBorder(img_prev, padding, padding, padding, padding, cv2.BORDER_REPLICATE)
+
+                    loaded_refs = {-1: padded_prev}
+
+                    for v in vectors:
+                        source_offset = v['source']
+                        if source_offset == 0:
+                            continue
+
+                        if source_offset not in loaded_refs:
+                            ref_idx = frame_number + source_offset
+                            ref_path = finders.find(os.path.join("frames", folder_name, f"frame_{ref_idx}.png"))
+                            if ref_path:
+                                raw_ref = cv2.imread(ref_path)
+                                loaded_refs[source_offset] = cv2.copyMakeBorder(raw_ref, padding, padding, padding,
+                                                                                padding, cv2.BORDER_REPLICATE)
+                            else:
+                                loaded_refs[source_offset] = None
+
+                        img_ref_padded = loaded_refs[source_offset]
+                        if img_ref_padded is None:
+                            continue
+
+                        w, h = v['width'], v['height']
+
+                        dst_center_x, dst_center_y = v['dst_x'], v['dst_y']
+                        src_center_x, src_center_y = v['src_x'], v['src_y']
+
+                        dst_x_left = int(dst_center_x - (w / 2))
+                        dst_y_top = int(dst_center_y - (h / 2))
+
+                        if (dst_y_top >= 0 and dst_x_left >= 0 and
+                                dst_y_top + h <= img_curr.shape[0] and dst_x_left + w <= img_curr.shape[1]):
+
+                            block_curr = img_curr[dst_y_top: dst_y_top + h, dst_x_left: dst_x_left + w]
+
+                            real_src_center_x = float(src_center_x) + padding
+                            real_src_center_y = float(src_center_y) + padding
+
+                            block_ref = smart_crop(img_ref_padded, real_src_center_x, real_src_center_y, w, h)
+
+                            if block_ref is not None:
+                                block_ref = block_ref.astype(np.uint8)
+                                block_diff = cv2.absdiff(block_curr, block_ref)
+
+                                final_diff[dst_y_top: dst_y_top + h, dst_x_left: dst_x_left + w] = block_diff
+
+                    diff_third_b64 = encode_image(final_diff, is_array=True)
+
+        return Response({
+            "original_frame": original_b64,
+            "diff_prev_frame": diff_prev_b64,
+            "diff_third_frame": diff_third_b64
+        }, status=status.HTTP_200_OK)

@@ -1,9 +1,10 @@
-import {BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, Navigate, Outlet} from 'react-router-dom';
 import FramesDistribution from './pages/FrameDistribution';
 import Comparison from './pages/Comparison';
 import Quiz from './pages/Quiz';
 import NavigationTabs from './components/Navigation';
 import Menu from './pages/Menu';
+import FrameDifferences from './pages/FrameDifferences';
 import Login from './pages/Login';
 import QuizList from './pages/QuizList';
 import Admin from "./pages/Admin";
@@ -24,14 +25,12 @@ import QuizMenu from './components/quiz/QuizMenu';
 import { QuizProvider } from './context/QuizContext';
 
 function Layout() {
-  const location = useLocation();
-  // const hideNavbar = location.pathname === "/" || location.pathname === "/admin";
 
   return (
       <ErrorProvider>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-            <FpsProvider>  
+            <FpsProvider>
               <FramesProvider>
                 <MetricsProvider>
                   <DisplayModeProvider>
@@ -50,6 +49,7 @@ function Layout() {
                                 <Route path=":quizId/results" element={<QuizResults />} />
                                 <Route path="list" element={<QuizList />} />
                               </Route>
+                              <Route path="/differences" element={<FrameDifferences />} />
                               <Route path="/admin" element={<Protected><Admin /></Protected>} />
                               <Route path="/login" element={<Login />} />
                             </Routes>
