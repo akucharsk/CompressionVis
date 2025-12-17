@@ -10,6 +10,8 @@ const MacroblockControl = ({
                                showPast,
                                setShowPast,
                                showFuture,
+                               showBidirectional,
+                               setShowBidirectional,
                                setShowFuture
                            }) => {
     const { isBlocksLoading } = useMacroblocks();
@@ -34,6 +36,31 @@ const MacroblockControl = ({
         } else {
             setMode("disappear");
             setShowGrid(true);
+        }
+    };
+
+    const handlePastChange = (e) => {
+        const isChecked = e.target.checked;
+        setShowPast(isChecked);
+        if (isChecked) {
+            setShowBidirectional(false);
+        }
+    };
+
+    const handleFutureChange = (e) => {
+        const isChecked = e.target.checked;
+        setShowFuture(isChecked);
+        if (isChecked) {
+            setShowBidirectional(false);
+        }
+    };
+
+    const handleBidirectionalChange = (e) => {
+        const isChecked = e.target.checked;
+        setShowBidirectional(isChecked);
+        if (isChecked) {
+            setShowPast(false);
+            setShowFuture(false);
         }
     };
 
@@ -99,7 +126,7 @@ const MacroblockControl = ({
                                 <input
                                     type="checkbox"
                                     checked={showPast}
-                                    onChange={(e) => setShowPast(e.target.checked)}
+                                    onChange={handlePastChange}
                                     disabled={isBlocksLoading}
                                 />
                                 Past
@@ -108,15 +135,23 @@ const MacroblockControl = ({
                                 <input
                                     type="checkbox"
                                     checked={showFuture}
-                                    onChange={(e) => setShowFuture(e.target.checked)}
+                                    onChange={handleFutureChange}
                                     disabled={isBlocksLoading}
                                 />
                                 Future
                             </label>
                         </div>
+                        <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                            <input
+                                type="checkbox"
+                                checked={showBidirectional}
+                                onChange={handleBidirectionalChange}
+                                disabled={isBlocksLoading}
+                            />
+                            Only Bidirectional
+                        </label>
                     </div>
                 </div>
-
             </div>
         </div>
     );

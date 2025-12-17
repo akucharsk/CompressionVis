@@ -1,13 +1,16 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useState } from "react";
 import "../styles/pages/Navigation.css";
 import AccountAccess from "./AccountAccess";
 import GeneralAccess from "./GeneralAccess";
+import QuizAccess from "./QuizAccess";
 
 const Navigation = () => {
     const [open, setOpen] = useState(false);
-    const { pathname } = useLocation();
-    const hideGeneralAccess = [ "/login", "/admin", "/" ].includes(pathname);
+    const { pathname, search } = useLocation();
+    const searchParams = new URLSearchParams(search);
+    const isStandaloneQuizPath = pathname.split("/").includes("quiz") && !searchParams.get("videoId");
+    const hideGeneralAccess = [ "/login", "/admin", "/", "/differences" ].includes(pathname) || isStandaloneQuizPath;
 
     return (
         <div style={{ height: "100vh" }}>
@@ -17,8 +20,11 @@ const Navigation = () => {
                 onClick={() => setOpen(!open)}
             />
             <div className={`nav-container ${open ? "open" : ""}`}>
-                { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
-                <AccountAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
+                <div>
+                    { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
+                    <QuizAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
+                </div>
+                <AccountAccess setOpen={setOpen} />
             </div>
         </div>
     );

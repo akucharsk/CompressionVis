@@ -6,7 +6,7 @@ import { useIdentity } from "../hooks/identity";
 export default function Protected({ children }) {
   const navigate = useNavigate();
   const { data, isPending, error } = useIdentity();
-  const showError = useError();
+  const { showError } = useError();
   if (isPending) return <Spinner />;
   if (error) showError(error);
   if (!data?.isAdmin) navigate("/");

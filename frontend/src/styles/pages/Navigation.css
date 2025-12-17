@@ -20,6 +20,12 @@
     left: 0;
 }
 
+.nav-subcontainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .nav-tab {
     display: flex;
     gap: 0.5rem;

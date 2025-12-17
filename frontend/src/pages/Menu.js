@@ -85,22 +85,6 @@ function Menu() {
             return;
         }
 
-        setParameters({
-            videoId: parameters.videoId,
-            resolution: "1280x720",
-            mode: "framesDifferences",
-            pattern: null,
-            preset: null,
-            bFrames: null,
-            aqMode: null,
-            aqStrength: null,
-            crf: null,
-            bandwidth: null,
-            qualityMode: null,
-            compressedSize: null,
-            resultingSize: null
-        });
-
         navigate(`/differences?videoId=${parameters.videoId}`);
     };
 

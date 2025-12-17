@@ -8,7 +8,7 @@ import Frame from "./frameDistribution/Frame";
 import Spinner from "./Spinner";
 import Video from "./frameDistribution/Video";
 
-const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGrid, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks, showPast, showFuture, }) => {
+const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGrid, visibleCategories, selectedBlock, setSelectedBlock, setNextImageUrl, setPrevImageUrl, mode, macroblocks, showPast, showFuture, showBidirectional }) => {
     const { displayMode } = useDisplayMode();
     const { frames, framesQuery, selectedIdx, setSelectedIdx } = useFrames();
     const { isVideoPlaying } = useVideoPlaying();
@@ -113,6 +113,7 @@ const ImageVideoBlock = ({ isConst, videoId, videoRef, fullscreenHandler, showGr
                     videoId={videoId}
                     showPast={showPast}
                     showFuture={showFuture}
+                    showBidirectional={showBidirectional}
                 />
             ) : displayMode === "video" ? (
                 <Video 
