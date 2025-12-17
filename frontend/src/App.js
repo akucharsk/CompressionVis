@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import QuizList from './pages/QuizList';
 import Admin from "./pages/Admin";
 import Protected from "./pages/Protected";
+import CompressedVideos from "./pages/CompressedVideos";
 import QuizResults from './components/quiz/QuizResults';
 import { SettingsProvider } from './context/SettingsContext';
 import {FramesProvider} from "./context/FramesContext";
@@ -43,6 +44,7 @@ function Layout() {
                               <Route path="/" element={<Menu />} />
                               <Route path="/compress" element={<FramesDistribution />} />
                               <Route path="/comparison" element={<Comparison />} />
+                              <Route path="/compressed" element={<CompressedVideos />} />
                               <Route path="/quiz" element={<QuizProvider><Outlet /></QuizProvider>}>
                                 <Route path=":quizId/menu" element={<QuizMenu />} />
                                 <Route path=":quizId" element={<Quiz />} />

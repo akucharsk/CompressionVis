@@ -1,0 +1,47 @@
+@import './../shared/Shared.css';
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 50%;
+    margin: 0 auto;
+    gap: 1em;
+}
+
+.videos-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.videos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    min-width: 800px;
+}
+
+.videos-table thead tr {
+    text-align: left;
+    font-weight: bold;
+}
+
+.videos-table th,
+.videos-table td {
+    padding: 10px 12px;
+    vertical-align: top;
+}
+
+.action-button {
+    padding: 4px 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.action-button:hover {
+    background-color: var(--netflix-red);
+}

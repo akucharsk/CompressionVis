@@ -6,8 +6,10 @@ import { useSettings } from "../../context/SettingsContext";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
-import { getVideoIdsFromCache } from "../../utils/videoIdsCache";
 import { apiUrl } from "../../utils/urls";
+import {useQuery} from "@tanstack/react-query";
+import {fetchWithCredentials} from "../../api/genericFetch";
+import {defaultRetryPolicy} from "../../utils/retryUtils";
 
 const ImageBlock = ({
                         isConst = true,
@@ -22,7 +24,17 @@ const ImageBlock = ({
     const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isOriginal , setIsOriginal] = useState(true);
-    const compressedIds = getVideoIdsFromCache(originalVideoId).filter(id => id !== compressedVideoId);
+
+    const { data, isPending } = useQuery({
+        queryKey: ["compressed-videos"],
+        queryFn: async () => await fetchWithCredentials(`${apiUrl}/video/all-compressed-videos/?original_id=${originalVideoId}`),
+        retry: defaultRetryPolicy,
+    });
+
+    const videos = data?.videos || [];
+    const compressedIds = videos
+        .filter(video => video.id !== compressedVideoId && video.original === originalVideoId)
+        .map(video => video.id);
     const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
     const videoIdToUse = isConst ? compressedVideoId : selectedVideoId;
 
