@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect, useRef} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import './../../styles/components/distribution/Frame.css';
 import {useMacroblocks} from "../../context/MacroblocksContext";
-import Spinner from "../Spinner";
 import { useFrames } from "../../context/FramesContext";
 import { apiUrl } from "../../utils/urls";
 import { useSearchParams } from "react-router-dom";
@@ -29,17 +28,30 @@ const Frame = ({
     const imgRef = useRef(null);
     const {frameMacroBlocksQuery} = useMacroblocks();
     const { resolutionWidth, resolutionHeight } = useSettings();
+
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+
     const imageUrl = `${apiUrl}/frames/${videoId}/${selectedIdx}?width=${resolutionWidth}&height=${resolutionHeight}`;
 
+    useEffect(() => {
+        setIsImageLoaded(false);
+    }, [imageUrl]);
+
+    const handleImageLoad = () => {
+        setIsImageLoaded(true);
+    };
+
     const drawCanvas = useCallback(() => {
-        if (!frameMacroBlocksQuery.data?.blocks) return;
-        const blocks = frameMacroBlocksQuery.data.blocks;
+        if (!isImageLoaded) return;
+
         const canvas = canvasRef.current;
         const img = imgRef.current;
-        if (!canvas || !img) return;
-        const ctx = canvas.getContext("2d");
 
-        if (img.naturalWidth === 0 || img.naturalHeight === 0) return;
+        if (!canvas || !img) return;
+        if (!img.complete || img.naturalWidth === 0 || img.naturalHeight === 0) return;
+
+        const blocks = frameMacroBlocksQuery.data?.blocks || [];
+        const ctx = canvas.getContext("2d");
 
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
@@ -162,7 +174,7 @@ const Frame = ({
             });
             ctx.globalAlpha = 1.0;
         }
-    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture, showBidirectional]);
+    }, [frameMacroBlocksQuery.data?.blocks, showGrid, selectedBlock, visibleCategories, mode, showPast, showFuture, showBidirectional, isImageLoaded]);
 
     const mapSelectedBlockToNewFrame = useCallback((oldBlock, newBlocks) => {
         if (!macroblocks) return null;
@@ -234,20 +246,16 @@ const Frame = ({
     };
 
     useEffect(() => {
-        if (macroblocks) {
+        if (macroblocks && isImageLoaded) {
             drawCanvas()
         }
-    }, [drawCanvas, macroblocks]);
-
-    const blocks = frameMacroBlocksQuery.data?.blocks || [];
+    }, [drawCanvas, macroblocks, isImageLoaded]);
 
     return (
         <>
             {frames.length > 0 && selectedIdx < frames.length && (
                 <div className="frame-preview" style={{position: "relative"}}>
-                    {imageUrl === null ? (
-                        <Spinner/>
-                    ) : imageUrl && macroblocks ? (
+                    {macroblocks ? (
                         <>
                             <img
                                 ref={imgRef}
@@ -258,7 +266,7 @@ const Frame = ({
                                     width: "100%",
                                     height: "auto"
                                 }}
-                                onLoad={drawCanvas}
+                                onLoad={handleImageLoad}
                             />
                             <canvas
                                 ref={canvasRef}
@@ -267,20 +275,19 @@ const Frame = ({
                                     position: mode === "disappear" ? "relative" : "absolute",
                                     top: 0,
                                     left: 0,
-                                    pointerEvents: blocks.length > 0 ? "auto" : "none",
                                     width: "100%",
                                     height: "100%",
-                                    cursor: blocks.length > 0 ? "pointer" : "default"
+                                    cursor: "pointer"
                                 }}
                             />
                         </>
-                    ) : imageUrl && !macroblocks ? (
+                    ) : (
                         <img
                             src={imageUrl}
-                            alt={`Frame ${selectedIdx} (${frames[selectedIdx].type})`}
+                            alt={`Frame ${selectedIdx}`}
                             onClick={fullscreenHandler}
                         />
-                    ) : null}
+                    )}
                 </div>
             )}
         </>

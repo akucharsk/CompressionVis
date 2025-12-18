@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { useMacroblocks } from "../../context/MacroblocksContext";
 
 const MacroblockControl = ({
@@ -15,6 +16,20 @@ const MacroblockControl = ({
                                setShowFuture
                            }) => {
     const { isBlocksLoading } = useMacroblocks();
+    const [shouldDisable, setShouldDisable] = useState(false);
+
+    useEffect(() => {
+        let timeout;
+        if (isBlocksLoading) {
+            timeout = setTimeout(() => {
+                setShouldDisable(true);
+            }, 200);
+        } else {
+            setShouldDisable(false);
+        }
+
+        return () => clearTimeout(timeout);
+    }, [isBlocksLoading]);
 
     const isGridActive = showGrid && mode === "grid";
     const isBlocksActive = showGrid && mode === "disappear";
@@ -73,28 +88,28 @@ const MacroblockControl = ({
                         <span className="section-title">Macroblocks:</span>
 
                         <div className="top-checkboxes">
-                            <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                            <label className={`vector-checkbox ${shouldDisable ? "disabled" : ""}`}>
                                 <input
                                     type="checkbox"
                                     checked={isGridActive}
                                     onChange={handleGridCheck}
-                                    disabled={isBlocksLoading}
+                                    disabled={shouldDisable}
                                 />
                                 Show Grid
                             </label>
-                            <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                            <label className={`vector-checkbox ${shouldDisable ? "disabled" : ""}`}>
                                 <input
                                     type="checkbox"
                                     checked={isBlocksActive}
                                     onChange={handleBlocksCheck}
-                                    disabled={isBlocksLoading}
+                                    disabled={shouldDisable}
                                 />
                                 Show Blocks
                             </label>
                         </div>
                     </div>
 
-                    <div className={`macroblock-types-grid ${!showGrid ? "disabled-area" : ""} ${isBlocksLoading ? "loading" : ""}`}>
+                    <div className={`macroblock-types-grid ${!showGrid ? "disabled-area" : ""} ${shouldDisable ? "loading" : ""}`}>
                         {[
                             { key: "intra", label: "Intra", class: "label-intra" },
                             { key: "inter", label: "Inter", class: "label-inter" },
@@ -106,7 +121,7 @@ const MacroblockControl = ({
                                     type="checkbox"
                                     checked={visibleCategories[key]}
                                     onChange={() => toggleCategory(key)}
-                                    disabled={isBlocksLoading || !showGrid}
+                                    disabled={shouldDisable || !showGrid}
                                 />
                                 <span className="label-dot-wrapper">
                                     <span className={`label-dot ${c}`}></span> {label}
@@ -122,31 +137,31 @@ const MacroblockControl = ({
                     <div className="section-header-column">
                         <span className="section-title">Motion vectors:</span>
                         <div className="top-checkboxes">
-                            <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                            <label className={`vector-checkbox ${shouldDisable ? "disabled" : ""}`}>
                                 <input
                                     type="checkbox"
                                     checked={showPast}
                                     onChange={handlePastChange}
-                                    disabled={isBlocksLoading}
+                                    disabled={shouldDisable}
                                 />
                                 Past
                             </label>
-                            <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                            <label className={`vector-checkbox ${shouldDisable ? "disabled" : ""}`}>
                                 <input
                                     type="checkbox"
                                     checked={showFuture}
                                     onChange={handleFutureChange}
-                                    disabled={isBlocksLoading}
+                                    disabled={shouldDisable}
                                 />
                                 Future
                             </label>
                         </div>
-                        <label className={`vector-checkbox ${isBlocksLoading ? "disabled" : ""}`}>
+                        <label className={`vector-checkbox ${shouldDisable ? "disabled" : ""}`}>
                             <input
                                 type="checkbox"
                                 checked={showBidirectional}
                                 onChange={handleBidirectionalChange}
-                                disabled={isBlocksLoading}
+                                disabled={shouldDisable}
                             />
                             Only Bidirectional
                         </label>

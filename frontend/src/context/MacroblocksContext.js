@@ -33,8 +33,8 @@ export const MacroblocksProvider = ({ children }) => {
         }
     }, [frameMacroBlocksQuery.isError, frameMacroBlocksQuery.error, showError]);
 
-    const isBlocksReady = frameMacroBlocksQuery.data?.blocks?.length > 0;
-    const isBlocksLoading = frameMacroBlocksQuery.isPending || frameMacroBlocksQuery.data?.message === "processing" || !isBlocksReady;
+    const isProcessing = frameMacroBlocksQuery.data?.message === "processing";
+    const isBlocksLoading = (frameMacroBlocksQuery.isLoading && !frameMacroBlocksQuery.data) || isProcessing;
 
     return (
         <MacroblocksContext.Provider value={{ frameMacroBlocksQuery, isBlocksLoading }}>
