@@ -7,9 +7,7 @@ import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
 import { apiUrl } from "../../utils/urls";
-import {useQuery} from "@tanstack/react-query";
-import {fetchWithCredentials} from "../../api/genericFetch";
-import {defaultRetryPolicy} from "../../utils/retryUtils";
+import { useCompressedVideos } from "../../hooks/compressed-videos";
 
 const ImageBlock = ({
                         isConst = true,
@@ -25,11 +23,7 @@ const ImageBlock = ({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isOriginal , setIsOriginal] = useState(true);
 
-    const { data, isPending } = useQuery({
-        queryKey: ["compressed-videos"],
-        queryFn: async () => await fetchWithCredentials(`${apiUrl}/video/all-compressed-videos/?original_id=${originalVideoId}`),
-        retry: defaultRetryPolicy,
-    });
+    const { data, isPending } = useCompressedVideos(originalVideoId);
 
     const videos = data?.videos || [];
     const compressedIds = videos

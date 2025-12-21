@@ -3,14 +3,13 @@ import { useState } from "react";
 import "../styles/pages/Navigation.css";
 import AccountAccess from "./AccountAccess";
 import GeneralAccess from "./GeneralAccess";
-import QuizAccess from "./QuizAccess";
+import CompressedVideoAccess from "./CompressedVideoAccess";
 
 const Navigation = () => {
     const [open, setOpen] = useState(false);
     const { pathname, search } = useLocation();
     const searchParams = new URLSearchParams(search);
-    const isStandaloneQuizPath = pathname.split("/").includes("quiz") && !searchParams.get("videoId");
-    const hideGeneralAccess = [ "/login", "/admin", "/", "/differences" ].includes(pathname) || isStandaloneQuizPath;
+    const includeCompressedAccess = searchParams.get("videoId") !== null && searchParams.get("originalVideoId") !== null;
 
     return (
         <div style={{ height: "100vh" }}>
@@ -21,8 +20,8 @@ const Navigation = () => {
             />
             <div className={`nav-container ${open ? "open" : ""}`}>
                 <div>
-                    { !hideGeneralAccess && <GeneralAccess setOpen={setOpen} /> }
-                    <QuizAccess setOpen={setOpen} includeHome={hideGeneralAccess && pathname !== "/"} />
+                    { includeCompressedAccess && <CompressedVideoAccess setOpen={setOpen} /> }
+                    <GeneralAccess setOpen={setOpen} />
                 </div>
                 <AccountAccess setOpen={setOpen} />
             </div>

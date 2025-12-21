@@ -40,8 +40,10 @@
     border: none;
     border-radius: 4px;
     transition: background-color 0.2s;
+    background-color: var(--netflix-red);
+    color: var(--font-color);
 }
 
 .action-button:hover {
-    background-color: var(--netflix-red);
+    background-color: var(--netflix-dark-red);
 }

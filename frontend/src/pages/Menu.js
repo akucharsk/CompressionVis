@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/pages/Menu.css';
 import { useSettings } from "../context/SettingsContext";
@@ -7,14 +7,14 @@ import VideoSelect from "../components/videoPreview/VideoSelect";
 import OptionsSection from "../components/videoPreview/OptionsSelection";
 import {apiUrl} from "../utils/urls";
 import {useError} from "../context/ErrorContext";
-import {addVideoIdToCache} from "../utils/videoIdsCache";
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { genericFetch } from '../api/genericFetch';
 import { defaultRetryPolicy, defaultRefetchIntervalPolicy } from '../utils/retryUtils';
 import Spinner from '../components/Spinner';
 
 function Menu() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { parameters, setParameters } = useSettings();
     const {showError} = useError();
 
@@ -63,9 +63,9 @@ function Menu() {
                 resultingSize: data.resultingSize,
             }));
         }
-        addVideoIdToCache(parameters.videoId, videoId);
+        queryClient.invalidateQueries({ queryKey: ["compressed-videos"] });
         navigate(`/compress?videoId=${videoId}&originalVideoId=${parameters.videoId}`);
-    }, [ parameters, setParameters, navigate, showError ]);
+    }, [ parameters, setParameters, navigate, showError, queryClient ]);
 
     const compressionMutation = useMutation({
         mutationFn,
@@ -73,11 +73,6 @@ function Menu() {
         retry: defaultRetryPolicy,
         refetchInterval: defaultRefetchIntervalPolicy
     });
-
-    useEffect(() => {
-        sessionStorage.removeItem('frames');
-        sessionStorage.removeItem('frameMetrics');
-    }, []);
 
     const handleShowDifferences = () => {
         if (!parameters.videoId) {

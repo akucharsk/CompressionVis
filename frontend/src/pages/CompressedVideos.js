@@ -1,10 +1,7 @@
 import {  useNavigate } from "react-router-dom";
 import "../styles/pages/CompressedVideos.css";
-import {useQuery} from "@tanstack/react-query";
-import {fetchWithCredentials} from "../api/genericFetch";
-import {apiUrl} from "../utils/urls";
-import {defaultRetryPolicy} from "../utils/retryUtils";
 import Spinner from "../components/Spinner";
+import { useCompressedVideos } from "../hooks/compressed-videos";
 
 
 const formatValue = (value, fractionDigits = 2) => {
@@ -74,11 +71,7 @@ const formatCell = (key, value) => {
 
 
 const FrameDifferences = () => {
-    const { data, isPending } = useQuery({
-        queryKey: ["compressed-videos"],
-        queryFn: async () => await fetchWithCredentials(`${apiUrl}/video/all-compressed-videos/`),
-        retry: defaultRetryPolicy,
-    });
+    const { data, isPending } = useCompressedVideos();
     const navigate = useNavigate();
 
     const displayKeys = [

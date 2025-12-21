@@ -1,9 +1,9 @@
 import { fetchWithCredentials } from "../../api/genericFetch";
 import { apiUrl } from "../../utils/urls";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useError } from "../../context/ErrorContext";
 import Spinner from "../Spinner";
-import { defaultRetryPolicy } from "../../utils/retryUtils";
+import { useCompressedVideos } from "../../hooks/compressed-videos";
 
 export default function VideoManager() {
   const queryClient = useQueryClient();
@@ -28,11 +28,7 @@ export default function VideoManager() {
     },
   });
 
-  const { data, isPending, error } = useQuery({
-    queryKey: ["compressed-videos"],
-    queryFn: async () => await fetchWithCredentials(`${apiUrl}/video/all-compressed-videos/`),
-    retry: defaultRetryPolicy,
-  });
+  const { data, isPending, error } = useCompressedVideos();
   
   if (error) showError(error);
   return (

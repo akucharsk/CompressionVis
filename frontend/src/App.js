@@ -20,12 +20,21 @@ import { FpsProvider } from './context/FpsContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MetricsProvider } from './context/MetricsContext';
 import {MacroblocksProvider} from "./context/MacroblocksContext";
-import {queryClient} from "./utils/queryClient";
 import './styles/App.css'
 import QuizMenu from './components/quiz/QuizMenu';
 import { QuizProvider } from './context/QuizContext';
+import { QueryClient } from '@tanstack/react-query';
 
 function Layout() {
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        gcTime: Infinity,
+        staleTime: Infinity,
+      }
+    }
+  });
 
   return (
       <ErrorProvider>
