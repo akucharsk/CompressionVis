@@ -191,12 +191,8 @@
     align-items: center;
     font-size: small;
     font-weight: 800;
-}
-
-.compression-main-info-numerical span {
-    /* height: 40px; */
-    /* width: ; */
-
+    padding: 0 5px;
+    text-align: center;
 }
 
 .compression-details {
@@ -224,6 +220,17 @@
     /* height: ; */
     padding: 3px 10px;
     width: auto;
+    display: flex;
+}
+
+.compression-details-element-left {
+    font-weight: 700;
+}
+
+.compression-details-element-right {
+    flex: 1;
+    text-align: right;
+    font-style: italic;
 }
 
 .compression-details-element:nth-child(odd) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useCharts } from "../../context/ChartsContext";
 import { ChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
 import Spinner from "../Spinner";
+import { sizeFormatter } from "../../utils/sizeFormatter";
 
 const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetricsState, refetchCompressions }) => {
     const [fieldState, setFieldState] = useState(initialMetricsState);
@@ -21,12 +22,6 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
     }
 
     useEffect(() => {
-        // if (data) {
-        //     const newMessage = data.message;
-        //     setFieldState(
-        //         newMessage === "finished" ? "loaded" : newMessage === "processing" ? "processing" : "error"
-        //     );
-        // }
         if (!data) return;
 
         if (data.message === "finished") {
@@ -39,6 +34,10 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
     }
     }, [data, refetchCompressions])
     
+    const metricKey = selectedMetric.toLowerCase();
+    const value = metrics?.[metricKey];
+
+
     return (
         <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`} key={idx}>
             <div className={`compression-main-info ${open ? "open" : ""}`} onClick={() => {setOpen(!open)}}>
@@ -52,25 +51,18 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
                         <Spinner size={20}/>
                     ) : (
                     <span>
-                        {Object.keys(metrics)
-                            .filter(item => item === selectedMetric.toLowerCase())
-                            .map(key => {
-                                return (Math.round(metrics[key]) / 100).toFixed(2);
-                            })
-                        }
-                    </span>)
-                    }
+                        {metricKey === "size" ? sizeFormatter(value) : (Math.round(value) / 100).toFixed(2)}
+                    </span>
+                    )}
                 </div>
             </div>
-
-                    {/* poprawić Bajty na najwieksza wartość */}
-
             <div className={`compression-details ${open ? "open" : ""}`}>
                 <div className="compression-details-inner">
                     {Object.entries(details).map(([key, value, dIdx]) => {
                         return (
                             <div className="compression-details-element" key={dIdx}>
-                                <div>{key}: {value}</div>
+                                <div className="compression-details-element-left">{key}:</div> 
+                                <div className="compression-details-element-right">{value ? value : "- -"}</div>
                             </div>
                         );
                     })}
