@@ -14,6 +14,9 @@ export const ChartsProvider = ({ children }) => {
     
     const [searchParams, setSearchParams] = useSearchParams();
     const [compressionMetricState, setCompressionMetricState] = useState({});
+    
+    const TAPPED_MAX = 5;
+    const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
 
     const selectedVideoId = searchParams.get("originalVideoId");
     const changeVideo = (newSelectedVideoId) => {
@@ -29,7 +32,6 @@ export const ChartsProvider = ({ children }) => {
     };
 
     const compressionsToRankFn = async () => {
-        // console.log("compressions")
         const data = await genericFetch(`${apiUrl}/metrics/metrics-rank/`);
         return data["videos"];
     }
@@ -73,7 +75,10 @@ export const ChartsProvider = ({ children }) => {
             selectedVideoId, 
             changeVideo, 
             compressionMetricState, 
-            setCompressionMetricState 
+            setCompressionMetricState,
+            TAPPED_MAX,
+            leftToTap,
+            setLeftToTap
         }}>
             { children }
         </ChartsContext.Provider>

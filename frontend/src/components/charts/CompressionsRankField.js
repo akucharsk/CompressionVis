@@ -39,7 +39,7 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
 
 
     return (
-        <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`} key={idx}>
+        <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`}>
             <div className={`compression-main-info ${open ? "open" : ""}`} onClick={() => {setOpen(!open)}}>
                 <div className="compression-main-info-descriptive">
                     <div className="compression-main-info-descriptive-id">Compression {id}</div>
@@ -58,9 +58,9 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
             </div>
             <div className={`compression-details ${open ? "open" : ""}`}>
                 <div className="compression-details-inner">
-                    {Object.entries(details).map(([key, value, dIdx]) => {
+                    {Object.entries(details).map(([key, value]) => {
                         return (
-                            <div className="compression-details-element" key={dIdx}>
+                            <div className="compression-details-element" key={key}>
                                 <div className="compression-details-element-left">{key}:</div> 
                                 <div className="compression-details-element-right">{value ? value : "- -"}</div>
                             </div>

@@ -37,7 +37,6 @@ const CompressionsRank = () => {
 
     const { compressionsToRank, thumbnails } = useCharts();
     const { data, isPending, isFetching, refetch } = compressionsToRank;
-    // const [sortedData, setSortedData] = useState(data ? [...data].sort(compareForSort) : []);
 
     const handleAscendingButton = () => {
         if (orderOfSorting === "Descending") {
@@ -49,28 +48,12 @@ const CompressionsRank = () => {
         if (orderOfSorting === "Ascending") {
             setOrderOfSorting("Descending");
         }
-    }    
-
-    // useEffect(() => {
-    //     setSortedData(prev => {
-    //         const newSorted = [...prev].sort(compareForSort);
-    //         return newSorted
-    //     })
-    // }, [selectedMetric, orderOfSorting])
-
-    // useEffect(() => {
-    //     let newSorted = [];
-    //     if (data) {
-    //         newSorted = [...data].sort(compareForSort);
-    //     }
-    //     setSortedData(newSorted);
-    // }, [isFetching, data])
+    }
 
     const sortedData = useMemo(() => {
         if (!data) return [];
         return [...data].sort(compareForSort);
     }, [data, selectedMetric, orderOfSorting]);
-
 
 
     return (
@@ -140,6 +123,7 @@ const CompressionsRank = () => {
                             selectedMetric={selectedMetric}
                             initialMetricsState={initialMetricsState}
                             refetchCompressions={refetch}
+                            key={video.id}
                         />
                     );
                 })}

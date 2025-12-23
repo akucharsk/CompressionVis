@@ -58,7 +58,7 @@ const ChartsView = () => {
             {metrics.map((metricType, idx) => (
                 <MetricChart 
                     metricType={metricType}
-                    idx={idx}
+                    key={idx}
                     tappedCompressions={tappedCompressions}
                     compressionMetricsMap={compressionMetricsMap}
                     framesLength={framesLength}

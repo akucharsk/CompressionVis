@@ -5,23 +5,31 @@ import RGBPicker from "./RGBPicker";
 import { ChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
 import { useCharts } from "../../context/ChartsContext";
 
-const ChartsOptionsField = ({ isTapped, isInactive, compressionId, initialMetricsState }) => {
+const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
     const [fieldState, setFieldState] = useState(initialMetricsState);
-    const { setCompressionMetricState } = useCharts();
+    const { setCompressionMetricState, setLeftToTap, compressionMetricState, leftToTap, TAPPED_MAX } = useCharts();
     const { data } = ChartsOptionsFieldQuery(
         compressionId,
         initialMetricsState !== "loaded"
     );
 
+    const isTapped = compressionMetricState[compressionId]?.isTapped || false;
+    const isInactive = !isTapped && leftToTap <= 0;
+
     const toggleTap = (e, id) => {
         e.stopPropagation();
-        setCompressionMetricState(prev => ({
-            ...prev,
-            [id]: {
-                ...prev[id],
-                isTapped: !prev[id].isTapped
-            }
-        }));
+        setCompressionMetricState(prev => {
+            const updated = {
+                ...prev,
+                [id]: {
+                    ...prev[id],
+                    isTapped: !prev[id].isTapped
+                }
+            };
+            const tappedCount = Object.values(updated).filter(v => v.isTapped).length;
+            setLeftToTap(TAPPED_MAX - tappedCount);
+            return updated;
+        });
     };
 
     useEffect(() => {
@@ -37,7 +45,6 @@ const ChartsOptionsField = ({ isTapped, isInactive, compressionId, initialMetric
     return (
         <div 
             className={`compression-in-select-panel ${fieldState !== "loaded" || isInactive ? "inactive" : isTapped === true ? "active-tapped" : "active"}`} 
-            key={compressionId}
             onClick={(e) => 
                 toggleTap(e, compressionId)
             }

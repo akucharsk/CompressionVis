@@ -8,10 +8,8 @@ import ChartsOptionsField from "./ChartsOptionsField";
 
 const ChartsOptions = () => {
 
-    const TAPPED_MAX = 5;
-    const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
-    const { compressionsToTap, selectedVideoId, compressionMetricState, setCompressionMetricState } = useCharts();
-    const { data, isFetching, refetch } = compressionsToTap;
+    const { compressionsToTap, selectedVideoId, compressionMetricState, setCompressionMetricState, leftToTap, setLeftToTap, TAPPED_MAX } = useCharts();
+    const { data, isFetching } = compressionsToTap;
 
     const changeColor = (color) => {
         setCompressionMetricState(prev => {
@@ -51,14 +49,6 @@ const ChartsOptions = () => {
 
     }, [selectedVideoId, data]);
 
-    useEffect(() => {
-        // console.log(compressionMetricState[1])
-        const tapped = Object.keys(compressionMetricState).filter(item => compressionMetricState[item]?.isTapped).length
-            
-        setLeftToTap(TAPPED_MAX - tapped);
-        // console.log(tapped);
-    }, [compressionMetricState])
-
 
     return (
         <>
@@ -77,14 +67,7 @@ const ChartsOptions = () => {
             ) : data ? (
                 <div className="charts-options with-data">
                     {data.map((video, idx) => {
-                        // console.log("wideo i idx", video, idx);
                         const compressionId = video.id;
-                        const isTapped = compressionMetricState[compressionId]?.isTapped;
-                        const isInactive = isTapped ? false : leftToTap > 0 ? false : true;
-                        // const stateFromFirstFetch = video.metrics.every(function(i) { return i === "None" || i === "null"; });
-                        // const initialMetricsState = 
-                        //     Object.values(video.metrics).includes(null) || Object.values(video.metrics).includes("None") ? "not-loaded" : "loaded";
-                        // console.log("metryki", video, video.metrics);
                         const areAllMetricsNull = Object.entries(video.metrics)
                             .filter(([key]) => key !== "size")
                             .every(([, value]) => value === null || value === "None");
@@ -92,10 +75,9 @@ const ChartsOptions = () => {
 
                         return (
                             <ChartsOptionsField 
-                                isTapped={isTapped}
-                                isInactive={isInactive}
                                 compressionId={compressionId}
                                 initialMetricsState={initialMetricsState}
+                                key={compressionId}
                             />
                         )    
                     })}
