@@ -510,9 +510,9 @@ class MetricStatusView(APIView):
         if not metrics:
             return False
         return all([
-            metrics.vmaf_mean is not None,
-            metrics.psnr_mean is not None,
-            metrics.ssim_mean is not None
+            metrics.vmaf_mean is not None and metrics.vmaf_mean != 0,
+            metrics.psnr_mean is not None and metrics.psnr_mean != 0,
+            metrics.ssim_mean is not None and metrics.ssim_mean != 0
         ])
 
     def get(self, request, video_id):
@@ -542,6 +542,19 @@ class SizeView(APIView):
             return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"size": video.size}, status=status.HTTP_200_OK)
+
+# class SizeView(APIView):
+#     def get(self, request, video_id):
+#         try:
+#             video = models.Video.objects.get(id=video_id)
+#         except models.Video.DoesNotExist:
+#             return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+#         try:
+#             sizes = models.FrameMetadata.objects.get(video=video).values(size="pkt_size")
+
+#         except models.FrameMetadata.DoesNotExist:
+#             return Response({"message": "Video frames sizes information not available"}, status=status.HTTP_404_NOT_FOUND)
 
 class VideoParameters(APIView):
     def get(self, request, video_id):

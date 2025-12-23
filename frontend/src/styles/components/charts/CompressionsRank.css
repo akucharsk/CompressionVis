@@ -82,6 +82,15 @@
     height: 100%;
 }
 
+.sorted-rank-info {
+    display: flex;
+    align-items: center;
+    scrollbar-color: var(--netflix-red) var(--background-second);  
+    /* border: 1px solid var(--border-color); */
+    border-radius: 8px;
+    height: 100%;
+}
+
 .sorted-rank-column-titles {
     width: 100%;
     position: sticky;
@@ -108,8 +117,12 @@
 
 }
 
-.sorted-rank.with-data {
-
+.sorted-rank-info-not-found {
+    text-align: center;
+    font-size: large;
+    color: var(--netflix-light-grey);
+    font-weight: 800;
+    margin: 0 10px;
 }
 
 .compression-in-rank-panel {

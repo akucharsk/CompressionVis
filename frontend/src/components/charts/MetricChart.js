@@ -27,14 +27,6 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
     return (
         <div className="metric-chart-block" key={idx}>
             <h2>{metricType}</h2>
-            {/* {tappedCompressions.map((video) => (
-                <div
-                    key={video.id}
-                    style={{ color: video.color }}
-                >
-                    Compression {video.id} – {video.color}
-                </div>
-            ))} */}
             <div className="metric-chart-top-layout">            
                 <div className="metric-chart-inner-layout" style={{ width: framesLength > 0 ? `${framesLength * 15}px` : "100%" }}>
                     <LineChart

@@ -1,5 +1,5 @@
 import "../../styles/components/charts/CompressionsRank.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlphaPicker, SketchPicker } from 'react-color';
 import { useCharts } from "../../context/ChartsContext";
 import Spinner from "../Spinner";
@@ -36,8 +36,8 @@ const CompressionsRank = () => {
     }
 
     const { compressionsToRank, thumbnails } = useCharts();
-    const { data, isFetching } = compressionsToRank;
-    const [sortedData, setSortedData] = useState(data ? [...data].sort(compareForSort) : []);
+    const { data, isPending, isFetching, refetch } = compressionsToRank;
+    // const [sortedData, setSortedData] = useState(data ? [...data].sort(compareForSort) : []);
 
     const handleAscendingButton = () => {
         if (orderOfSorting === "Descending") {
@@ -51,20 +51,26 @@ const CompressionsRank = () => {
         }
     }    
 
-    useEffect(() => {
-        setSortedData(prev => {
-            const newSorted = [...prev].sort(compareForSort);
-            return newSorted
-        })
-    }, [selectedMetric, orderOfSorting])
+    // useEffect(() => {
+    //     setSortedData(prev => {
+    //         const newSorted = [...prev].sort(compareForSort);
+    //         return newSorted
+    //     })
+    // }, [selectedMetric, orderOfSorting])
 
-    useEffect(() => {
-        let newSorted = [];
-        if (data) {
-            newSorted = [...data].sort(compareForSort);
-        }
-        setSortedData(newSorted);
-    }, [isFetching])
+    // useEffect(() => {
+    //     let newSorted = [];
+    //     if (data) {
+    //         newSorted = [...data].sort(compareForSort);
+    //     }
+    //     setSortedData(newSorted);
+    // }, [isFetching, data])
+
+    const sortedData = useMemo(() => {
+        if (!data) return [];
+        return [...data].sort(compareForSort);
+    }, [data, selectedMetric, orderOfSorting]);
+
 
 
     return (
@@ -102,14 +108,16 @@ const CompressionsRank = () => {
                     </button>
                 </div>
             </div>
-            {isFetching ? (
+            {isPending ? (
             <div className="sorted-rank">
                 <div className="sorted-rank-column-titles">
                     <div className="column-titles-compression-data">Compression</div>
                     <div className="column-titles-score">{selectedMetric}</div>
                 </div>
                 <div className="sorted-rank-info">
-                    <Spinner size={20}/>
+                    <div className="sorted-rank-info-loading">
+                        <Spinner size={60}/>
+                    </div>
                 </div>
             </div>
             ) : sortedData.length > 0 ? (
@@ -120,10 +128,10 @@ const CompressionsRank = () => {
                 </div>
                 {sortedData.map((video, idx) => {
                     if (!video) return;
-                    const areAllMetricsNull = Object.entries(video.metrics)
+                    const areAllMetricsNotReady = Object.entries(video.metrics)
                         .filter(([key]) => key !== "size")
-                        .every(([, value]) => value === null || value === "None");
-                    const initialMetricsState = areAllMetricsNull ? "processing" : "loaded";
+                        .every(([, value]) => value === null || value === "None" || value === 0);
+                    const initialMetricsState = areAllMetricsNotReady ? "processing" : "loaded";
                     
                     return (
                         <CompressionsRankField 
@@ -131,6 +139,7 @@ const CompressionsRank = () => {
                             idx={idx}
                             selectedMetric={selectedMetric}
                             initialMetricsState={initialMetricsState}
+                            refetchCompressions={refetch}
                         />
                     );
                 })}
@@ -142,7 +151,9 @@ const CompressionsRank = () => {
                     <div className="column-titles-score">{selectedMetric}</div>
                 </div>
                 <div className="sorted-rank-info">
-                    No available compressions yet
+                    <div className="sorted-rank-info-not-found">
+                        No available compressions yet
+                    </div>
                 </div>
             </div>
             )}

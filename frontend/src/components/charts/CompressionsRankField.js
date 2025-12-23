@@ -3,7 +3,7 @@ import { useCharts } from "../../context/ChartsContext";
 import { ChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
 import Spinner from "../Spinner";
 
-const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetricsState }) => {
+const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetricsState, refetchCompressions }) => {
     const [fieldState, setFieldState] = useState(initialMetricsState);
     const [open, setOpen] = useState(false);
     const { thumbnails } = useCharts();
@@ -21,13 +21,23 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
     }
 
     useEffect(() => {
-        if (data) {
-            const newMessage = data.message;
-            setFieldState(
-                newMessage === "finished" ? "loaded" : newMessage === "processing" ? "processing" : "error"
-            );
-        }
-    }, [data])
+        // if (data) {
+        //     const newMessage = data.message;
+        //     setFieldState(
+        //         newMessage === "finished" ? "loaded" : newMessage === "processing" ? "processing" : "error"
+        //     );
+        // }
+        if (!data) return;
+
+        if (data.message === "finished") {
+            setFieldState("loaded");
+            refetchCompressions();
+        } else if (data.message === "processing") {
+            setFieldState("processing");
+        } else {
+            setFieldState("error");
+    }
+    }, [data, refetchCompressions])
     
     return (
         <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`} key={idx}>
@@ -52,6 +62,9 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
                     }
                 </div>
             </div>
+
+                    {/* poprawić Bajty na najwieksza wartość */}
+
             <div className={`compression-details ${open ? "open" : ""}`}>
                 <div className="compression-details-inner">
                     {Object.entries(details).map(([key, value, dIdx]) => {

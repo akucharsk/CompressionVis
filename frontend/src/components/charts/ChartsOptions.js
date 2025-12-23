@@ -62,7 +62,7 @@ const ChartsOptions = () => {
 
     return (
         <>
-            {isFetching ? (
+            {isFetching && selectedVideoId ? (
                 <div className="charts-options">
                     <div className="charts-options-info">
                         <Spinner size={60}/>
