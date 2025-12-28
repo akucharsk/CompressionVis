@@ -57,6 +57,7 @@ function Layout() {
                                 <Route path="/differences" element={<FrameDifferences />} />
                                 <Route path="/admin" element={<Protected><Admin /></Protected>} />
                                 <Route path="/login" element={<Login />} />
+                                <Route path="/charts" element={<Charts />} />
                               </Routes>
                             </div>
                           </MacroblocksProvider>

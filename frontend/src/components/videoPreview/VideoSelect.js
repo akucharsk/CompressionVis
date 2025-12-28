@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
 import {useSettings} from "../../context/SettingsContext";
-<<<<<<< HEAD
 import {apiUrl} from "../../utils/urls";
-=======
->>>>>>> master
 import "../../styles/components/video/VideoSelect.css";
 import {useError} from "../../context/ErrorContext";
 import Spinner from "../Spinner";
@@ -22,47 +19,32 @@ const VideoSelect = () => {
         }));
     };
 
-<<<<<<< HEAD
-    const queryFn = useCallback(async () => {
-        const data = await genericFetch(`${apiUrl}/video/example/`);
-        const formattedData = data["videoIds"].map((item) => ({
-            id: item.id,
-            name: item.title,
-            thumbnail: `${apiUrl}/video/thumbnail/${item.id}/`,
-            url: `${apiUrl}/video/${item.id}/`
-        }));
-        const randomVideo = formattedData[Math.floor(Math.random() * formattedData.length)];
-        setParameters(prev => ({
-            ...prev,
-            videoLink: randomVideo.url,
-            videoId: randomVideo.id,
-            videoName: randomVideo.name
-        }));
-        return formattedData;
-    }, [ setParameters ]);
+    // const queryFn = useCallback(async () => {
+    //     const data = await genericFetch(`${apiUrl}/video/example/`);
+    //     const formattedData = data["videoIds"].map((item) => ({
+    //         id: item.id,
+    //         name: item.title,
+    //         thumbnail: `${apiUrl}/video/thumbnail/${item.id}/`,
+    //         url: `${apiUrl}/video/${item.id}/`
+    //     }));
+    //     const randomVideo = formattedData[Math.floor(Math.random() * formattedData.length)];
+    //     setParameters(prev => ({
+    //         ...prev,
+    //         videoLink: randomVideo.url,
+    //         videoId: randomVideo.id,
+    //         videoName: randomVideo.name
+    //     }));
+    //     return formattedData;
+    // }, [ setParameters ]);
 
-    const { data, isPending, error } = useQuery({
-        queryKey: [ "videoExample" ],
-        queryFn,
-        retry: defaultRetryPolicy,
-        refetchInterval: defaultRefetchIntervalPolicy
-    });
+    // const { data, isPending, error } = useQuery({
+    //     queryKey: [ "videoExample" ],
+    //     queryFn,
+    //     retry: defaultRetryPolicy,
+    //     refetchInterval: defaultRefetchIntervalPolicy
+    // });
 
-    // to delete?
-    const handleFileChange = (file) => {
-        const url = URL.createObjectURL(file);
-        if (file.type.startsWith("video/")) {
-            setParameters(prev => ({
-                ...prev,
-                videoLink: url
-            }));
-        } else {
-            showError("Unsupported file format", 400);
-        }
-    };
-=======
     const { data, isPending, error } = useOriginalVideos();
->>>>>>> master
 
     useEffect(() => {
         if (error) {
