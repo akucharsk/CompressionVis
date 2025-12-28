@@ -24,8 +24,18 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
     //     `Compression ${compressionId}`
     // ))
 
+    const allValues = tappedCompressions.flatMap(c =>
+        compressionMetricsMap[c.id]?.[metricType] ?? []
+    );
+
+    const MinY = allValues.length ? Math.min(...allValues) : 0;
+    const MaxY = allValues.length ? Math.max(...allValues) : 1;
+    const DEFAULT_COLOR = "#e50914";
+
     defaults.maintainAspectRatio = false;
     defaults.responsive = true;
+    // defaults.yAxisOptions.scales.y.min= MinY;
+    // defaults.yAxisOptions.scales.y.max= MaxY;
 
     const datasets = tappedCompressions.map(c => ({
         label: `Compression ${c.id}`,
@@ -41,12 +51,18 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
     // Etykiety osi X – numery klatek
     const labels = Array.from({ length: framesLength }, (_, i) => i);
 
-    const data = {
+    const contentData = {
         labels,
         datasets
     };
 
-    const options = {
+    const axisYData = {
+        labels: labels,
+        datasets: []        
+    }
+
+
+    const axisOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -54,8 +70,44 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                 display: false
             },
             tooltip: {
+                enabled: false
+            }
+        },
+        scales: {
+            x: {
+                display: false
+            },
+            y: {
+                display: true,
+                ticks: {
+                    color: "#555"
+                },
+                grid: {
+                    drawOnChartArea: false
+                },
+                // beginAtZero: true,
+                // afterFit: (ctx) => {
+                //     ctx.width = 34;
+                // },
+                // grid: {
+                //     color: '#555',
+                //     borderDash: [3, 3]
+                // }
+                min: MinY,
+                max: MaxY,
+            }
+        }
+    };
+
+    const contentOptions = {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
                 enabled: true,
-                mode: 'nearest', // pokazuje najbliższy punkt
+                mode: 'index', // pokazuje najbliższy punkt
                 intersect: true, // tooltip przy najbliższym punkcie w osi X
                 callbacks: {
                     label: function(context) {
@@ -66,21 +118,30 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                 }
             }
         },
+        interaction: {
+            mode: "index",
+            intersect: false
+        },
         scales: {
             x: {
                 ticks: {
-                    callback: (val) => (val === 0 || val === framesLength - 1 || val % 5 === 0 ? val : "")
+                    callback: (val) => (val === 0 || val === framesLength - 1 || val % 5 === 0 ? val : ""),
+                    // display: false
                 },
                 grid: {
+                    drawTicks: false,
                     color: '#555',
                     borderDash: [3, 3]
                 }
             },
             y: {
+                ticks: {
+                    display: false
+                },
                 grid: {
                     color: '#555',
                     borderDash: [3, 3]
-                }
+                },
             }
         }
     };
@@ -90,7 +151,9 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
         <div className="metric-chart-block" key={idx}>
             <h2>{metricType}</h2>
             <div className="metric-chart-top-layout">            
-                <div className="metric-chart-inner-layout" style={{ width: framesLength > 0 ? `${framesLength * 15}px` : "100%" }}>
+                <div className="metric-chart-inner-layout" 
+                // style={{ width: framesLength > 0 ? `${framesLength * 15}px` : "100%" }}
+                >
                     {/* <LineChart
                         height={300}
                         series={series}
@@ -127,41 +190,23 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                         }}
                         hideLegend={true}
                     /> */}
-                    <Line 
-                        data={data}
-                        options={options}
-                    />
+                    <div className="metric-chart-y-axis">
+                        <Line 
+                            data={axisYData}
+                            options={axisOptions}
+                        />
+                    </div>
+                    <div className="metric-chart-scroll">
+                        <div className="metric-chart-content" style={{ width: framesLength > 0 ? `${framesLength * 15}px` : "100%" }}>
+                            <Line 
+                                data={contentData}
+                                options={{...contentOptions,
+                                    responsive: false
+                                }}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div className="chart-container">
-            {/* <h2 style={{ textAlign: "center" }}>Bar Chart</h2> */}
-            {/* <Bar
-                data={{
-                    labels: ["A", "B"],
-                    datasets: [
-                        {
-                            label: "Rev",
-                            data: [200, 100, 250]
-                        },
-                        {
-                            label: "Rev2",
-                            data: [201, 101, 240]
-                        }
-                    ]
-                }}
-                options={{
-                plugins: {
-                    title: {
-                    display: true,
-                    text: "Users Gained between 2016-2020"
-                    },
-                    legend: {
-                    display: false
-                    }
-                }
-                }}
-            /> */}
-            
             </div>
         </div>
     )

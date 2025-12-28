@@ -1,7 +1,9 @@
 .metric-chart-block {
     width: 100%;
-    height: 400px;
+    height: 50vh;
     padding: 30px 10px;
+    display: flex;
+    flex-direction: column;
 }
 
 .metric-chart-block h2 {
@@ -12,13 +14,42 @@
 
 .metric-chart-top-layout {
     width: 95%;
-    overflow-x: auto;
+    height: 100%;
+    flex: 1;
+    padding-top: 30px;
+    /* overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
     scrollbar-width: thin;
-    scrollbar-color: var(--netflix-red) var(--background-second);   
+    scrollbar-color: var(--netflix-red) var(--background-second);    */
 }
 
 .metric-chart-inner-layout {
     /* width: 1000px */
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    height: 90%;
+    position: relative
+}
+
+.metric-chart-y-axis {
+    width: 60px; 
+    flex-shrink: 0;
+}
+
+.metric-chart-scroll {
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 20px 0px;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
+
+.metric-chart-content {
+    height: 100%;
+    /* display: flex;
+    justify-content: flex-end; */
 }
