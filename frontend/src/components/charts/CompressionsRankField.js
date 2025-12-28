@@ -58,7 +58,9 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
             </div>
             <div className={`compression-details ${open ? "open" : ""}`}>
                 <div className="compression-details-inner">
-                    {Object.entries(details).map(([key, value]) => {
+                    {Object.entries(details)
+                    .filter(([key,]) => key != "created_at")
+                    .map(([key, value]) => {
                         return (
                             <div className="compression-details-element" key={key}>
                                 <div className="compression-details-element-left">{key}:</div> 

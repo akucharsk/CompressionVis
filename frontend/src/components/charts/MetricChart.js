@@ -19,6 +19,32 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
     defaults.maintainAspectRatio = false;
     defaults.responsive = true;
 
+
+    const crosshairPlugin = {
+        id: 'crosshair',
+
+        afterDatasetsDraw(chart) {
+            const activeElements = chart.getActiveElements();
+            if (!activeElements.length) return;
+
+            const { ctx, chartArea } = chart;
+            const x = activeElements[0].element.x;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash([10, 5]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#555';
+
+            ctx.moveTo(x, chartArea.top);
+            ctx.lineTo(x, chartArea.bottom);
+
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
+
+
     const datasets = tappedCompressions.map(c => ({
         label: `Compression ${c.id}`,
         data: compressionMetricsMap[c.id]?.[metricType] ?? [],
@@ -26,12 +52,12 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
         backgroundColor: compressionMetricState[c.id]?.color
             ? compressionMetricState[c.id].color.replace('1)', '0.2)')
             : DEFAULT_COLOR,
-        tension: 0.4, // wygładzona linia
-        pointRadius: 0, // brak punktów na linii
+        tension: 0.4,
+        pointRadius: 0,
     }));
 
-    // Etykiety osi X – numery klatek
     const labels = Array.from({ length: framesLength }, (_, i) => i);
+
 
     const contentData = {
         labels,
@@ -52,7 +78,8 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                 display: false
             },
             tooltip: {
-                enabled: false
+                enabled: false,
+                mode: "x",
             }
         },
         scales: {
@@ -92,26 +119,27 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
             },
             tooltip: {
                 enabled: true,
-                mode: 'index', // pokazuje najbliższy punkt
-                intersect: true, // tooltip przy najbliższym punkcie w osi X
+                mode: 'index',
+                intersect: false,
+                axis: "x",
                 callbacks: {
                     label: function(context) {
                         const label = context.dataset.label || '';
-                        const value = context.formattedValue; // lub context.raw
+                        const value = context.formattedValue;
                         return `${label}: ${value}`;
                     }
                 }
             }
         },
         interaction: {
-            mode: "index",
-            intersect: false
+            mode: 'index',
+            intersect: false,
+            axis: 'x'
         },
         scales: {
             x: {
                 ticks: {
                     callback: (val) => (val === 0 || val === framesLength - 1 || val % 5 === 0 ? val : ""),
-                    // display: false
                 },
                 grid: {
                     drawTicks: false,
@@ -150,6 +178,7 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                             <Line 
                                 data={contentData}
                                 options={contentOptions}
+                                plugins={[crosshairPlugin]}
                             />
                         </div>
                     </div>
