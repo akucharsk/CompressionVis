@@ -39,7 +39,8 @@ const ChartsOptions = () => {
                 if (!updated[compressionId]) {
                     updated[compressionId] = {
                         isTapped: false,
-                        color: "fff"
+                        color: "fff",
+                        originalVideoId: selectedVideoId 
                     }
                 }
             });

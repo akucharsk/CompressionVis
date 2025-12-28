@@ -3,14 +3,9 @@ import { genericFetch } from "../api/genericFetch"
 import { apiUrl } from "../utils/urls"
 
 const CompressionMetricsQueryFn = async (compressionId) => {
-    const data = await genericFetch(`${apiUrl}/metrics/frames/${compressionId}/all/`);
+    const data = await genericFetch(`${apiUrl}/charts/metrics-data/${compressionId}/`);
     return data;
 }
-
-//fdsfad const CompressionSizeQueryFn = async (compressionId) => {
-//     const data = await genericFetch(`${apiUrl}/metrics/frames/${compressionId}/all/`);
-//     return data;
-// }
 
 export const CompressionMetricsQueries = (compressionIds) => {
     return useQueries({

@@ -4,16 +4,18 @@ import MetricChart from "./MetricChart";
 
 const ChartsView = () => {
 
-    const { compressionMetricState } = useCharts();
+    const { compressionMetricState, selectedVideoId } = useCharts();
     const tappedCompressions = Object.entries(
             Object.fromEntries(
                 Object.entries(compressionMetricState)
-                    .filter(([, isTappedValue]) => isTappedValue?.isTapped)
+                    .filter(([, isTappedValue]) => isTappedValue?.isTapped && isTappedValue?.originalVideoId === selectedVideoId)
             )
         ).map(([key, value]) => ({
             id: key,
             ...value
     }));
+
+    console.log(compressionMetricState)
 
     const metrics = [
         "VMAF",
@@ -31,25 +33,12 @@ const ChartsView = () => {
             if (!query.data?.metrics) return null;
 
             const compressionId = compressionIds[index];
-
-            const metrics = {
-                VMAF: [],
-                PSNR: [],
-                SSIM: [],
-            };
-
-            query.data.metrics.forEach(frame => {
-                metrics.VMAF.push(frame.VMAF);
-                metrics.PSNR.push(frame.PSNR);
-                metrics.SSIM.push(frame.SSIM);
-            });
-
-            return [compressionId, metrics];
+            return [compressionId, query.data.metrics];
             })
             .filter(Boolean)
     );
 
-    const framesLength = compressionQueries.find(q => q.data?.metrics)?.data.metrics.length ?? 0;
+    const framesLength = compressionQueries.find(q => q.data?.metrics)?.data.metrics.Size.length ?? 0;
 
 
     return (

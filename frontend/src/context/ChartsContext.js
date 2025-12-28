@@ -14,9 +14,6 @@ export const ChartsProvider = ({ children }) => {
     
     const [searchParams, setSearchParams] = useSearchParams();
     const [compressionMetricState, setCompressionMetricState] = useState({});
-    
-    const TAPPED_MAX = 5;
-    const [leftToTap, setLeftToTap] = useState(TAPPED_MAX); 
 
     const selectedVideoId = searchParams.get("originalVideoId");
     const changeVideo = (newSelectedVideoId) => {
@@ -67,6 +64,23 @@ export const ChartsProvider = ({ children }) => {
         refetch();
     }, [selectedVideoId])
 
+    // useEffect(() => {
+    //     setLeftToTap(tappedForAllVideos[selectedVideoId]);
+    // }, [selectedVideoId])
+
+    // useEffect(() => {
+    //     setTappedForAllVideos(prev => ({
+    //         ...prev,
+    //         selectedVideoId: leftToTap
+    //     }));
+    // }, [leftToTap])
+
+    const TAPPED_MAX = 5;
+    const [tappedCountForCompression, setTappedCountForCompression] = useState(Object.fromEntries(
+        thumbnails?.data?.videoIds?.map(({ id, }) => [id, TAPPED_MAX]) || []
+    ));
+
+
     return (
         <ChartsContext.Provider value={{ 
             thumbnails, 
@@ -77,8 +91,8 @@ export const ChartsProvider = ({ children }) => {
             compressionMetricState, 
             setCompressionMetricState,
             TAPPED_MAX,
-            leftToTap,
-            setLeftToTap
+            tappedCountForCompression,
+            setTappedCountForCompression
         }}>
             { children }
         </ChartsContext.Provider>

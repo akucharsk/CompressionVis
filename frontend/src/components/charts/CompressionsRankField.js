@@ -44,7 +44,7 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
                 <div className="compression-main-info-descriptive">
                     <div className="compression-main-info-descriptive-id">Compression {id}</div>
                     <div className="compression-main-info-descriptive-title">{getTitleOfOriginal(original)}</div>
-                    <div className="compression-main-info-descriptive-time">Czas utworzenia</div>
+                    <div className="compression-main-info-descriptive-time">{details.created_at ?? "Creation time..."}</div>
                 </div>
                 <div className="compression-main-info-numerical">
                     {fieldState !== "loaded" ? (

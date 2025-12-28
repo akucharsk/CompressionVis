@@ -6,6 +6,7 @@ from django.contrib.staticfiles import finders
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
+from django.utils import dateformat
 
 import os
 import sys
@@ -504,6 +505,38 @@ class AllFramesMetricsView(APIView):
 
         return Response({"metrics": frame_metrics}, status=status.HTTP_200_OK)
 
+class FramesSizesMetricsChartsView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+            metrics = models.VideoMetrics.objects.get(video=video)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+        if not MetricView.wrap_metrics(metrics):
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+        frames = models.FrameMetadata.objects.filter(video=video)
+        frames_data = frames.all().order_by('frame_number').values("psnr_score", "ssim_score", "vmaf_score", "pkt_size")
+        
+        data = {
+            "VMAF": [],
+            "PSNR": [],
+            "SSIM": [],
+            "Size": []
+        }
+
+        for metric in frames_data:
+            for score in ["psnr_score", "ssim_score", "vmaf_score"]:
+                name = score.split("_")[0]
+                data[name.upper()].append(round(metric[score], 2))
+            data["Size"].append(round(metric["pkt_size"], 2))
+
+        return Response({"metrics": data}, status=status.HTTP_200_OK)
+
+
 class MetricStatusView(APIView):
     @staticmethod
     def are_all_metrics(metrics):
@@ -612,6 +645,7 @@ class CompressionsForCharts(APIView):
                         "videometrics__vmaf_mean",
                         "videometrics__psnr_mean",
                         "videometrics__ssim_mean",
+                        "created_at"
                     )
                     if videos:
                         videos = list(videos)
@@ -622,6 +656,7 @@ class CompressionsForCharts(APIView):
                                 "psnr": video.pop("videometrics__psnr_mean"),
                                 "size": video.pop("size")
                             }
+                            video["created_at"] = dateformat.format(video["created_at"], "d M Y H:i:s")
                         return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
                     # No videos found for this originalVideoIdd
                     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -647,6 +682,7 @@ class CompressionsForCharts(APIView):
                     "videometrics__vmaf_mean",
                     "videometrics__psnr_mean",
                     "videometrics__ssim_mean",
+                    "created_at"
                 )
             if videos:
                 videos = list(videos)
@@ -657,6 +693,7 @@ class CompressionsForCharts(APIView):
                         "psnr": video.pop("videometrics__psnr_mean"),
                         "size": video.pop("size")
                     }
+                    video["created_at"] = dateformat.format(video["created_at"], "d M Y H:i:s")
                 return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
             # No compressions yet in database
             return Response(status=status.HTTP_204_NO_CONTENT)

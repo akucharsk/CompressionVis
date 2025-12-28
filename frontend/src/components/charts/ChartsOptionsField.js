@@ -7,14 +7,15 @@ import { useCharts } from "../../context/ChartsContext";
 
 const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
     const [fieldState, setFieldState] = useState(initialMetricsState);
-    const { setCompressionMetricState, setLeftToTap, compressionMetricState, leftToTap, TAPPED_MAX } = useCharts();
+    const { setCompressionMetricState, compressionMetricState, tappedCountForCompression, setTappedCountForCompression, TAPPED_MAX, selectedVideoId } = useCharts();
     const { data } = ChartsOptionsFieldQuery(
         compressionId,
         initialMetricsState !== "loaded"
     );
 
+    const defaultColor = "#";
     const isTapped = compressionMetricState[compressionId]?.isTapped || false;
-    const isInactive = !isTapped && leftToTap <= 0;
+    const isInactive = !isTapped && tappedCountForCompression[selectedVideoId] <= 0;
 
     const toggleTap = (e, id) => {
         e.stopPropagation();
@@ -22,12 +23,16 @@ const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
             const updated = {
                 ...prev,
                 [id]: {
-                    ...prev[id],
-                    isTapped: !prev[id].isTapped
+                    ...(prev[id] ?? {}),
+                    isTapped: !prev[id].isTapped,
+                    color: prev[id]?.color ?? defaultColor
                 }
             };
-            const tappedCount = Object.values(updated).filter(v => v.isTapped).length;
-            setLeftToTap(TAPPED_MAX - tappedCount);
+            const tappedForThisVideoCount = Object.values(updated).filter(v => v.isTapped).length;
+            setTappedCountForCompression(prev => ({
+                ...prev,
+                [selectedVideoId]: TAPPED_MAX - tappedForThisVideoCount
+            }))
             return updated;
         });
     };
