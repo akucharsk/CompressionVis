@@ -4,6 +4,7 @@ import Spinner from "../Spinner";
 import RGBPicker from "./RGBPicker";
 import { useCharts } from "../../context/ChartsContext";
 import ChartsOptionsField from "./ChartsOptionsField";
+import { DEFAULT_COLOR } from "../../utils/constants";
 
 
 const ChartsOptions = () => {
@@ -20,7 +21,7 @@ const ChartsOptions = () => {
                 if (!updated[compressionId]) {
                     updated[compressionId] = {
                         isTapped: false,
-                        color: "fff"
+                        color: DEFAULT_COLOR
                     }
                 }
             });
@@ -39,7 +40,7 @@ const ChartsOptions = () => {
                 if (!updated[compressionId]) {
                     updated[compressionId] = {
                         isTapped: false,
-                        color: "fff",
+                        color: DEFAULT_COLOR,
                         originalVideoId: selectedVideoId 
                     }
                 }
