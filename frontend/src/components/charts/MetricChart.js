@@ -1,7 +1,7 @@
 import "../../styles/components/charts/MetricChart.css";
 import { LineChart } from '@mui/x-charts/LineChart';
 import { useCharts } from "../../context/ChartsContext";
-import { Chart as ChartJS, defaults } from "chart.js/auto";
+import { Chart as ChartJS, defaults, layouts } from "chart.js/auto";
 import { Bar, Line } from "react-chartjs-2";
 import { DEFAULT_COLOR } from "../../utils/constants";
 
@@ -25,13 +25,10 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
         borderColor: compressionMetricState[c.id]?.color ?? DEFAULT_COLOR,
         backgroundColor: compressionMetricState[c.id]?.color
             ? compressionMetricState[c.id].color.replace('1)', '0.2)')
-            : 'rgba(75,192,192,0.2)',
+            : DEFAULT_COLOR,
         tension: 0.4, // wygładzona linia
         pointRadius: 0, // brak punktów na linii
     }));
-
-    console.log(compressionMetricState);
-    console.log(tappedCompressions);
 
     // Etykiety osi X – numery klatek
     const labels = Array.from({ length: framesLength }, (_, i) => i);
@@ -60,7 +57,12 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
         },
         scales: {
             x: {
-                display: false
+                ticks: {
+                    display: false
+                },
+                grid: {
+                    display: false
+                }
             },
             y: {
                 display: true,
@@ -68,12 +70,18 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                     color: "#555"
                 },
                 grid: {
-                    drawOnChartArea: false
+                    drawOnChartArea: false,
+                    drawTicks: false,
+                    drawBorder: false
                 },
                 min: MinY,
                 max: MaxY,
+                afterFit: (ctx) => {
+                    ctx.width = 60
+                }
             }
-        }
+        },
+        
     };
 
     const contentOptions = {
@@ -107,7 +115,7 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                 },
                 grid: {
                     drawTicks: false,
-                    color: '#555',
+                    color: '#404040',
                     borderDash: [3, 3]
                 }
             },
@@ -116,7 +124,9 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                     display: false
                 },
                 grid: {
-                    color: '#555',
+                    drawTicks: false,
+                    drawBorder: false,
+                    color: '#404040',
                     borderDash: [3, 3]
                 },
             }

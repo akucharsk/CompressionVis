@@ -17,17 +17,11 @@
     height: 100%;
     flex: 1;
     padding-top: 30px;
-    /* overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: var(--netflix-red) var(--background-second);    */
 }
 
 .metric-chart-inner-layout {
-    /* width: 1000px */
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     width: 100%;
     height: 90%;
     position: relative
@@ -36,6 +30,8 @@
 .metric-chart-y-axis {
     width: 60px; 
     flex-shrink: 0;
+    height: 97%;
+    padding: 20px 0;
 }
 
 .metric-chart-scroll {
