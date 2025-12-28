@@ -54,6 +54,7 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
             : DEFAULT_COLOR,
         tension: 0.4,
         pointRadius: 0,
+        borderWidth: 4
     }));
 
     const labels = Array.from({ length: framesLength }, (_, i) => i);
@@ -127,6 +128,9 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
                         const label = context.dataset.label || '';
                         const value = context.formattedValue;
                         return `${label}: ${value}`;
+                    },
+                    title: (toolTipItems) => {
+                        return `Frame ${toolTipItems[0].dataIndex}`
                     }
                 }
             }
