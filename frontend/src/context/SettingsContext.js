@@ -26,7 +26,15 @@ export const SettingsProvider = ({ children }) => {
             };
     });
 
-    // zapisuj dane do localStorage przy każdej zmianie
+    let width = null;
+    let height = null;
+
+    if (parameters.resolution && parameters.resolution.includes("x")) {
+        const [w, h] = parameters.resolution.split("x");
+        width = parseInt(w);
+        height = parseInt(h);
+    }
+
     useEffect(() => {
         localStorage.setItem('settings', JSON.stringify(parameters));
     }, [parameters]);
@@ -52,7 +60,15 @@ export const SettingsProvider = ({ children }) => {
     };
 
     return (
-        <SettingsContext.Provider value={{ parameters, setParameters, clearSettings }}>
+        <SettingsContext.Provider
+            value={{
+                parameters,
+                setParameters,
+                clearSettings,
+                resolutionWidth: width,
+                resolutionHeight: height
+            }}
+        >
             {children}
         </SettingsContext.Provider>
     );

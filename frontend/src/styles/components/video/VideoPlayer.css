@@ -1,13 +1,27 @@
 .video-container {
+    flex: 0 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 90%;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 video {
+<<<<<<< HEAD
     width: 90%;
     height: auto;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+=======
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+>>>>>>> master
     cursor: pointer;
 }

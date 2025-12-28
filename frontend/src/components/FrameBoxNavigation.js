@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState, useMemo, useCallback} from "react";
 import { useDisplayMode } from "../context/DisplayModeContext";
 import { useFps } from "../context/FpsContext";
 import { useFrames } from "../context/FramesContext";
@@ -7,58 +7,69 @@ import IndicatorConfig from "./indicators/IndicatorConfig";
 import {useMetrics} from "../context/MetricsContext";
 
 const FrameBoxNavigation = () => {
-    const { frames, selectedIdx, setSelectedIdx } = useFrames();
+    const { frames, selectedIdx, setSelectedIdx, sceneThreshold, setSceneThreshold, scenePositions } = useFrames();
     const { isVideoPlaying, setIsVideoPlaying } = useVideoPlaying();
     const { setDisplayMode } = useDisplayMode();
     const { fps, setFps } = useFps();
     const [frameInput, setFrameInput] = useState((selectedIdx + 1).toString());
     const inputSelectedIdxRef = useRef(null);
     const { videoMetricsQuery } = useMetrics();
-
     const loadingFields = videoMetricsQuery.isPending ? [ "psnr", "ssim", "vmaf" ] : [];
+
+    const iFramePositions = useMemo(() => {
+        return frames
+            .map((frame, idx) => ({ frame, idx }))
+            .filter(({ frame }) => frame.type === "I")
+            .map(({ idx }) => idx);
+    }, [frames]);
 
     useEffect(() => {
         setFrameInput((selectedIdx + 1).toString());
     }, [selectedIdx]);
 
-    const handleScrollLeft = () => {
+    const handleScrollLeft = useCallback(() => {
         setDisplayMode("frames");
         setSelectedIdx(prev => Math.max(0, prev - 1));
-    };
+    }, [setDisplayMode, setSelectedIdx]);
 
-    const handleScrollRight = () => {
+    const handleScrollRight = useCallback(() => {
         setDisplayMode("frames");
         setSelectedIdx(prev => Math.min(frames.length - 1, prev + 1));
-    };
+    }, [frames.length, setDisplayMode, setSelectedIdx]);
 
-    const handlePlay = () => {
+    const handlePlay = useCallback(() => {
         setIsVideoPlaying(true);
         setDisplayMode("video");
-    };
+    }, [setIsVideoPlaying, setDisplayMode]);
 
-    const handlePause = () => {
+    const handlePause = useCallback(() => {
         setIsVideoPlaying(false);
         setDisplayMode("frames");
-    };
+    }, [setIsVideoPlaying, setDisplayMode]);
 
-    const handleRestart = () => {
+    const handleRestart = useCallback(() => {
         setSelectedIdx(0);
-    };
+    }, [setSelectedIdx]);
 
-    const handleNextIFrame = () => {
-        if (frames.length === 0) return;
-        const iFrames = frames
-            .map((frame, idx) => ({ frame, idx }))
-            .filter(({ frame }) => frame.type === "I")
-            .map(({ idx }) => idx);
+    const switchIFrame = useCallback((direction) => {
+        if (iFramePositions.length === 0) return;
+        if (direction === "next") {
+            setSelectedIdx((iFramePositions.reduce((acc, idx) => acc > selectedIdx ? acc : idx) ?? iFramePositions[0]));
+        } else {
+            setSelectedIdx((iFramePositions.reduce((acc, idx) => idx < selectedIdx ? idx : acc) ?? iFramePositions[iFramePositions.length - 1]));
+        }
+    }, [iFramePositions, selectedIdx, setSelectedIdx]);
 
-        if (iFrames.length === 0) return;
-        const currentPos = iFrames.indexOf(selectedIdx);
-        const nextPos = (currentPos + 1) % iFrames.length;
-        setSelectedIdx(iFrames[nextPos]);
-    }
+    const switchScene = useCallback((direction) => {
+        if (scenePositions.length === 0) return;
+        if (direction === "next") {
+            setSelectedIdx((scenePositions.reduce((acc, idx) => acc > selectedIdx ? acc : idx) ?? scenePositions[0]));
+        } else {
+            setSelectedIdx((scenePositions.reduce((acc, idx) => idx < selectedIdx ? idx : acc) ?? scenePositions[scenePositions.length - 1]));
+        }
+    }, [scenePositions, selectedIdx, setSelectedIdx]);
 
-    const handleFrameInputChange = (e) => {
+    const handleFrameInputChange = useCallback((e) => {
         const val = e.target.value;
 
         if (val === '') {
@@ -81,19 +92,19 @@ const FrameBoxNavigation = () => {
 
         setSelectedIdx(num - 1);
         setFrameInput(val);
-    };
+    }, [frames.length, setSelectedIdx, setFrameInput]);
 
-    const handleFrameInputBlur = () => {
+    const handleFrameInputBlur = useCallback(() => {
         if (frameInput === '') {
             setFrameInput((selectedIdx + 1).toString());
         }
-    };
+    }, [selectedIdx, setFrameInput, frameInput]);
 
-    const handleFrameInputKeyDown = (e) => {
+    const handleFrameInputKeyDown = useCallback((e) => {
         if (e.key === 'Enter') {
             e.target.blur();
         }
-    };
+    }, []);
 
     useEffect(() => {
         const inputSelectedIdx = inputSelectedIdxRef.current;
@@ -130,12 +141,43 @@ const FrameBoxNavigation = () => {
     return (
         <div className="timeline-header">
             <div className="control-buttons">
-                <button className="scroll-button i-frame" onClick={handleNextIFrame}>
-                    <p>Next I-Frame</p>
-                </button>
-                <button className="scroll-button next-scene">
-                    <p>Next Scene</p>
-                </button>
+                <div className="scene-control">
+                    <label>Scene Threshold: </label>
+                    <input
+                        type="range" 
+                        min={0} 
+                        max={1} 
+                        step={0.01} 
+                        value={sceneThreshold} 
+                        onChange={(e) => setSceneThreshold(Number(e.target.value))} 
+                        className="scene-slider"
+                    />
+                    <label style={{ color: "var(--netflix-red)" }}>{sceneThreshold.toFixed(2)}</label>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem"}}>
+                    <button 
+                        className="scroll-button next-scene" 
+                        onClick={() => switchScene("prev")}
+                        disabled={scenePositions.length === 0}
+                    >
+                        <p>Prev Scene</p>
+                    </button>
+                    <button 
+                        className="scroll-button next-scene"
+                        onClick={() => switchScene("next")}
+                        disabled={scenePositions.length === 0}
+                    >
+                        <p>Next Scene</p>
+                    </button>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem"}}>
+                    <button className="scroll-button i-frame" onClick={() => switchIFrame("prev")}>
+                        <p>Prev I-Frame</p>
+                    </button>
+                    <button className="scroll-button i-frame" onClick={() => switchIFrame("next")}>
+                        <p>Next I-Frame</p>
+                    </button>
+                </div>
             </div>
 
             <div className="control-group navigation-group">
@@ -146,7 +188,7 @@ const FrameBoxNavigation = () => {
                             type="range"
                             min="6"
                             max="30"
-                            step="6"
+                            // step="6"
                             value={fps}
                             onChange={(e) => setFps(Number(e.target.value))}
                             className="speed-slider"
@@ -165,7 +207,6 @@ const FrameBoxNavigation = () => {
                     )}
                     <button className="scroll-button right" onClick={handleScrollRight}>&gt;</button>
                 </div>
-
             </div>
 
             <div className="control-group additional-group">

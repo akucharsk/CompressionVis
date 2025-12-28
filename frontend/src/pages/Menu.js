@@ -79,6 +79,15 @@ function Menu() {
         sessionStorage.removeItem('frameMetrics');
     }, []);
 
+    const handleShowDifferences = () => {
+        if (!parameters.videoId) {
+            showError("Please select a video first.");
+            return;
+        }
+
+        navigate(`/differences?videoId=${parameters.videoId}`);
+    };
+
     return (
         <div className="container">
             {compressionMutation.isPending && (
@@ -92,7 +101,10 @@ function Menu() {
                 <h2>Video Source</h2>
                 <VideoSelect />
             </div>
-            <OptionsSection handleCompress={() => compressionMutation.mutate()} />
+            <OptionsSection
+                handleCompress={() => compressionMutation.mutate()}
+                handleShowDifferences={handleShowDifferences}
+            />
         </div>
     );
 }

@@ -54,10 +54,25 @@ class FrameMetadata(models.Model):
         max_length=255,
     )
     pts_time = models.FloatField(default=None, null=True)
+    dts_time = models.FloatField(default=None, null=True)
     pkt_size = models.IntegerField(default=None, null=True)
     vmaf_score = models.FloatField(default=0.0)
     psnr_score = models.FloatField(default=0.0)
     ssim_score = models.FloatField(default=0.0)
+    scene_score = models.FloatField(default=0.0)
 
     class Meta:
         unique_together = ('video', 'frame_number')
+
+class Quiz(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    video_filename = models.CharField(max_length=255, null=True, default=None)
+    assets_location = models.CharField(max_length=255, null=True, default=None)
+    archive_location = models.CharField(max_length=255, null=True, default=None)
+    
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    question = models.TextField()
+    answers = models.JSONField()
+    image = models.CharField(max_length=255, null=True, default=None)

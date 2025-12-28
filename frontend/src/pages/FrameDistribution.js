@@ -12,7 +12,9 @@ import { apiUrl } from '../utils/urls';
 
 const FramesDistribution = () => {
     const [showGrid, setShowGrid] = useState(false);
-    const [showVectors, setShowVectors] = useState(false);
+    const [showPast, setShowPast] = useState(false);
+    const [showFuture, setShowFuture] = useState(false);
+    const [showBidirectional, setShowBidirectional] = useState(false);
     const [selectedBlock, setSelectedBlock] = useState(null);
     const [mode, setMode] = useState("grid");
     const [visibleCategories, setVisibleCategories] = useState({
@@ -63,12 +65,14 @@ const FramesDistribution = () => {
                         videoRef={videoRef}
                         imgSrc={imgSrc}
                         showGrid={showGrid}
-                        showVectors={showVectors}
                         visibleCategories={visibleCategories}
                         selectedBlock={selectedBlock}
                         setSelectedBlock={setSelectedBlock}
                         mode={mode}
                         macroblocks={true}
+                        showPast={showPast}
+                        showFuture={showFuture}
+                        showBidirectional={showBidirectional}
                     />
                     <MacroblockHistory
                         selectedBlock={selectedBlock}
@@ -79,15 +83,19 @@ const FramesDistribution = () => {
                 <SidePanel
                     selectedIdx={selectedIdx}
                     frames={frames}
-                    setShowVectors={setShowVectors}
                     setShowGrid={setShowGrid}
-                    showVectors={showVectors}
                     showGrid={showGrid}
                     visibleCategories={visibleCategories}
                     toggleCategory={toggleCategory}
                     selectedBlock={selectedBlock}
                     mode={mode}
                     setMode={setMode}
+                    showPast={showPast}
+                    setShowPast={setShowPast}
+                    showFuture={showFuture}
+                    setShowFuture={setShowFuture}
+                    showBidirectional={showBidirectional}
+                    setShowBidirectional={setShowBidirectional}
                 />
             </div>
 

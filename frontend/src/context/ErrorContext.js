@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ErrorContext = createContext();
 
@@ -13,6 +14,7 @@ export const useError = () => {
 export const ErrorProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [errorCode, setErrorCode] = useState(null);
+    const navigate = useNavigate();
 
     const showError = (message, code = null) => {
         setError(String(message || 'An error occurred'));
@@ -24,16 +26,21 @@ export const ErrorProvider = ({ children }) => {
         setErrorCode(null);
     };
 
+    const handleClose = () => {
+        clearError();
+        navigate("/");
+    };
     return (
         <ErrorContext.Provider value={{ showError, clearError }}>
             {children}
             {error && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-content error-box">
                         <h3>Error occurred</h3>
                         {errorCode && <p>Error code: {errorCode}</p>}
                         <p>{error}</p>
                         <button onClick={clearError}>Close</button>
+                        <button onClick={handleClose}>Home</button>
                     </div>
                 </div>
             )}

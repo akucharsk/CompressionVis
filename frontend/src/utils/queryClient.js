@@ -15,8 +15,13 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
+<<<<<<< HEAD
             gcTime: Infinity, // Nigdy nie usuwaj z pamięci (poprzednio cacheTime)
             staleTime: Infinity, // Dane zawsze "świeże"
+=======
+            gcTime: Infinity,
+            staleTime: Infinity,
+>>>>>>> master
             refetchOnWindowFocus: false,
             refetchOnMount: false,
             refetchOnReconnect: false,

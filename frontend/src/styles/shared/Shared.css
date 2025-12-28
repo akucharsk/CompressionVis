@@ -2,7 +2,9 @@
     --netflix-red: #e50914;
     --netflix-red-active: #f6121c;
     --netflix-dark-red: #8d1c1c;
+    --netflix-very-dark-red: #550000;
     --netflix-gray: #3a3f51;
+    --netflix-gray-active: #4b5062;
     --netflix-black: #000000;
     --netflix-light-grey: #8d8d8d;
     --font-color: #ffffff;
@@ -14,6 +16,8 @@
     --border-color: #444;
     --shadow-red: rgba(229, 9, 20, 0.5);
     --shadow-red-active: rgba(229, 9, 20, 0.7);
+    --netflix-green: #008800;
+    --netflix-dark-green: #005500;
 }
 
 body {

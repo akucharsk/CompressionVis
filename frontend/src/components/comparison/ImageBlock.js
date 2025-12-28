@@ -5,8 +5,10 @@ import ImageFullScreen from "./ImageFullScreen";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
-import { getVideoIdsFromCache } from "../../utils/videoIdsCache";
 import { apiUrl } from "../../utils/urls";
+import {useQuery} from "@tanstack/react-query";
+import {fetchWithCredentials} from "../../api/genericFetch";
+import {defaultRetryPolicy} from "../../utils/retryUtils";
 
 const ImageBlock = ({
                         isConst = true,
@@ -14,17 +16,32 @@ const ImageBlock = ({
                         fullscreen = {},
                         videoRef
                     }) => {
+    const { parameters, resolutionWidth, resolutionHeight } = useSettings();
     const [searchParams] = useSearchParams();
     const originalVideoId =  parseInt(searchParams.get("originalVideoId"));
     const compressedVideoId = parseInt(searchParams.get("videoId"));
-    let isOriginalChosen = !isConst;
-    const [isOriginal , setIsOriginal] = useState(true);
     const selectedIdx = parseInt(searchParams.get("frameNumber")) || 0;
-    const videoId = isOriginal ? originalVideoId : searchParams.get("videoId");
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const compressedIds = getVideoIdsFromCache(originalVideoId);
+    const [isOriginal , setIsOriginal] = useState(true);
 
+    const { data, isPending } = useQuery({
+        queryKey: ["compressed-videos"],
+        queryFn: async () => await fetchWithCredentials(`${apiUrl}/video/all-compressed-videos/?original_id=${originalVideoId}`),
+        retry: defaultRetryPolicy,
+    });
+
+    const videos = data?.videos || [];
+    const compressedIds = videos
+        .filter(video => video.id !== compressedVideoId && video.original === originalVideoId)
+        .map(video => video.id);
     const [selectedVideoId, setSelectedVideoId] = useState(isConst ? compressedVideoId : originalVideoId);
+    const videoIdToUse = isConst ? compressedVideoId : selectedVideoId;
+
+    let query = "";
+    if (resolutionWidth && resolutionHeight) {
+        query = `?width=${resolutionWidth}&height=${resolutionHeight}`;
+    }
+
     useEffect(() => {
         setIsFullscreen(fullscreen.is);
     }, [fullscreen.is]);
@@ -74,16 +91,17 @@ const ImageBlock = ({
                     </>
                 )}
 
-                {<ImageDetails
-                    isOriginalChosen={isOriginalChosen}
-                    selectedIdx={selectedIdx}
-                />}
+                <ImageDetails
+                    isOriginalChosen={isOriginal}
+                    isConst={isConst}
+                    selectedVideoId={selectedVideoId}
+                />
 
             </div>
 
             {isFullscreen && (
                 <ImageFullScreen
-                    imageSrc={`${apiUrl}/frames/${isConst ? compressedVideoId : selectedVideoId}/${selectedIdx}`}
+                    imageSrc={`${apiUrl}/frames/${videoIdToUse}/${selectedIdx}${query}`}
                     onPrev={navigation.onPrev}
                     onNext={navigation.onNext}
                     onSwitchFullscreen={fullscreen.onSwitch}

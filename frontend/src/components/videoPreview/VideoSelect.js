@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {useSettings} from "../../context/SettingsContext";
+<<<<<<< HEAD
 import {apiUrl} from "../../utils/urls";
+=======
+>>>>>>> master
 import "../../styles/components/video/VideoSelect.css";
 import {useError} from "../../context/ErrorContext";
-import { genericFetch } from "../../api/genericFetch";
-import { useQuery } from "@tanstack/react-query";
-import { defaultRetryPolicy, defaultRefetchIntervalPolicy } from "../../utils/retryUtils";
 import Spinner from "../Spinner";
+import { useOriginalVideos } from "../../hooks/original-videos";
 
 const VideoSelect = () => {
     const { parameters, setParameters } = useSettings();
@@ -21,6 +22,7 @@ const VideoSelect = () => {
         }));
     };
 
+<<<<<<< HEAD
     const queryFn = useCallback(async () => {
         const data = await genericFetch(`${apiUrl}/video/example/`);
         const formattedData = data["videoIds"].map((item) => ({
@@ -58,6 +60,9 @@ const VideoSelect = () => {
             showError("Unsupported file format", 400);
         }
     };
+=======
+    const { data, isPending, error } = useOriginalVideos();
+>>>>>>> master
 
     useEffect(() => {
         if (error) {

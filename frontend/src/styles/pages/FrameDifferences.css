@@ -1,0 +1,179 @@
+.diff-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--background-first);
+    color: var(--font-color);
+    gap: 10px;
+    padding: 10px 30px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.diff-frames-strip {
+    flex: 0 0 54px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 10px;
+    background-color: var(--background-second);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    min-width: 0;
+}
+
+.diff-frames-strip::-webkit-scrollbar {
+    height: 6px;
+}
+
+.diff-frames-strip::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.diff-frames-strip::-webkit-scrollbar-thumb {
+    background: var(--netflix-red);
+    border-radius: 3px;
+}
+
+.diff-frames-strip::-webkit-scrollbar-thumb:hover {
+    background: var(--netflix-dark-red);
+}
+
+.diff-frame {
+    width: 38px;
+    height: 38px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #555;
+    color: #eee;
+    border: 1px solid #777;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.diff-frame:hover {
+    background-color: #666;
+    border-color: #999;
+    transform: translateY(-2px);
+}
+
+.diff-frame.selected {
+    background-color: var(--netflix-red);
+    color: white;
+    border-color: var(--netflix-red-active);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(229, 9, 20, 0.5);
+}
+
+.diff-viewer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 0 0 0;
+}
+
+.diff-arrow {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 5px;
+}
+
+.diff-arrow:hover {
+    color: var(--netflix-red);
+    transform: scale(1.1);
+}
+
+.diff-arrow:active {
+    transform: scale(0.9);
+}
+
+.diff-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.diff-controls {
+    flex: 0 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    background-color: var(--background-second);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.diff-controls .frame-counter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.diff-controls .frame-counter span:first-child {
+    font-weight: 600;
+}
+
+.frame-counter input {
+    width: 45px;
+    padding: 4px;
+    height: 22px;
+}
+
+.frame-counter.diff {
+    background: none;
+    border: none;
+}
+
+.view-modes {
+    display: flex;
+    gap: 5px;
+}
+
+.mode-btn {
+    background-color: var(--background-first);
+    color: #ccc;
+    border: 1px solid var(--border-color);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    height: 26px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn:hover:not(:disabled) {
+    background-color: #333;
+    color: white;
+}
+
+.mode-btn.active {
+    background-color: var(--netflix-red);
+    color: white;
+    border-color: var(--netflix-red);
+}
+
+.mode-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
