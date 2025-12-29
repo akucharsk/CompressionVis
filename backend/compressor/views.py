@@ -691,6 +691,24 @@ class AllCompressed(APIView):
 
 class CompressionsForCharts(APIView):
     def get(self, request):
+        values_params = [
+            "id",
+            "original",
+            "bandwidth",
+            "crf",
+            "width",
+            "height",
+            "gop_size",
+            "bf",
+            "aq_mode",
+            "aq_strength",
+            "preset",
+            "size",
+            "videometrics__vmaf_mean",
+            "videometrics__psnr_mean",
+            "videometrics__ssim_mean",
+            "created_at"
+        ]
         originalVideoId = request.GET.get("originalVideoId")
         try:
             if originalVideoId:
@@ -700,24 +718,7 @@ class CompressionsForCharts(APIView):
                     videos = models.Video.objects.filter(
                         is_compressed=True, original=originalVideoId
                     ).select_related('videometrics') \
-                    .values(
-                        "id",
-                        "original",
-                        "bandwidth",
-                        "crf",
-                        "width",
-                        "height",
-                        "gop_size",
-                        "bf",
-                        "aq_mode",
-                        "aq_strength",
-                        "preset",
-                        "size",
-                        "videometrics__vmaf_mean",
-                        "videometrics__psnr_mean",
-                        "videometrics__ssim_mean",
-                        "created_at"
-                    )
+                    .values(*values_params)
                     if videos:
                         videos = list(videos)
                         for video in videos:
@@ -737,24 +738,7 @@ class CompressionsForCharts(APIView):
                 videos = models.Video.objects.filter(
                     is_compressed=True
                 ).select_related('videometrics') \
-                .values(
-                    "id",
-                    "original",
-                    "bandwidth",
-                    "crf",
-                    "width",
-                    "height",
-                    "gop_size",
-                    "bf",
-                    "aq_mode",
-                    "aq_strength",
-                    "preset",
-                    "size",
-                    "videometrics__vmaf_mean",
-                    "videometrics__psnr_mean",
-                    "videometrics__ssim_mean",
-                    "created_at"
-                )
+                .values(*values_params)
             if videos:
                 videos = list(videos)
                 for video in videos:
@@ -773,25 +757,6 @@ class CompressionsForCharts(APIView):
         except models.Video.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-                           
-# class DeleteVideoView(APIView):
-#     def delete(self, request, video_id):
-#         try:
-#             video = models.Video.objects.get(id=video_id)
-#         except models.Video.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#         dot_idx = video.filename.find(".")
-#         if dot_idx == -1:
-#             return Response({"message": "Invalid filename"}, status=status.HTTP_400_BAD_REQUEST)
-#         frames_dirname = video.filename[:dot_idx]
-#         video_path = finders.find(os.path.join("compressed_videos", video.filename))
-#         frames_path = finders.find(os.path.join("frames", frames_dirname))
-
-#         os.remove(video_path)
-#         shutil.rmtree(frames_path)
-#         models.Video.objects.filter(id=video_id).delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
 class FrameSizeView(APIView):
     def get(self, request, video_id, frame_number):
         try:
@@ -806,7 +771,6 @@ class FrameSizeView(APIView):
             return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
-# QUIZ_DIR = "/STATIC/QUIZ"
 
 class UploadQuestionsView(APIView):
     permission_classes = [IsSuperuser]

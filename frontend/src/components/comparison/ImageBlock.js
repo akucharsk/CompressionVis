@@ -9,6 +9,7 @@ import { apiUrl } from "../../utils/urls";
 import {useQuery} from "@tanstack/react-query";
 import {fetchWithCredentials} from "../../api/genericFetch";
 import {defaultRetryPolicy} from "../../utils/retryUtils";
+import { useSettings } from "../../context/SettingsContext";
 
 const ImageBlock = ({
                         isConst = true,

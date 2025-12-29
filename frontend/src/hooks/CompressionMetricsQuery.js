@@ -7,7 +7,7 @@ const CompressionMetricsQueryFn = async (compressionId) => {
     return data;
 }
 
-export const CompressionMetricsQueries = (compressionIds) => {
+export const useCompressionMetricsQueries = (compressionIds) => {
     return useQueries({
         queries: compressionIds.map(id => ({
             queryKey: ["metricsForCharts", id],

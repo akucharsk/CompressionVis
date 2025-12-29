@@ -49,10 +49,10 @@ function Layout() {
                                 <Route path="/comparison" element={<Comparison />} />
                                 <Route path="/compressed" element={<CompressedVideos />} />
                                 <Route path="/quiz" element={<QuizProvider><Outlet /></QuizProvider>}>
-                                  <Route path=":quizId/menu" element={<QuizMenu />} />
-                                  <Route path=":quizId" element={<Quiz />} />
-                                  <Route path=":quizId/results" element={<QuizResults />} />
-                                  <Route path="list" element={<QuizList />} />
+                                <Route path=":quizId/menu" element={<QuizMenu />} />
+                                <Route path=":quizId" element={<Quiz />} />
+                                <Route path=":quizId/results" element={<QuizResults />} />
+                                <Route path="list" element={<QuizList />} />
                                 </Route>
                                 <Route path="/differences" element={<FrameDifferences />} />
                                 <Route path="/admin" element={<Protected><Admin /></Protected>} />

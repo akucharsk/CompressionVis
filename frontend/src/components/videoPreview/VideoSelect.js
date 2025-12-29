@@ -19,31 +19,6 @@ const VideoSelect = () => {
         }));
     };
 
-    // const queryFn = useCallback(async () => {
-    //     const data = await genericFetch(`${apiUrl}/video/example/`);
-    //     const formattedData = data["videoIds"].map((item) => ({
-    //         id: item.id,
-    //         name: item.title,
-    //         thumbnail: `${apiUrl}/video/thumbnail/${item.id}/`,
-    //         url: `${apiUrl}/video/${item.id}/`
-    //     }));
-    //     const randomVideo = formattedData[Math.floor(Math.random() * formattedData.length)];
-    //     setParameters(prev => ({
-    //         ...prev,
-    //         videoLink: randomVideo.url,
-    //         videoId: randomVideo.id,
-    //         videoName: randomVideo.name
-    //     }));
-    //     return formattedData;
-    // }, [ setParameters ]);
-
-    // const { data, isPending, error } = useQuery({
-    //     queryKey: [ "videoExample" ],
-    //     queryFn,
-    //     retry: defaultRetryPolicy,
-    //     refetchInterval: defaultRefetchIntervalPolicy
-    // });
-
     const { data, isPending, error } = useOriginalVideos();
 
     useEffect(() => {

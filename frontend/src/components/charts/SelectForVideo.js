@@ -15,19 +15,7 @@ const SelectForVideo = () => {
         changeVideo(video.id);
     };
 
-    const [selectedVideo, setSelectedVideo] = useState();
-
-    useEffect(() => {
-        if (!data) return;
-        if (!selectedVideoId) return;
-
-        const foundData = data.find(video => 
-            String(video.id) === String(selectedVideoId)
-        );
-        if (!foundData) return;
-        setSelectedVideo(foundData);
-
-    }, [data, selectedVideoId, changeVideo])
+    const selectedVideo = data?.find(video => String(video.id) === String(selectedVideoId));
 
     useEffect(() => {
         if (!open) return;

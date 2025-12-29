@@ -9,7 +9,7 @@ const chartsOptionsStatusFn = async (compressionId) => {
     return data;
 }
     
-export const ChartsOptionsFieldQuery = (compressionId, isActive) => {
+export const useChartsOptionsFieldQuery = (compressionId, isActive) => {
     return useQuery({
         queryKey: ["chartsOptionsStatus", compressionId],
         queryFn: () => chartsOptionsStatusFn(compressionId),

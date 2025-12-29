@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCharts } from "../../context/ChartsContext";
-import { ChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
+import { useChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
 import Spinner from "../Spinner";
 import { sizeFormatter } from "../../utils/sizeFormatter";
 
@@ -10,7 +10,7 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
     const { thumbnails } = useCharts();
     const { id, original, metrics, ...details } = compression;
 
-    const { data } = ChartsOptionsFieldQuery(
+    const { data } = useChartsOptionsFieldQuery(
         id,
         initialMetricsState !== "loaded"
     )

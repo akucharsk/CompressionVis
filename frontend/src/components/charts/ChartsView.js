@@ -1,5 +1,5 @@
 import { useCharts } from "../../context/ChartsContext";
-import { CompressionMetricsQueries} from "../../hooks/CompressionMetricsQuery";
+import { useCompressionMetricsQueries} from "../../hooks/CompressionMetricsQuery";
 import MetricChart from "./MetricChart";
 
 const ChartsView = () => {
@@ -25,7 +25,7 @@ const ChartsView = () => {
     ]
 
     const compressionIds = tappedCompressions.map(compression => compression.id);
-    const compressionQueries = CompressionMetricsQueries(compressionIds);
+    const compressionQueries = useCompressionMetricsQueries(compressionIds);
 
     const compressionMetricsMap = Object.fromEntries(
         compressionQueries
