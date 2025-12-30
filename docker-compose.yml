@@ -124,3 +124,6 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=3000
+      - WATCHPACK_POLLING=true
+      - WATCHPACK_POLLING_INTERVAL=100
+      - NODE_ENV=development

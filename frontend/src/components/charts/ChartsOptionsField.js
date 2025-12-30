@@ -1,13 +1,20 @@
 import "../../styles/components/charts/ChartsOptions.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Spinner from "../Spinner";
 import RGBPicker from "./RGBPicker";
-import { useChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
+import { useChartsOptionsFieldQuery } from "../../hooks/charts-options-field-query";
 import { useCharts } from "../../context/ChartsContext";
 import { DEFAULT_COLOR } from "../../utils/constants";
 
-const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
-    // const [fieldState, setFieldState] = useState(initialMetricsState);
+const ChartsOptionsField = ({ compressionId, metrics }) => {
+    const initialMetricsState = useMemo(() => (
+        Object.entries(metrics)
+            .filter(([key]) => key !== "size")
+            .every(([, value]) => value === null || value === "None") 
+            ? "processing" 
+            : "loaded"
+        ), [metrics])
+
     const { setCompressionMetricState, compressionMetricState, tappedCountForCompression, setTappedCountForCompression, TAPPED_MAX, selectedVideoId } = useCharts();
     const { data } = useChartsOptionsFieldQuery(
         compressionId,
@@ -28,7 +35,7 @@ const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
                     color: prev[id]?.color ?? DEFAULT_COLOR
                 }
             };
-            const tappedForThisVideoCount = Object.values(updated).filter(v => v.isTapped).length;
+            const tappedForThisVideoCount = Object.values(updated).filter(v => v.isTapped && v.originalVideoId === selectedVideoId).length;
             setTappedCountForCompression(prev => ({
                 ...prev,
                 [selectedVideoId]: TAPPED_MAX - tappedForThisVideoCount
@@ -37,14 +44,6 @@ const ChartsOptionsField = ({ compressionId, initialMetricsState }) => {
         });
     };
 
-    // useEffect(() => {
-    //     if (data) {
-    //         const newMessage = data.message;
-    //         setFieldState(
-    //             newMessage === "finished" ? "loaded" : newMessage === "processing" ? "processing" : "error"
-    //         );
-    //     }
-    // }, [data])
     const fieldState = !data ? initialMetricsState : data?.message === "finished" ? "loaded" : data?.message === "processing" ? "processing" : "error";
 
 

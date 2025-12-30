@@ -69,17 +69,11 @@ const ChartsOptions = () => {
             ) : data ? (
                 <div className="charts-options with-data">
                     {data.map((video, idx) => {
-                        const compressionId = video.id;
-                        const areAllMetricsNull = Object.entries(video.metrics)
-                            .filter(([key]) => key !== "size")
-                            .every(([, value]) => value === null || value === "None");
-                        const initialMetricsState = areAllMetricsNull ? "processing" : "loaded";
-
                         return (
                             <ChartsOptionsField 
-                                compressionId={compressionId}
-                                initialMetricsState={initialMetricsState}
-                                key={compressionId}
+                                compressionId={video.id}
+                                metrics={video.metrics}
+                                key={video.id}
                             />
                         )    
                     })}

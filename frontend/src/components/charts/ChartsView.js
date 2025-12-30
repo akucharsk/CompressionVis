@@ -1,5 +1,5 @@
 import { useCharts } from "../../context/ChartsContext";
-import { useCompressionMetricsQueries} from "../../hooks/CompressionMetricsQuery";
+import { useCompressionMetricsQueries} from "../../hooks/compression-metrics-query";
 import MetricChart from "./MetricChart";
 
 const ChartsView = () => {

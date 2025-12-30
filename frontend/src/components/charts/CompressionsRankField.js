@@ -1,14 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCharts } from "../../context/ChartsContext";
-import { useChartsOptionsFieldQuery } from "../../hooks/ChartsOptionsFieldQuery";
+import { useChartsOptionsFieldQuery } from "../../hooks/charts-options-field-query";
 import Spinner from "../Spinner";
 import { sizeFormatter } from "../../utils/sizeFormatter";
 
-const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetricsState, refetchCompressions }) => {
+const CompressionsRankField = ({ compression, selectedMetric, refetchCompressions }) => {
+    const { id, original, metrics, ...details } = compression;
+
+    const initialMetricsState = useMemo(() => (
+        Object.entries(metrics)
+            .filter(([key]) => key !== "size")
+            .every(([, value]) => value === null || value === "None" || value === 0) 
+            ? "processing" 
+            : "loaded"
+    ), [metrics])
+    
     const [fieldState, setFieldState] = useState(initialMetricsState);
     const [open, setOpen] = useState(false);
     const { thumbnails } = useCharts();
-    const { id, original, metrics, ...details } = compression;
 
     const { data } = useChartsOptionsFieldQuery(
         id,
@@ -37,6 +46,10 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
     const metricKey = selectedMetric.toLowerCase();
     const value = metrics?.[metricKey];
 
+    useEffect(() => {
+        console.log("RERENDER", initialMetricsState)
+    }, [initialMetricsState])
+
 
     return (
         <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`}>
@@ -59,7 +72,7 @@ const CompressionsRankField = ({ compression, idx, selectedMetric, initialMetric
             <div className={`compression-details ${open ? "open" : ""}`}>
                 <div className="compression-details-inner">
                     {Object.entries(details)
-                    .filter(([key,]) => key != "created_at")
+                    .filter(([key,]) => key !== "created_at")
                     .map(([key, value]) => {
                         return (
                             <div className="compression-details-element" key={key}>

@@ -111,17 +111,10 @@ const CompressionsRank = () => {
                 </div>
                 {sortedData.map((video, idx) => {
                     if (!video) return;
-                    const areAllMetricsNotReady = Object.entries(video.metrics)
-                        .filter(([key]) => key !== "size")
-                        .every(([, value]) => value === null || value === "None" || value === 0);
-                    const initialMetricsState = areAllMetricsNotReady ? "processing" : "loaded";
-                    
                     return (
                         <CompressionsRankField 
-                            compression={video} 
-                            idx={idx}
+                            compression={video}
                             selectedMetric={selectedMetric}
-                            initialMetricsState={initialMetricsState}
                             refetchCompressions={refetch}
                             key={video.id}
                         />
