@@ -1,35 +1,27 @@
 .metric-chart-block {
     width: 100%;
-    height: 45vh;
-    padding: 0 10px;
-    margin: 10px 0;
+    padding: 20px 10px;
+    height: 50vh;
+    margin: 50px 0;
     display: flex;
     flex-direction: column;
-}
-
-@media (max-width: 1250px) {
-    .metric-chart-block {
-        height: 60vh;
-        margin: 50px 0;
-    }   
 }
 
 .metric-chart-block h2 {
     text-align: center;
     font-size: xx-large;
+    padding: 10px 0 20px 0;
 }
 
 .metric-chart-top-layout {
     width: 95%;
-    padding-top: 30px;
+    flex: 1;
 }
 
 .metric-chart-inner-layout {
     display: flex;
-    flex: 1;
-    align-items: flex-start;
-    width: 100%;
     height: 90%;
+    width: 100%;
     position: relative
 }
 
@@ -53,4 +45,8 @@
 .metric-chart-content {
     height: 100%;
     flex-shrink: 0;
+}
+
+.metric-chart-content canvas{
+    height: 100% !important;
 }

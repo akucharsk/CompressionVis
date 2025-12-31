@@ -15,8 +15,6 @@ const ChartsView = () => {
             ...value
     }));
 
-    console.log(compressionMetricState)
-
     const metrics = [
         "VMAF",
         "PSNR",

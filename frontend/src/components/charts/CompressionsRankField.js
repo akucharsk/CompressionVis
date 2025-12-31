@@ -45,11 +45,7 @@ const CompressionsRankField = ({ compression, selectedMetric, refetchCompression
     
     const metricKey = selectedMetric.toLowerCase();
     const value = metrics?.[metricKey];
-
-    useEffect(() => {
-        console.log("RERENDER", initialMetricsState)
-    }, [initialMetricsState])
-
+    console.log(value);
 
     return (
         <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`}>
@@ -64,7 +60,7 @@ const CompressionsRankField = ({ compression, selectedMetric, refetchCompression
                         <Spinner size={20}/>
                     ) : (
                     <span>
-                        {metricKey === "size" ? sizeFormatter(value) : (Math.round(value) / 100).toFixed(2)}
+                        {metricKey === "size" ? sizeFormatter(value) : value.toFixed(2)}
                     </span>
                     )}
                 </div>

@@ -10,6 +10,8 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     width: 400px;
     flex: none;
+    height: calc(100% - 50px);
+    min-height: 0;
 }
 
 select {
@@ -37,6 +39,8 @@ select:hover, select:focus {
 
 .parameters-section {
     display: flex;
+    flex: 1;
+    min-height: 0;
     flex-direction: column;
     gap: 15px;
     margin-bottom: 20px;
@@ -298,4 +302,14 @@ select:hover, select:focus {
 .dropdown-disabled {
     opacity: 0.5;
     pointer-events: none;
+}
+
+@media (max-width: 1600px) {
+    .parameters-section {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
 }

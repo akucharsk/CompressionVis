@@ -41,10 +41,7 @@ const Charts = () => {
                 <div className="charts-rightside-bottom">
                     <h4>Choose compressions to compare</h4>
                     <h4>Video compressions rank (by average video value)</h4>
-                    <ChartsOptions 
-                        // compressionMetricState={compressionMetricState}
-                        // setCompressionMetricState={setCompressionMetricState}
-                    />
+                    <ChartsOptions />
                     <CompressionsRank />
                 </div>
             </div>

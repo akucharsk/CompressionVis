@@ -113,7 +113,10 @@ const MetricChart = ({ metricType, idx, tappedCompressions, compressionMetricsMa
     };
 
     const contentOptions = {
+        responsive: true,
         maintainAspectRatio: false,
+        animation: false,
+        resizeDelay: 0,
         plugins: {
             legend: {
                 display: false
