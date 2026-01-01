@@ -31,6 +31,10 @@ export default function GeneralAccess({ setOpen }) {
         VIDEOS
         <FiList size={20} />
       </NavLink>
+      <NavLink to={`/charts${search}`} className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
+             onClick={() => setOpen(false)}>
+        CHARTS
+      </NavLink>
     </div>
   )
 }

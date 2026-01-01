@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 
 class FrameType(models.TextChoices):
@@ -15,6 +16,7 @@ class Video(models.Model):
         null=True,
         default=None,
     )
+    created_at = models.DateTimeField(default=timezone.now)
     bandwidth = models.IntegerField(default=None, null=True)
     width = models.IntegerField(default=None, null=True)
     height = models.IntegerField(default=None, null=True)

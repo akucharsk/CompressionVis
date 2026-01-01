@@ -2,6 +2,14 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    /* width: 90%;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+.video-thumbnail {
+    width: 20%;
+    height: auto; */
     margin: 0 auto;
     width: 90%;
 }

@@ -1,0 +1,104 @@
+@import url("../../shared/Shared.css");
+
+
+.select-wrapper {
+    position: relative;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dropdown-trigger {
+    border-radius: 8px;
+    border: 3px solid var(--netflix-light-grey);
+    width: 99%;
+    transition: border-color 0.4s ease-in-out;
+}
+
+.dropdown-trigger:hover {
+    border-color: #fff;
+}
+
+.select-wrapper-option {
+    display: flex;
+    height: 65px;
+    border-radius: 6px;
+    transition: background-color 0.4s ease-in-out;
+}
+
+.select-wrapper-option:hover {
+    cursor: pointer;
+    background-color: var(--background-third);
+    .select-wrapper-option-title {
+        border-right-color: #fff;
+    }
+}
+
+.select-wrapper-option.nonselected {
+    border-radius: 0px;
+    border-top: solid 2px var(--netflix-light-grey);
+    transition: background-color 0.4s ease-in-out;
+}
+
+.select-wrapper-option.nonselected:hover {
+    background-color: var(--netflix-red);
+}
+
+.select-wrapper-option-title, .select-wrapper-option.original {
+    font-size: medium;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 5px 0;
+    width: 100%;
+}
+
+.select-wrapper-option.original {
+    margin: 0;
+}
+
+.select-wrapper-option-title {
+    width: 60%;
+    border-right: dashed 3px var(--netflix-light-grey);
+}
+
+.select-wrapper-option-title {
+    transition: border-right-color 0.4s ease-in-out;
+}
+
+.select-wrapper-option-image {
+    padding: 3px;
+    display: flex;
+    align-items: center;
+}
+
+.select-wrapper-option-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit:cover;
+}
+
+.dropdown-options {
+    position: absolute;
+    top: 66px;
+    left: 3px;
+    width: 97%;
+    background-color: var(--background-first);
+    border: 0;
+
+    pointer-events: none;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.6s ease;
+    border: solid 1px var(--netflix-light-grey);
+    z-index: 3;
+}
+
+.dropdown-options.open {
+    max-height: 500px;
+    pointer-events: auto;
+    border-top: 0;
+}

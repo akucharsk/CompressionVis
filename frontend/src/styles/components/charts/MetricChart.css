@@ -1,0 +1,52 @@
+.metric-chart-block {
+    width: 100%;
+    padding: 20px 10px;
+    height: 50vh;
+    margin: 50px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-chart-block h2 {
+    text-align: center;
+    font-size: xx-large;
+    padding: 10px 0 20px 0;
+}
+
+.metric-chart-top-layout {
+    width: 95%;
+    flex: 1;
+}
+
+.metric-chart-inner-layout {
+    display: flex;
+    height: 90%;
+    width: 100%;
+    position: relative
+}
+
+.metric-chart-y-axis {
+    width: 60px; 
+    flex-shrink: 0;
+    height: 97%;
+    margin: 20px 0;
+}
+
+.metric-chart-scroll {
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 20px 0px;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
+
+.metric-chart-content {
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.metric-chart-content canvas{
+    height: 100% !important;
+}

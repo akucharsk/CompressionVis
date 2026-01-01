@@ -1,0 +1,100 @@
+@import "../../shared/Shared.css";
+
+
+.charts-options, .charts-options.with-data {
+    min-height: 0;
+    padding: 0 5px;
+    height: 100%;
+    display: flex;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--netflix-red) var(--background-second);   
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.charts-options.with-data {
+    flex-direction: column;
+    direction: rtl;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+.charts-options-info {
+    text-align: center;
+    font-size: large;
+    color: var(--netflix-light-grey);
+    font-weight: 800;
+    margin: 0 10px;
+}
+
+.compression-in-select-panel {
+    width: 100%;
+    direction: ltr;
+    border-bottom: solid 0.05rem #fff;
+    padding: 2px 10px;
+    margin: 3px 0;
+    background-color: var(--background-third);
+    height: 50px;   
+
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box; 
+    flex-shrink: 0; 
+    transition: transform 0.2s ease;
+}
+
+.compression-in-select-panel.active-tapped {
+    border-color: var(--netflix-red);
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.compression-in-select-panel.active-tapped .selection-option-left {
+    border-color: var(--netflix-red);
+}
+
+.compression-in-select-panel.inactive {
+    background-color: var(--background-second);
+    color: var(--border-color);
+    pointer-events: none;
+}
+
+.compression-in-select-panel.active-tapped:hover,
+.compression-in-select-panel.active:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+}
+
+.selection-option-left {
+    display: flex;
+    font-size:x-small;
+    font-style: italic;
+    font-weight: 700;
+    height: 90%;
+    align-items: center;
+    padding-right: 8px;
+    border-right: 0.01rem solid var(--background-fourth);
+    width: 70%;
+    position:relative; 
+}
+
+.metric-color-picker {
+    width: 10px;
+    height: 10px;
+    border: solid 2px #fff;
+    background-color: var(--netflix-red);
+    z-index: 1;
+}
+
+.sketch-picker label {
+    color: #ccc !important;
+}

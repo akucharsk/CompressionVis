@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import {useSettings} from "../../context/SettingsContext";
+import {apiUrl} from "../../utils/urls";
 import "../../styles/components/video/VideoSelect.css";
 import {useError} from "../../context/ErrorContext";
 import Spinner from "../Spinner";

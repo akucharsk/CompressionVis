@@ -7,3 +7,5 @@ export const INDICATOR_OPTIONS = {
   ssim: { label: "SSIM", value: "ssim" }, 
   vmaf: { label: "VMAF", value: "vmaf" }
 };
+
+export const DEFAULT_COLOR = "#e50914";

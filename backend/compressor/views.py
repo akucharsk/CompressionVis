@@ -13,6 +13,7 @@ from django.contrib.staticfiles import finders
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
+from django.utils import dateformat
 from django.db.models import F
 from django.db.models.functions import Concat
 from django.db.models import Value as V
@@ -539,6 +540,65 @@ class AllFramesMetricsView(APIView):
 
         return Response({"metrics": frame_metrics}, status=status.HTTP_200_OK)
 
+class FramesSizesMetricsChartsView(APIView):
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+            metrics = models.VideoMetrics.objects.get(video=video)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+        if not MetricView.wrap_metrics(metrics):
+            return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+        frames = models.FrameMetadata.objects.filter(video=video)
+        frames_data = frames.all().order_by('frame_number').values("psnr_score", "ssim_score", "vmaf_score", "pkt_size")
+        
+        data = {
+            "VMAF": [],
+            "PSNR": [],
+            "SSIM": [],
+            "Size": []
+        }
+
+        for metric in frames_data:
+            for score in ["psnr_score", "ssim_score", "vmaf_score"]:
+                name = score.split("_")[0]
+                data[name.upper()].append(round(metric[score], 2))
+            data["Size"].append(round(metric["pkt_size"], 2))
+
+        return Response({"metrics": data}, status=status.HTTP_200_OK)
+
+
+class MetricStatusView(APIView):
+    @staticmethod
+    def are_all_metrics(metrics):
+        if not metrics:
+            return False
+        return all([
+            metrics.vmaf_mean is not None and metrics.vmaf_mean != 0,
+            metrics.psnr_mean is not None and metrics.psnr_mean != 0,
+            metrics.ssim_mean is not None and metrics.ssim_mean != 0
+        ])
+
+    def get(self, request, video_id):
+        try:
+            video = models.Video.objects.get(id=video_id)
+        except models.Video.DoesNotExist:
+            return Response({"message": "Video not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            metrics = models.VideoMetrics.objects.get(video=video)
+        except models.VideoMetrics.DoesNotExist:
+            return Response({"message": "Metrics extraction failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if self.are_all_metrics(metrics):
+            return Response({"message": "finished"}, status=status.HTTP_200_OK)
+        return Response({"message": "processing"}, status=status.HTTP_202_ACCEPTED)
+
+
 class SizeView(APIView):
     def get(self, request, video_id):
         try:
@@ -629,6 +689,74 @@ class AllCompressed(APIView):
 
         return Response({"videos": camelize(video_list)}, status=status.HTTP_200_OK)
 
+class CompressionsForCharts(APIView):
+    def get(self, request):
+        values_params = [
+            "id",
+            "original",
+            "bandwidth",
+            "crf",
+            "width",
+            "height",
+            "gop_size",
+            "bf",
+            "aq_mode",
+            "aq_strength",
+            "preset",
+            "size",
+            "videometrics__vmaf_mean",
+            "videometrics__psnr_mean",
+            "videometrics__ssim_mean",
+            "created_at"
+        ]
+        originalVideoId = request.GET.get("originalVideoId")
+        try:
+            if originalVideoId:
+                # To avoid getting list of all compressed in ChartsOptions. Instead of that "Choose base video"
+                if originalVideoId != "null":
+                    originalVideoId = int(originalVideoId)
+                    videos = models.Video.objects.filter(
+                        is_compressed=True, original=originalVideoId
+                    ).select_related('videometrics') \
+                    .values(*values_params)
+                    if videos:
+                        videos = list(videos)
+                        for video in videos:
+                            video["metrics"] = {
+                                "vmaf": video.pop("videometrics__vmaf_mean"),
+                                "ssim": video.pop("videometrics__ssim_mean"),
+                                "psnr": video.pop("videometrics__psnr_mean"),
+                                "size": video.pop("size")
+                            }
+                            video["created_at"] = dateformat.format(video["created_at"], "d M Y H:i:s")
+                        return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+                    # No videos found for this originalVideoIdd
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+                # For moment when not selected original video yet
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                videos = models.Video.objects.filter(
+                    is_compressed=True
+                ).select_related('videometrics') \
+                .values(*values_params)
+            if videos:
+                videos = list(videos)
+                for video in videos:
+                    video["metrics"] = {
+                        "vmaf": video.pop("videometrics__vmaf_mean"),
+                        "ssim": video.pop("videometrics__ssim_mean"),
+                        "psnr": video.pop("videometrics__psnr_mean"),
+                        "size": video.pop("size")
+                    }
+                    video["created_at"] = dateformat.format(video["created_at"], "d M Y H:i:s")
+                return Response({"videos": list(videos)}, status=status.HTTP_200_OK)
+            # No compressions yet in database
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except (TypeError, ValueError):
+            return Response({"description": f"Invalid originalVideoId {originalVideoId} (type {type(originalVideoId)}).  TypeError or ValueError"}, status=status.HTTP_400_BAD_REQUEST)
+        except models.Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
 class FrameSizeView(APIView):
     def get(self, request, video_id, frame_number):
         try:
@@ -643,7 +771,6 @@ class FrameSizeView(APIView):
             return Response({"message": "Size not available"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"size": frame.pkt_size}, status=status.HTTP_200_OK)
-# QUIZ_DIR = "/STATIC/QUIZ"
 
 class UploadQuestionsView(APIView):
     permission_classes = [IsSuperuser]

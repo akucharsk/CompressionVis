@@ -50,12 +50,12 @@ export const FramesProvider = ({ children }) => {
 
     const refetchInterval = useCallback((query) => {
         const defaultRetry = defaultRefetchIntervalPolicy(query);
-        console.log({ defaultRetry, retry: defaultRetry > 0, queryStateData: query?.state?.data });
+        // console.log({ defaultRetry, retry: defaultRetry > 0, queryStateData: query?.state?.data });
         if (defaultRetry > 0) {
             return defaultRetry;
         }
         const data = query?.state?.data;
-        console.log({ data });
+        // console.log({ data });
         if (data?.frames?.length < data?.total) {
             return DEFAULT_RETRY_TIMEOUT_MS;
         }

@@ -188,6 +188,7 @@ const FrameBoxNavigation = () => {
                             type="range"
                             min="6"
                             max="30"
+                            // step="6"
                             value={fps}
                             onChange={(e) => setFps(Number(e.target.value))}
                             className="speed-slider"

@@ -12,7 +12,6 @@
     justify-content: space-between;
     border-radius: 8px;
     gap: 1.5rem;
-    flex-wrap: wrap;
     width: 100%;
 }
 
@@ -580,6 +579,7 @@ input::-webkit-inner-spin-button {
 
 @media (max-width: 1400px) {
     .timeline-header {
+        flex-wrap: wrap;
         justify-content: center;
         gap: 0.75rem;
     }
@@ -603,6 +603,7 @@ input::-webkit-inner-spin-button {
 
 @media (max-width: 768px) {
     .timeline-header {
+        flex-wrap: wrap;
         flex-direction: column;
         gap: 0.5rem;
     }

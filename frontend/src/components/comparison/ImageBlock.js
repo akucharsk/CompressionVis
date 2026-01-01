@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "../../styles/components/comparison/Images.css";
 import ImageDetails from "./ImageDetails";
 import ImageFullScreen from "./ImageFullScreen";
-import { useSettings } from "../../context/SettingsContext";
 import ImageVideoBlock from "../ImageVideoBlock";
 import SlaveImageVideoBlock from "../SlaveImageVideoBlock";
 import { useSearchParams } from "react-router-dom";
@@ -10,6 +9,7 @@ import { apiUrl } from "../../utils/urls";
 import {useQuery} from "@tanstack/react-query";
 import {fetchWithCredentials} from "../../api/genericFetch";
 import {defaultRetryPolicy} from "../../utils/retryUtils";
+import { useSettings } from "../../context/SettingsContext";
 
 const ImageBlock = ({
                         isConst = true,
