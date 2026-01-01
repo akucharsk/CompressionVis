@@ -45,7 +45,7 @@ const CompressionsRankField = ({ compression, selectedMetric, refetchCompression
     
     const metricKey = selectedMetric.toLowerCase();
     const value = metrics?.[metricKey];
-    console.log(value);
+    
 
     return (
         <div className={`compression-in-rank-panel ${fieldState !== "loaded" ? "inactive" : "active"}`}>
@@ -56,7 +56,7 @@ const CompressionsRankField = ({ compression, selectedMetric, refetchCompression
                     <div className="compression-main-info-descriptive-time">{details.created_at ?? "Creation time..."}</div>
                 </div>
                 <div className="compression-main-info-numerical">
-                    {fieldState !== "loaded" ? (
+                    {fieldState !== "loaded" || !value ? (
                         <Spinner size={20}/>
                     ) : (
                     <span>
